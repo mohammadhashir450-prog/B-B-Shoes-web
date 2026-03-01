@@ -43,6 +43,7 @@ export default function HeritagePage() {
     }
     fetchProducts()
   }, [])
+
   return (
     <>
       <Navbar />
@@ -213,7 +214,7 @@ export default function HeritagePage() {
                   Every Heritage piece undergoes the same 180-hour process our founders perfected a century ago.
                 </p>
                 <p className="text-gray-400 leading-relaxed mb-8">
-                  From selecting hides to the final hand-polish, we refuse to compromise. This isn't fast fashion—
+                  From selecting hides to the final hand-polish, we refuse to compromise. This isn&apos;t fast fashion—
                   this is generational craftsmanship designed to outlive trends and be treasured for decades.
                 </p>
                 <div className="flex items-center gap-8">

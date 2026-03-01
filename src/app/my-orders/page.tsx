@@ -127,7 +127,7 @@ export default function MyOrdersPage() {
                     <Package className="w-10 h-10 text-[#D4AF37]" />
                   </div>
                   <h2 className="text-2xl font-bold mb-4">Your bag is empty</h2>
-                  <p className="text-gray-400 mb-8">Add items to your bag and they'll appear here</p>
+                  <p className="text-gray-400 mb-8">Add items to your bag and they&apos;ll appear here</p>
                   <Link
                     href="/new-arrivals"
                     className="inline-block bg-[#D4AF37] hover:bg-[#F4CE5C] text-black font-bold py-3 px-8 rounded-full transition-all"

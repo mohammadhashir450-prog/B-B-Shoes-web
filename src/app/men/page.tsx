@@ -56,16 +56,16 @@ export default function MenPage() {
               Home
             </Link>
             <ChevronRight size={14} className="text-gray-500" />
-            <span className="text-white">Men's Collection</span>
+            <span className="text-white">Men&apos;s Collection</span>
           </div>
 
           {/* Hero Section */}
           <div className="text-center mb-16">
             <p className="text-[#D4AF37] text-xs tracking-[0.3em] uppercase font-bold mb-4">
-              GENTLEMAN'S CHOICE
+              GENTLEMAN&apos;S CHOICE
             </p>
             <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
-              Men's <span className="text-[#D4AF37]">Premium</span> Collection
+              Men&apos;s <span className="text-[#D4AF37]">Premium</span> Collection
             </h1>
             <p className="text-gray-400 text-lg max-w-2xl mx-auto leading-relaxed">
               Handcrafted excellence designed for the modern gentleman who values timeless sophistication
@@ -114,7 +114,7 @@ export default function MenPage() {
               <div className="w-20 h-20 bg-[#D4AF37]/10 rounded-full flex items-center justify-center mx-auto mb-6">
                 <span className="text-5xl">👔</span>
               </div>
-              <h3 className="text-2xl font-bold text-white mb-4">No Men's Products Yet</h3>
+              <h3 className="text-2xl font-bold text-white mb-4">No Men&apos;s Products Yet</h3>
               <p className="text-gray-400 mb-8">New arrivals coming soon!</p>
               <Link 
                 href="/" 

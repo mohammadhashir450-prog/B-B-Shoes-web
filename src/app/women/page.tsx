@@ -57,7 +57,7 @@ export default function WomenPage() {
               Home
             </Link>
             <ChevronRight size={14} className="text-gray-500" />
-            <span className="text-white">Women's Collection</span>
+            <span className="text-white">Women&apos;s Collection</span>
           </div>
 
           {/* Hero Section */}
@@ -70,7 +70,7 @@ export default function WomenPage() {
               <Sparkles size={20} className="text-[#D4AF37]" />
             </div>
             <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
-              Women's <span className="text-[#D4AF37]">Luxury</span> Collection
+              Women&apos;s <span className="text-[#D4AF37]">Luxury</span> Collection
             </h1>
             <p className="text-gray-400 text-lg max-w-2xl mx-auto leading-relaxed">
               Where artistry meets comfort. Each piece crafted to celebrate feminine grace and sophistication
@@ -98,12 +98,12 @@ export default function WomenPage() {
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20">
               <Loader2 className="w-12 h-12 text-[#D4AF37] animate-spin mb-4" />
-              <p className="text-gray-400 text-sm">Loading women's collection...</p>
+              <p className="text-gray-400 text-sm">Loading women&apos;s collection...</p>
             </div>
           ) : products.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 bg-gradient-to-br from-[#1A2435] to-[#0F1825] rounded-3xl border border-white/10">
               <div className="text-6xl mb-4">👠</div>
-              <h3 className="text-2xl font-bold text-white mb-2">No Women's Products Yet</h3>
+              <h3 className="text-2xl font-bold text-white mb-2">No Women&apos;s Products Yet</h3>
               <p className="text-gray-400 mb-6">Check back soon for our latest collection</p>
               <Link 
                 href="/"
