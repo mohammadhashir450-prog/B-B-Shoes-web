@@ -1,0 +1,46 @@
+{
+  "name": "shoe-store",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "check-setup": "node scripts/check-setup.js",
+    "test-mongodb": "node scripts/test-mongodb.js"
+  },
+  "dependencies": {
+    "@auth/mongodb-adapter": "^3.11.1",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/nodemailer": "^7.0.10",
+    "cloudinary": "^2.9.0",
+    "framer-motion": "^11.0.0",
+    "jsonwebtoken": "^9.0.3",
+    "lucide-react": "^0.563.0",
+    "mongodb": "^7.1.0",
+    "mongoose": "^9.2.3",
+    "next": "^14.2.0",
+    "next-auth": "^4.24.13",
+    "next-cloudinary": "^6.17.5",
+    "nodemailer": "^8.0.1",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "autoprefixer": "^10.4.0",
+    "bcryptjs": "^3.0.3",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "^14.2.0",
+    "install": "^0.13.0",
+    "npm": "^11.9.0",
+    "postcss": "^8.4.0",
+    "tailwindcss": "^3.4.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.4.0"
+  }
+}

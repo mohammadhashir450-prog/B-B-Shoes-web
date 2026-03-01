@@ -1,0 +1,240 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { ArrowRight, ShoppingBag, Loader2 } from 'lucide-react';
+import Navbar from '@/components/layout/Navbar';
+import Footer from '@/components/layout/Footer';
+
+interface Product {
+  id: string
+  name: string
+  description?: string
+  price: number
+  originalPrice?: number
+  discount?: number
+  image: string
+  brand: string
+  category: string
+  isOnSale?: boolean
+}
+
+// Countdown Timer Component
+function CountdownTimer() {
+  const [timeLeft, setTimeLeft] = useState({
+    days: 2,
+    hours: 14,
+    minutes: 55,
+    seconds: 20
+  });
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeLeft(prev => {
+        let { days, hours, minutes, seconds } = prev;
+        
+        if (seconds > 0) {
+          seconds--;
+        } else {
+          seconds = 59;
+          if (minutes > 0) {
+            minutes--;
+          } else {
+            minutes = 59;
+            if (hours > 0) {
+              hours--;
+            } else {
+              hours = 23;
+              if (days > 0) {
+                days--;
+              }
+            }
+          }
+        }
+        
+        return { days, hours, minutes, seconds };
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <div className="flex items-center justify-center gap-6">
+      <div className="text-center">
+        <div className="bg-black/40 backdrop-blur-sm border border-white/10 rounded-xl px-6 py-4 min-w-[100px]">
+          <div className="text-4xl font-bold mb-1">{String(timeLeft.days).padStart(2, '0')}</div>
+          <div className="text-[#D4AF37] text-xs tracking-wider uppercase">Days</div>
+        </div>
+      </div>
+      <div className="text-center">
+        <div className="bg-black/40 backdrop-blur-sm border border-white/10 rounded-xl px-6 py-4 min-w-[100px]">
+          <div className="text-4xl font-bold mb-1">{String(timeLeft.hours).padStart(2, '0')}</div>
+          <div className="text-[#D4AF37] text-xs tracking-wider uppercase">Hours</div>
+        </div>
+      </div>
+      <div className="text-center">
+        <div className="bg-black/40 backdrop-blur-sm border border-white/10 rounded-xl px-6 py-4 min-w-[100px]">
+          <div className="text-4xl font-bold mb-1">{String(timeLeft.minutes).padStart(2, '0')}</div>
+          <div className="text-[#D4AF37] text-xs tracking-wider uppercase">Minutes</div>
+        </div>
+      </div>
+      <div className="text-center">
+        <div className="bg-black/40 backdrop-blur-sm border border-white/10 rounded-xl px-6 py-4 min-w-[100px]">
+          <div className="text-4xl font-bold mb-1">{String(timeLeft.seconds).padStart(2, '0')}</div>
+          <div className="text-[#D4AF37] text-xs tracking-wider uppercase">Seconds</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function SalesPage() {
+  const [saleProducts, setSaleProducts] = useState<Product[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchSaleProducts = async () => {
+      try {
+        setLoading(true)
+        const response = await fetch('/api/products')
+        if (response.ok) {
+          const data = await response.json()
+          // Filter only products on sale
+          const onSaleProducts = data.products.filter((p: Product) => p.isOnSale)
+          setSaleProducts(onSaleProducts)
+        }
+      } catch (error) {
+        console.error('Error fetching sale products:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchSaleProducts()
+  }, [])
+
+  return (
+    <div className="min-h-screen bg-[#0B101E] text-white">
+      <Navbar />
+
+      {/* Hero Section - Golden Season Sale */}
+      <div className="relative min-h-[80vh] flex items-center justify-center overflow-hidden pt-32">
+        {/* Background Image */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage: 'url(/api/placeholder/1920/1080)',
+            filter: 'brightness(0.4)'
+          }}
+        />
+        
+        {/* Content */}
+        <div className="relative z-10 text-center px-4 mt-12">
+          <h1 className="text-7xl md:text-8xl lg:text-9xl font-bold mb-6 font-serif text-[#D4AF37]">
+            GOLDEN SEASON
+          </h1>
+          <h2 className="text-7xl md:text-8xl lg:text-9xl font-bold mb-8 font-serif text-[#D4AF37]">
+            SALE
+          </h2>
+          <p className="text-[#D4AF37] text-sm tracking-[0.3em] uppercase mb-12">
+            EXCLUSIVE ACCESS FOR MEMBERS ONLY
+          </p>
+          
+          <CountdownTimer />
+        </div>
+      </div>
+
+      {/* The Sale Products Section */}
+      <div className="max-w-[1400px] mx-auto px-6 py-20">
+        <div className="flex items-center justify-between mb-12">
+          <div>
+            <p className="text-[#D4AF37] text-xs tracking-[0.3em] uppercase mb-2">CURATED SELECTION</p>
+            <h2 className="text-4xl font-bold">On Sale Now</h2>
+          </div>
+          <Link 
+            href="/collections" 
+            className="text-[#D4AF37] hover:text-white transition-colors flex items-center gap-2 group"
+          >
+            View All Offers
+            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+          </Link>
+        </div>
+
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="w-12 h-12 text-[#D4AF37] animate-spin" />
+          </div>
+        ) : saleProducts.length === 0 ? (
+          <div className="text-center py-20">
+            <div className="w-20 h-20 bg-[#D4AF37]/10 rounded-full flex items-center justify-center mx-auto mb-6">
+              <ShoppingBag className="w-10 h-10 text-[#D4AF37]" />
+            </div>
+            <h2 className="text-2xl font-bold mb-4">No Sale Items Yet</h2>
+            <p className="text-gray-400 mb-8">Check back soon for amazing deals!</p>
+            <Link
+              href="/"
+              className="inline-block bg-[#D4AF37] hover:bg-[#F4CE5C] text-[#0B101E] font-bold py-3 px-8 rounded-full transition-all"
+            >
+              Back to Home
+            </Link>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {saleProducts.map((product) => (
+              <Link 
+                href={`/product/${product.id}`} 
+                key={product.id} 
+                className="group"
+              >
+                <div className="relative bg-white rounded-2xl overflow-hidden mb-4 aspect-square">
+                  {product.discount && (
+                    <div className="absolute top-4 left-4 z-10 bg-red-600 text-white px-3 py-1.5 rounded-lg">
+                      <span className="text-xs font-bold">-{product.discount}%</span>
+                    </div>
+                  )}
+                  <img 
+                    src={product.image} 
+                    alt={product.name}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute top-4 right-4 z-10 bg-black/60 backdrop-blur-sm border border-[#D4AF37] text-[#D4AF37] px-3 py-1 rounded-full">
+                    <span className="text-xs font-bold tracking-wider">SALE</span>
+                  </div>
+                </div>
+                <div className="text-left">
+                  <p className="text-gray-400 text-xs tracking-wider uppercase mb-1">{product.brand}</p>
+                  <h3 className="text-xl font-bold mb-1 text-white">{product.name}</h3>
+                  <p className="text-gray-400 text-sm mb-3 line-clamp-1">{product.category}</p>
+                  <div className="flex items-center gap-3 mb-3">
+                    <span className="text-[#D4AF37] font-bold text-lg">PKR {product.price.toLocaleString()}</span>
+                    {product.originalPrice && (
+                      <span className="text-gray-500 line-through text-sm">PKR {product.originalPrice.toLocaleString()}</span>
+                    )}
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* VIP Access CTA */}
+      <div className="bg-[#0B101E] py-16">
+        <div className="max-w-[1400px] mx-auto px-6 text-center">
+          <Link 
+            href="/vip"
+            className="inline-flex items-center gap-3 bg-[#D4AF37] hover:bg-white text-black px-12 py-5 rounded-full font-bold text-lg tracking-wider transition-all group"
+          >
+            <span className="w-8 h-8 rounded-full bg-black flex items-center justify-center">
+              <ArrowRight className="w-5 h-5 text-[#D4AF37] group-hover:translate-x-1 transition-transform" />
+            </span>
+            ACCESS VIP SALE
+          </Link>
+        </div>
+      </div>
+
+      <Footer />
+    </div>
+  );
+}
