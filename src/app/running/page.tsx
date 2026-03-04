@@ -1,45 +1,19 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useMemo } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import { ChevronRight, Star, Loader2 } from 'lucide-react'
-
-interface Product {
-  id: string
-  name: string
-  price: number
-  image: string
-  category: string
-  rating: number
-  reviews: number
-  isOnSale?: boolean
-  isNewArrival?: boolean
-  inStock?: boolean
-}
+import { useProducts } from '@/context/ProductContext'
 
 export default function RunningPage() {
-  const [products, setProducts] = useState<Product[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await fetch('/api/products?category=Running')
-        if (response.ok) {
-          const data = await response.json()
-          setProducts(data.products || [])
-        }
-      } catch (error) {
-        console.error('Error fetching products:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchProducts()
-  }, [])
+  const { getProductsByCategory, loading } = useProducts()
+  
+  const products = useMemo(() => {
+    return getProductsByCategory('Running')
+  }, [getProductsByCategory])
 
   return (
     <>
@@ -102,7 +76,7 @@ export default function RunningPage() {
                       <h3 className="text-xl font-bold text-white mb-3 group-hover:text-[#D4AF37] transition-colors">{product.name}</h3>
                       <div className="flex items-center gap-1 mb-4">
                         {[...Array(5)].map((_, i) => (
-                          <Star key={i} size={14} className={i < product.rating ? 'fill-[#D4AF37] text-[#D4AF37]' : 'fill-gray-600 text-gray-600'} />
+                          <Star key={i} size={14} className={i < (product.rating || 0) ? 'fill-[#D4AF37] text-[#D4AF37]' : 'fill-gray-600 text-gray-600'} />
                         ))}
                         <span className="text-[11px] text-gray-400 ml-2">({product.reviews} reviews)</span>
                       </div>

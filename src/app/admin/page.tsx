@@ -1,30 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Package, ShoppingCart, Users, Plus, Edit2, Trash2, X, Save, Camera, Upload, Tag, Lock, Eye, EyeOff, TrendingUp, Sparkles, Crown, Check } from 'lucide-react';
 import { CldUploadWidget } from 'next-cloudinary';
-
-interface Product {
-  id: string;
-  name: string;
-  price: number;
-  originalPrice?: number;
-  discount?: number;
-  image: string;
-  sizeColorImages?: { size: number; color: string; image: string }[];
-  category: string;
-  brand: string;
-  sizes: number[];
-  colors: string[];
-  description: string;
-  rating: number;
-  reviews: number;
-  inStock: boolean;
-  isOnSale?: boolean;
-  isNewArrival?: boolean;
-}
+import { useProducts, Product } from '@/context/ProductContext';
 
 interface Order {
   id: string;
@@ -40,6 +21,7 @@ interface Order {
 
 export default function AdminPanel() {
   const router = useRouter();
+  const { allProducts, getSaleProducts, getNewArrivals, refetchProducts, loading: contextLoading } = useProducts();
   
   // Authentication states
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -48,9 +30,6 @@ export default function AdminPanel() {
   const [authError, setAuthError] = useState('');
   
   const [activeTab, setActiveTab] = useState('products');
-  const [products, setProducts] = useState<Product[]>([]);
-  const [salesProducts, setSalesProducts] = useState<Product[]>([]);
-  const [newArrivals, setNewArrivals] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [showAddSaleForm, setShowAddSaleForm] = useState(false);
@@ -59,13 +38,26 @@ export default function AdminPanel() {
   const [editingSaleProduct, setEditingSaleProduct] = useState<Product | null>(null);
   const [editingNewArrival, setEditingNewArrival] = useState<Product | null>(null);
   
+  // Get filtered products from context
+  const products = useMemo(() => {
+    return allProducts.filter((p) => !p.isOnSale && !p.isNewArrival);
+  }, [allProducts]);
+  
+  const salesProducts = useMemo(() => {
+    return getSaleProducts();
+  }, [getSaleProducts]);
+  
+  const newArrivals = useMemo(() => {
+    return getNewArrivals();
+  }, [getNewArrivals]);
+  
   // Size and color management
-  const [selectedSizes, setSelectedSizes] = useState<number[]>([7, 8, 9, 10, 11]);
+  const [selectedSizes, setSelectedSizes] = useState<string[]>(['7', '8', '9', '10', '11']);
   const [selectedColors, setSelectedColors] = useState<string[]>(['Black']);
   const [newSize, setNewSize] = useState('');
   const [newColor, setNewColor] = useState('');
-  
   const [loading, setLoading] = useState(false);
+  
   const [newProduct, setNewProduct] = useState<Product>({
     id: '',
     name: '',
@@ -82,6 +74,8 @@ export default function AdminPanel() {
     rating: 4.5,
     reviews: 0,
     inStock: true,
+    stock: 100,
+    sold: 0,
     isOnSale: false,
     isNewArrival: false
   });
@@ -95,24 +89,6 @@ export default function AdminPanel() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      const fetchProducts = async () => {
-        try {
-          setLoading(true);
-          const response = await fetch('/api/products');
-          if (response.ok) {
-            const data = await response.json();
-            const allProducts = data.products || [];
-            setProducts(allProducts.filter((p: Product) => !p.isOnSale && !p.isNewArrival));
-            setSalesProducts(allProducts.filter((p: Product) => p.isOnSale));
-            setNewArrivals(allProducts.filter((p: Product) => p.isNewArrival));
-          }
-        } catch (error) { 
-          console.error(error); 
-        } finally { 
-          setLoading(false); 
-        }
-      };
-
       const fetchOrders = async () => {
         try {
           const response = await fetch('/api/orders');
@@ -125,7 +101,6 @@ export default function AdminPanel() {
         }
       };
 
-      fetchProducts();
       fetchOrders();
     }
   }, [isAuthenticated]);
@@ -210,33 +185,15 @@ export default function AdminPanel() {
     );
   }
 
-  const fetchProducts = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch('/api/products');
-      if (response.ok) {
-        const data = await response.json();
-        const allProducts = data.products || [];
-        setProducts(allProducts.filter((p: Product) => !p.isOnSale && !p.isNewArrival));
-        setSalesProducts(allProducts.filter((p: Product) => p.isOnSale));
-        setNewArrivals(allProducts.filter((p: Product) => p.isNewArrival));
-      }
-    } catch (error) { 
-      console.error(error); 
-    } finally { 
-      setLoading(false); 
-    }
-  };
-
   const addSize = () => {
-    const size = parseInt(newSize);
+    const size = newSize.trim();
     if (size && !selectedSizes.includes(size)) {
-      setSelectedSizes([...selectedSizes, size].sort((a, b) => a - b));
+      setSelectedSizes([...selectedSizes, size].sort());
       setNewSize('');
     }
   };
 
-  const removeSize = (size: number) => {
+  const removeSize = (size: string) => {
     setSelectedSizes(selectedSizes.filter(s => s !== size));
   };
 
@@ -261,14 +218,14 @@ export default function AdminPanel() {
       });
       if (res.ok) {
         alert('✓ Product saved successfully!');
-        fetchProducts();
+        await refetchProducts();
         setShowAddForm(false);
         setShowAddSaleForm(false);
         setShowAddNewArrivalForm(false);
         setEditingProduct(null);
         setEditingSaleProduct(null);
         setEditingNewArrival(null);
-        setSelectedSizes([7, 8, 9, 10, 11]);
+        setSelectedSizes(['7', '8', '9', '10', '11']);
         setSelectedColors(['Black']);
       } else {
         alert('✗ Failed to save product');
@@ -637,7 +594,7 @@ export default function AdminPanel() {
                     setEditingProduct(null); 
                     setEditingSaleProduct(null); 
                     setEditingNewArrival(null);
-                    setSelectedSizes([7, 8, 9, 10, 11]);
+                    setSelectedSizes(['7', '8', '9', '10', '11']);
                     setSelectedColors(['Black']);
                   }} 
                   className="px-12 py-5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition-all"
@@ -674,7 +631,7 @@ export default function AdminPanel() {
                   isOnSale: false,
                   isNewArrival: false
                 });
-                setSelectedSizes([7, 8, 9, 10, 11]);
+                setSelectedSizes(['7', '8', '9', '10', '11']);
                 setSelectedColors(['Black']);
               }} 
               className="bg-gradient-to-r from-[#0047AB] to-[#0B101E] text-white px-8 py-4 rounded-2xl font-bold mb-8 flex items-center gap-3 shadow-lg hover:shadow-xl hover:scale-105 transition-all"
@@ -765,7 +722,7 @@ export default function AdminPanel() {
                   isOnSale: true,
                   isNewArrival: false
                 });
-                setSelectedSizes([7, 8, 9, 10, 11]);
+                setSelectedSizes(['7', '8', '9', '10', '11']);
                 setSelectedColors(['Black']);
               }} 
               className="bg-gradient-to-r from-red-600 to-red-700 text-white px-8 py-4 rounded-2xl font-bold mb-8 flex items-center gap-3 shadow-lg hover:shadow-xl hover:scale-105 transition-all"
@@ -859,7 +816,7 @@ export default function AdminPanel() {
                   isOnSale: false,
                   isNewArrival: true
                 });
-                setSelectedSizes([7, 8, 9, 10, 11]);
+                setSelectedSizes(['7', '8', '9', '10', '11']);
                 setSelectedColors(['Black']);
               }} 
               className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-8 py-4 rounded-2xl font-bold mb-8 flex items-center gap-3 shadow-lg hover:shadow-xl hover:scale-105 transition-all"

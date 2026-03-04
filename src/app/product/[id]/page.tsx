@@ -4,30 +4,16 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
+import { useProducts, Product as ProductType } from '@/context/ProductContext';
 import { ChevronRight, ChevronDown, Star, Heart, ShoppingBag, Check, Loader2 } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 
-interface ProductData {
-  id: string
-  name: string
-  price: number
-  image: string
-  category: string
-  description?: string
-  sizes: string[]
-  colors: string[]
-  rating: number
-  reviews: number
-  isOnSale?: boolean
-  isNewArrival?: boolean
-  inStock?: boolean
-}
-
 export default function ProductDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
   const { addToCart } = useCart();
-  const [product, setProduct] = useState<ProductData | null>(null);
+  const { getProductById, loading: contextLoading } = useProducts();
+  const [product, setProduct] = useState<ProductType | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
@@ -39,26 +25,38 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const response = await fetch(`/api/products/${params.id}`);
-        if (response.ok) {
-          const data = await response.json();
-          setProduct(data.product);
-          if (data.product.colors && data.product.colors.length > 0) {
-            setSelectedColor(data.product.colors[0]);
+        // First try to get product from context
+        const contextProduct = getProductById(params.id);
+        
+        if (contextProduct) {
+          setProduct(contextProduct);
+          if (contextProduct.colors && contextProduct.colors.length > 0) {
+            setSelectedColor(contextProduct.colors[0]);
           }
-        } else {
-          setError('Product not found');
+          setLoading(false);
+        } else if (!contextLoading) {
+          // If not in context and context is loaded, fetch from API
+          const response = await fetch(`/api/products/${params.id}`);
+          if (response.ok) {
+            const data = await response.json();
+            setProduct(data.product);
+            if (data.product.colors && data.product.colors.length > 0) {
+              setSelectedColor(data.product.colors[0]);
+            }
+          } else {
+            setError('Product not found');
+          }
+          setLoading(false);
         }
       } catch (err) {
         console.error('Error fetching product:', err);
         setError('Failed to load product');
-      } finally {
         setLoading(false);
       }
     };
     
     fetchProduct();
-  }, [params.id]);
+  }, [params.id, getProductById, contextLoading]);
 
   const handleAddToCart = () => {
     if (!selectedSize || !product) return;
@@ -182,11 +180,11 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                     <Star
                       key={i}
                       size={18}
-                      className={i < product.rating ? 'fill-[#D4AF37] text-[#D4AF37]' : 'fill-gray-600 text-gray-600'}
+                      className={i < (product.rating || 0) ? 'fill-[#D4AF37] text-[#D4AF37]' : 'fill-gray-600 text-gray-600'}
                     />
                   ))}
                 </div>
-                <span className="text-gray-400 text-sm">({product.reviews} reviews)</span>
+                <span className="text-gray-400 text-sm">({product.reviews || 0} reviews)</span>
               </div>
 
               {/* Price */}

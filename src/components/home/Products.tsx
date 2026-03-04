@@ -1,49 +1,21 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useMemo } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Heart, ChevronLeft, ChevronRight, ShoppingBag } from 'lucide-react'
-
-interface Product {
-  id: string
-  name: string
-  brand: string
-  price: number
-  image: string
-  category: string
-  isOnSale?: boolean
-  isNewArrival?: boolean
-  discount?: number
-  originalPrice?: number
-}
+import { useProducts } from '@/context/ProductContext'
 
 export default function Products() {
-  const [products, setProducts] = useState<Product[]>([])
-  const [loading, setLoading] = useState(true)
+  const { allProducts, loading } = useProducts()
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await fetch('/api/products')
-        if (response.ok) {
-          const data = await response.json()
-          // Get first 4 regular products (not on sale, not new arrivals)
-          const regularProducts = data.products
-            .filter((p: Product) => !p.isOnSale && !p.isNewArrival)
-            .slice(0, 4)
-          setProducts(regularProducts)
-        }
-      } catch (error) {
-        console.error('Error fetching products:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchProducts()
-  }, [])
+  // Get first 4 regular products (not on sale, not new arrivals)
+  const regularProducts = useMemo(() => {
+    return allProducts
+      .filter((p) => !p.isOnSale && !p.isNewArrival)
+      .slice(0, 4)
+  }, [allProducts])
 
   if (loading) {
     return (
@@ -57,7 +29,7 @@ export default function Products() {
     )
   }
 
-  if (products.length === 0) {
+  if (regularProducts.length === 0 && !loading) {
     return (
       <section className="bg-[#0B101E] py-20">
         <div className="max-w-[1400px] mx-auto px-8">
@@ -91,7 +63,7 @@ export default function Products() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {products.map((product, index) => (
+          {regularProducts.map((product, index) => (
             <motion.div
               key={product.id}
               initial={{ opacity: 0, y: 20 }}

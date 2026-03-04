@@ -1,49 +1,27 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import { ChevronRight, Star, Sparkles, Loader2 } from 'lucide-react'
-
-interface Product {
-  id: string
-  name: string
-  price: number
-  image: string
-  category: string
-  rating: number
-  reviews: number
-  isOnSale?: boolean
-  isNewArrival?: boolean
-  inStock?: boolean
-}
+import { useProducts } from '@/context/ProductContext'
 
 export default function WomenPage() {
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [selectedStyle, setSelectedStyle] = useState('all')
-  const [products, setProducts] = useState<Product[]>([])
-  const [loading, setLoading] = useState(true)
+  const { womenProducts, loading } = useProducts()
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        setLoading(true)
-        const response = await fetch('/api/products?category=Women')
-        if (response.ok) {
-          const data = await response.json()
-          setProducts(data.products || [])
-        }
-      } catch (error) {
-        console.error('Error fetching products:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchProducts()
-  }, [])
+  // Filter products based on selected style
+  const filteredProducts = useMemo(() => {
+    if (selectedStyle === 'all') return womenProducts
+    
+    return womenProducts.filter(product => 
+      product.name?.toLowerCase().includes(selectedStyle.toLowerCase()) ||
+      product.description?.toLowerCase().includes(selectedStyle.toLowerCase())
+    )
+  }, [womenProducts, selectedStyle])
 
   return (
     <>
@@ -100,7 +78,7 @@ export default function WomenPage() {
               <Loader2 className="w-12 h-12 text-[#D4AF37] animate-spin mb-4" />
               <p className="text-gray-400 text-sm">Loading women&apos;s collection...</p>
             </div>
-          ) : products.length === 0 ? (
+          ) : filteredProducts.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 bg-gradient-to-br from-[#1A2435] to-[#0F1825] rounded-3xl border border-white/10">
               <div className="text-6xl mb-4">👠</div>
               <h3 className="text-2xl font-bold text-white mb-2">No Women&apos;s Products Yet</h3>
@@ -114,7 +92,7 @@ export default function WomenPage() {
             </div>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-              {products.map((product, index) => (
+              {filteredProducts.map((product, index) => (
                 <Link
                   href={`/product/${product.id}`}
                   key={product.id}
@@ -164,11 +142,11 @@ export default function WomenPage() {
                           <Star
                             key={i}
                             size={14}
-                            className={i < product.rating ? 'fill-[#D4AF37] text-[#D4AF37]' : 'fill-gray-600 text-gray-600'}
+                            className={i < (product.rating || 0) ? 'fill-[#D4AF37] text-[#D4AF37]' : 'fill-gray-600 text-gray-600'}
                           />
                         ))}
                         <span className="text-[11px] text-gray-400 ml-2">
-                          ({product.reviews} reviews)
+                          ({product.reviews || 0} reviews)
                         </span>
                       </div>
 

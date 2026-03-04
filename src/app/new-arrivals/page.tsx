@@ -1,59 +1,25 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import { ChevronRight, ChevronDown, Star, Loader2 } from 'lucide-react'
-
-interface Product {
-  id: string
-  name: string
-  description: string
-  price: number
-  originalPrice?: number
-  discount?: number
-  image: string
-  brand: string
-  category: string
-  sizes: number[]
-  colors: string[]
-  rating: number
-  reviews: number
-  isNewArrival?: boolean
-}
+import { useProducts } from '@/context/ProductContext'
 
 const sizes = [7, 8, 9, 10, 11, 12, 13]
 
 export default function NewArrivals() {
-  const [products, setProducts] = useState<Product[]>([])
-  const [loading, setLoading] = useState(true)
+  const { getNewArrivals, loading } = useProducts()
   const [selectedSize, setSelectedSize] = useState<number | null>(9)
   const [priceRangeOpen, setPriceRangeOpen] = useState(false)
   const [materialOpen, setMaterialOpen] = useState(false)
   const [activeCategory, setActiveCategory] = useState('new-arrivals')
-
-  useEffect(() => {
-    const fetchNewArrivals = async () => {
-      try {
-        setLoading(true)
-        const response = await fetch('/api/products')
-        if (response.ok) {
-          const data = await response.json()
-          // Filter only new arrivals
-          const newArrivalsProducts = data.products.filter((p: Product) => p.isNewArrival)
-          setProducts(newArrivalsProducts)
-        }
-      } catch (error) {
-        console.error('Error fetching new arrivals:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchNewArrivals()
-  }, [])
+  
+  const products = useMemo(() => {
+    return getNewArrivals()
+  }, [getNewArrivals])
 
   return (
     <>
@@ -281,11 +247,11 @@ export default function NewArrivals() {
                               <Star 
                                 key={i} 
                                 size={12} 
-                                className={i < product.rating ? 'fill-[#D4AF37] text-[#D4AF37]' : 'fill-gray-300 text-gray-300'}
+                                className={i < (product.rating || 0) ? 'fill-[#D4AF37] text-[#D4AF37]' : 'fill-gray-300 text-gray-300'}
                               />
                             ))}
                             <span className="text-[10px] text-gray-500 ml-1">
-                              ({product.reviews} REVIEWS)
+                              ({product.reviews || 0} REVIEWS)
                             </span>
                           </div>
                           

@@ -1,23 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { ArrowRight, ShoppingBag, Loader2 } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-
-interface Product {
-  id: string
-  name: string
-  description?: string
-  price: number
-  originalPrice?: number
-  discount?: number
-  image: string
-  brand: string
-  category: string
-  isOnSale?: boolean
-}
+import { useProducts } from '@/context/ProductContext';
 
 // Countdown Timer Component
 function CountdownTimer() {
@@ -90,29 +78,11 @@ function CountdownTimer() {
 }
 
 export default function SalesPage() {
-  const [saleProducts, setSaleProducts] = useState<Product[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    const fetchSaleProducts = async () => {
-      try {
-        setLoading(true)
-        const response = await fetch('/api/products')
-        if (response.ok) {
-          const data = await response.json()
-          // Filter only products on sale
-          const onSaleProducts = data.products.filter((p: Product) => p.isOnSale)
-          setSaleProducts(onSaleProducts)
-        }
-      } catch (error) {
-        console.error('Error fetching sale products:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchSaleProducts()
-  }, [])
+  const { getSaleProducts, loading } = useProducts()
+  
+  const saleProducts = useMemo(() => {
+    return getSaleProducts()
+  }, [getSaleProducts])
 
   return (
     <div className="min-h-screen bg-[#0B101E] text-white">

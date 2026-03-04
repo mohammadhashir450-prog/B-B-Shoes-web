@@ -1,48 +1,26 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import { ChevronRight, Star, Filter, Loader2 } from 'lucide-react'
-
-interface Product {
-  id: string
-  name: string
-  price: number
-  image: string
-  category: string
-  rating: number
-  reviews: number
-  isOnSale?: boolean
-  isNewArrival?: boolean
-  inStock?: boolean
-}
+import { useProducts } from '@/context/ProductContext'
 
 export default function MenPage() {
   const [selectedCategory, setSelectedCategory] = useState('all')
-  const [products, setProducts] = useState<Product[]>([])
-  const [loading, setLoading] = useState(true)
+  const { menProducts, loading } = useProducts()
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        setLoading(true)
-        const response = await fetch('/api/products?category=Men')
-        if (response.ok) {
-          const data = await response.json()
-          setProducts(data.products || [])
-        }
-      } catch (error) {
-        console.error('Error fetching products:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchProducts()
-  }, [])
+  // Filter products based on selected category
+  const filteredProducts = useMemo(() => {
+    if (selectedCategory === 'all') return menProducts
+    
+    return menProducts.filter(product => 
+      product.name?.toLowerCase().includes(selectedCategory.toLowerCase()) ||
+      product.description?.toLowerCase().includes(selectedCategory.toLowerCase())
+    )
+  }, [menProducts, selectedCategory])
 
   return (
     <>
@@ -97,7 +75,7 @@ export default function MenPage() {
           {/* Products Count */}
           <div className="flex items-center justify-between mb-8">
             <p className="text-gray-400 text-sm">
-              <span className="text-white font-semibold">{products.length}</span> Products
+              <span className="text-white font-semibold">{filteredProducts.length}</span> Products
             </p>
           </div>
 
@@ -109,7 +87,7 @@ export default function MenPage() {
           )}
 
           {/* Empty State */}
-          {!loading && products.length === 0 && (
+          {!loading && filteredProducts.length === 0 && (
             <div className="text-center py-20">
               <div className="w-20 h-20 bg-[#D4AF37]/10 rounded-full flex items-center justify-center mx-auto mb-6">
                 <span className="text-5xl">👔</span>
@@ -126,9 +104,9 @@ export default function MenPage() {
           )}
 
           {/* Products Grid */}
-          {!loading && products.length > 0 && (
+          {!loading && filteredProducts.length > 0 && (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-              {products.map((product) => (
+              {filteredProducts.map((product) => (
                 <Link
                   key={product.id}
                   href={`/product/${product.id}`}
@@ -178,11 +156,11 @@ export default function MenPage() {
                         <Star
                           key={i}
                           size={14}
-                          className={i < product.rating ? 'fill-[#D4AF37] text-[#D4AF37]' : 'fill-gray-600 text-gray-600'}
+                          className={i < (product.rating || 0) ? 'fill-[#D4AF37] text-[#D4AF37]' : 'fill-gray-600 text-gray-600'}
                         />
                       ))}
                       <span className="text-[11px] text-gray-400 ml-2">
-                        ({product.reviews})
+                        ({product.reviews || 0})
                       </span>
                     </div>
 

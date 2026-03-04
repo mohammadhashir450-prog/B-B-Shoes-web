@@ -2,6 +2,7 @@ import { Inter, Manrope, Playfair_Display } from 'next/font/google'
 import './globals.css'
 import NextAuthProvider from '@/components/providers/AuthProvider'
 import { CartProvider } from '@/context/CartContext'
+import { ProductProvider } from '@/context/ProductContext'
 import { Metadata } from 'next'
 
 // Fonts ko Next.js standard ke mutabiq load karna (Warnings fix)
@@ -35,9 +36,11 @@ export default function RootLayout({
       </head>
       <body className={`${inter.className} ${manrope.variable} ${playfair.variable}`}>
         <NextAuthProvider>
-          <CartProvider>
-            {children}
-          </CartProvider>
+          <ProductProvider>
+            <CartProvider>
+              {children}
+            </CartProvider>
+          </ProductProvider>
         </NextAuthProvider>
       </body>
     </html>
