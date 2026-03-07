@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowRight, ShoppingBag, Loader2 } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
@@ -163,10 +164,17 @@ export default function SalesPage() {
                       <span className="text-xs font-bold">-{product.discount}%</span>
                     </div>
                   )}
-                  <img 
-                    src={product.image} 
+                  <Image 
+                    src={product.image || '/images/placeholder.jpg'} 
                     alt={product.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    unoptimized={product.image?.includes('cloudinary')}
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = '/images/placeholder.jpg';
+                    }}
                   />
                   <div className="absolute top-4 right-4 z-10 bg-black/60 backdrop-blur-sm border border-[#D4AF37] text-[#D4AF37] px-3 py-1 rounded-full">
                     <span className="text-xs font-bold tracking-wider">SALE</span>

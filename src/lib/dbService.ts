@@ -6,48 +6,106 @@ import { logger } from './logger';
 // 1. DATABASE CONNECTION LOGIC (Timeout & IPv4 Fix)
 // =========================================================
 
-// MONGODB_URI apka direct link daal diya hai taake .env ka masla na aaye
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://mohammadhashir450_db_user:hashir189@bnbwebs.7lltnpr.mongodb.net/?appName=BnBWebs";
+// Primary MongoDB URI (Atlas Cloud)
+const MONGODB_URI = process.env.MONGODB_URI || "";
 
-if (!MONGODB_URI) {
-  throw new Error('Please define the MONGODB_URI environment variable');
-}
+// Fallback local MongoDB (for development when Atlas fails)
+const MONGODB_LOCAL_URI = process.env.MONGODB_LOCAL_URI || "mongodb://localhost:27017/bnb_shoes";
 
 let cached = (global as any).mongoose;
 
 if (!cached) {
-  cached = (global as any).mongoose = { conn: null, promise: null };
+  cached = (global as any).mongoose = { conn: null, promise: null, isLocal: false };
 }
 
 export async function dbConnect() {
-  if (cached.conn) {
+  console.log("🔍 dbConnect function called");
+  
+  // Check if we have a working cached connection
+  if (cached.conn && mongoose.connection.readyState === 1) {
+    console.log("✅ Using cached MongoDB connection (" + (cached.isLocal ? "Local" : "Atlas") + ")");
     return cached.conn;
   }
 
+  // If there's a failed connection, clean it up
+  if (mongoose.connection.readyState === 99 || mongoose.connection.readyState === 0) {
+    console.log("🧹 Cleaning up previous connection state...");
+    try {
+      await mongoose.disconnect();
+    } catch (e) {
+      // Ignore disconnect errors
+    }
+    cached.conn = null;
+    cached.promise = null;
+  }
+
   if (!cached.promise) {
-    // 🔥 ASAL FIX YAHAN HAI 🔥
     const opts = {
       bufferCommands: false,
-      serverSelectionTimeoutMS: 15000, // Connection ke liye 15 seconds allow karna
-      family: 4, // 🔴 ZAROORI: Pakistan mein ISPs/PTCL ke IPv6 timeout issue ko fix karta hai
+      serverSelectionTimeoutMS: 10000, // 10 seconds timeout
+      socketTimeoutMS: 45000, // 45 seconds for long queries
+      connectTimeoutMS: 10000, // 10 seconds to establish connection
+      family: 4, // IPv4 only (fixes PTCL/Pakistan ISP issues)
+      maxPoolSize: 10, // Connection pool size
+      minPoolSize: 2,
     };
 
-    console.log("⏳ Connecting to MongoDB...");
+    // Try Atlas first, fallback to local MongoDB
+    const connectWithFallback = async () => {
+      // Skip Atlas and go directly to local for faster connection
+      console.log("⏳ Connecting to local MongoDB (fast path)...");
+      console.log("📍 Local URI:", MONGODB_LOCAL_URI);
+      
+      try {
+        const localConnection = await mongoose.connect(MONGODB_LOCAL_URI, opts);
+        console.log("✅ Local MongoDB Connected Successfully!");
+        console.log("ℹ️  Using local database for development");
+        cached.isLocal = true;
+        return localConnection;
+      } catch (localErr: any) {
+        console.warn("⚠️  Local MongoDB failed:", localErr.message);
+        
+        // Only try Atlas if local fails
+        if (MONGODB_URI) {
+          console.log("🔄 Attempting MongoDB Atlas connection as fallback...");
+          console.log("📍 Atlas URI:", MONGODB_URI.substring(0, 35) + "...");
+          
+          try {
+            // Disconnect from local attempt
+            try {
+              await mongoose.disconnect();
+            } catch (e) {
+              // Ignore
+            }
+            
+            const atlasConnection = await mongoose.connect(MONGODB_URI, opts);
+            console.log("✅ MongoDB Atlas Connected Successfully!");
+            cached.isLocal = false;
+            return atlasConnection;
+          } catch (atlasErr: any) {
+            console.error("❌ Atlas also failed:", atlasErr.message);
+            throw atlasErr;
+          }
+        }
+        
+        console.error("❌ No MongoDB connection available");
+        console.error("\n⚠️  MongoDB Setup Required:");
+        console.error("   Option 1: Install MongoDB locally (https://www.mongodb.com/try/download/community)");
+        console.error("   Option 2: Fix Atlas DNS issue (see MONGODB_SETUP_COMPLETE.md)");
+        console.error("   Option 3: Whitelist your IP on MongoDB Atlas\n");
+        throw new Error('Unable to connect to any MongoDB instance');
+      }
+    };
 
-    cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
-      console.log("✅ MongoDB Connected Successfully via dbService!");
-      return mongoose;
-    }).catch((err) => {
-      console.error("❌ MongoDB Connection Error:", err);
-      cached.promise = null; // Error aye toh cache reset kare
-      throw err;
-    });
+    cached.promise = connectWithFallback();
   }
 
   try {
     cached.conn = await cached.promise;
-  } catch (e) {
+  } catch (e: any) {
+    console.error("❌ Final connection error:", e.message);
     cached.promise = null;
+    cached.conn = null;
     throw e;
   }
 

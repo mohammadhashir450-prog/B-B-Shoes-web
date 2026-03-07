@@ -7,10 +7,10 @@ import { Grid, ChevronRight } from 'lucide-react'
 
 const categories = [
   { name: 'New Arrivals', href: '/new-arrivals', icon: '✨' },
-  { name: 'Oxford Series', href: '/collections/oxford', icon: '👞' },
-  { name: 'Loafers', href: '/collections/loafers', icon: '🥿' },
-  { name: 'Sneakers', href: '/collections/sneakers', icon: '👟' },
-  { name: 'Boots', href: '/collections/boots', icon: '🥾' },
+  { name: 'Formal Shoes', href: '/formal', icon: '👞' },
+  { name: 'Running Shoes', href: '/running', icon: '🏃' },
+  { name: 'Sneakers', href: '/sneakers', icon: '👟' },
+  { name: 'Basketball', href: '/basketball', icon: '🏀' },
   { name: 'Heritage Collection', href: '/heritage', icon: '⭐' },
   { name: "Men's Collection", href: '/men', icon: '👔' },
   { name: "Women's Collection", href: '/women', icon: '👗' }

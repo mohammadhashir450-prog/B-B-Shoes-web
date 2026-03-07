@@ -34,8 +34,13 @@ const menuData = [
     href: '/' 
   },
   { 
-    title: 'Sales Event', 
+    title: 'New Arrivals', 
     icon: Sparkles, 
+    href: '/new-arrivals'
+  },
+  { 
+    title: 'Sales Event', 
+    icon: Tag, 
     href: '/sales',
     highlighted: true 
   },
@@ -46,6 +51,10 @@ const menuData = [
       { title: 'All Categories', href: '/collections' },
       { title: "Men's Collection", href: '/men' },
       { title: "Women's Collection", href: '/women' },
+      { title: 'Sneakers', href: '/sneakers' },
+      { title: 'Basketball', href: '/basketball' },
+      { title: 'Formal Shoes', href: '/formal' },
+      { title: 'Running Shoes', href: '/running' },
       { title: 'Heritage Series', href: '/heritage' }
     ]
   },

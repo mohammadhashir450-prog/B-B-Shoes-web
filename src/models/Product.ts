@@ -13,6 +13,7 @@ export interface IProduct extends Document {
     image: string;
   }>;
   category: string;
+  subcategory?: string;  // Added subcategory field
   brand: string;
   sizes: number[];
   colors: string[];
@@ -79,6 +80,11 @@ const ProductSchema = new Schema<IProduct>(
         'Boots',
         'Sneakers',
       ],
+    },
+    subcategory: {
+      type: String,
+      enum: ['Sneakers', 'Basketball', 'Formal', 'Running', 'Oxford', 'Loafers', 'Boots', ''],
+      default: '',
     },
     brand: {
       type: String,

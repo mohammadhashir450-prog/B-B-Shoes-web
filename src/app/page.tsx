@@ -11,7 +11,7 @@ export default function HomePage() {
   return (
     <>
       <Navbar />
-      <main>
+      <main className="min-h-screen">
         <HeroSection />
         <Curated />
         <Products />

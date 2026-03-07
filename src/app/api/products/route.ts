@@ -3,7 +3,7 @@ import { NextRequest } from 'next/server';
 import { dbConnect } from '@/lib/dbService'; 
 import { Product } from '@/models';
 import { asyncHandler } from '@/lib/errorHandler';
-import { successResponse, createdResponse, validationErrorResponse } from '@/lib/apiResponse';
+import { successResponse, createdResponse, validationErrorResponse, errorResponse } from '@/lib/apiResponse';
 import { validateProduct } from '@/lib/validation';
 
 /**
@@ -11,8 +11,26 @@ import { validateProduct } from '@/lib/validation';
  * Fetch all products with optional filtering
  */
 export const GET = asyncHandler(async (req: NextRequest) => {
-  // UPDATE: Naya connection function call kiya
-  await dbConnect();
+  console.log("🔵 GET /api/products called");
+  
+  // Connect to database (with fallback to local MongoDB)
+  console.log("🔵 Calling dbConnect...");
+  try {
+    await dbConnect();
+    console.log("🔵 dbConnect completed, fetching products...");
+  } catch (dbError: any) {
+    console.error("🔴 Database connection failed:", dbError.message);
+    return errorResponse(
+      "Database connection failed. Please check MongoDB setup.",
+      503,
+      [
+        {
+          error: dbError.message,
+          solution: "See MONGODB_SETUP_COMPLETE.md for setup instructions"
+        }
+      ]
+    );
+  }
 
   const { searchParams } = new URL(req.url);
   const category = searchParams.get('category');
@@ -45,6 +63,7 @@ export const GET = asyncHandler(async (req: NextRequest) => {
     image: product.image,
     sizeColorImages: product.sizeColorImages,
     category: product.category,
+    subcategory: (product as any).subcategory,
     brand: product.brand,
     sizes: product.sizes,
     colors: product.colors,

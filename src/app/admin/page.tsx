@@ -67,6 +67,7 @@ export default function AdminPanel() {
     image: '',
     sizeColorImages: [],
     category: 'Men',
+    subcategory: '',
     brand: 'B&B',
     sizes: [],
     colors: [],
@@ -310,7 +311,17 @@ export default function AdminPanel() {
                 <div className="flex items-center gap-6">
                   <div className="w-40 h-40 bg-white rounded-2xl border-3 border-dashed border-[#D4AF37]/40 flex items-center justify-center overflow-hidden relative shadow-lg group hover:shadow-xl transition-shadow">
                     {currentProduct.image ? (
-                      <Image src={currentProduct.image} alt="preview" fill className="object-cover" />
+                      <Image 
+                        src={currentProduct.image} 
+                        alt="preview" 
+                        fill 
+                        className="object-cover" 
+                        unoptimized={currentProduct.image.includes('cloudinary')}
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                        }}
+                      />
                     ) : (
                       <Camera size={40} className="text-gray-300" />
                     )}
@@ -414,6 +425,31 @@ export default function AdminPanel() {
                     <option value="Men">Men</option>
                     <option value="Women">Women</option>
                     <option value="Heritage">Heritage</option>
+                  </select>
+                </div>
+
+                {/* Subcategory Selection */}
+                <div>
+                  <label className="block text-sm font-bold text-[#0047AB] mb-2">Subcategory</label>
+                  <select 
+                    value={(currentProduct as any).subcategory || ''} 
+                    onChange={e => {
+                      const val = e.target.value;
+                      if(editingProduct) setEditingProduct({...editingProduct, subcategory: val} as any);
+                      else if(editingSaleProduct) setEditingSaleProduct({...editingSaleProduct, subcategory: val} as any);
+                      else if(editingNewArrival) setEditingNewArrival({...editingNewArrival, subcategory: val} as any);
+                      else setNewProduct({...newProduct, subcategory: val});
+                    }} 
+                    className="w-full p-4 border-2 border-slate-200 rounded-xl focus:border-[#D4AF37] focus:ring-2 focus:ring-[#D4AF37]/20 outline-none transition-all bg-white font-medium"
+                  >
+                    <option value="">None</option>
+                    <option value="Sneakers">Sneakers</option>
+                    <option value="Basketball">Basketball</option>
+                    <option value="Formal">Formal</option>
+                    <option value="Running">Running</option>
+                    <option value="Oxford">Oxford</option>
+                    <option value="Loafers">Loafers</option>
+                    <option value="Boots">Boots</option>
                   </select>
                 </div>
 
@@ -621,6 +657,7 @@ export default function AdminPanel() {
                   image: '',
                   sizeColorImages: [],
                   category: 'Men',
+                  subcategory: '',
                   brand: 'B&B',
                   sizes: [],
                   colors: [],
@@ -655,7 +692,18 @@ export default function AdminPanel() {
                 {products.map(p => (
                   <div key={p.id} className="bg-white p-6 rounded-3xl shadow-lg border-2 border-slate-100 hover:shadow-2xl hover:scale-[1.02] transition-all group">
                     <div className="relative h-56 w-full mb-5 rounded-2xl overflow-hidden bg-gradient-to-br from-slate-100 to-slate-50">
-                      <Image src={p.image || '/placeholder.jpg'} alt={p.name} fill className="object-cover group-hover:scale-110 transition-transform duration-300" />
+                      <Image 
+                        src={p.image || '/placeholder.jpg'} 
+                        alt={p.name} 
+                        fill 
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        className="object-cover group-hover:scale-110 transition-transform duration-300" 
+                        unoptimized={p.image?.includes('cloudinary')}
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = '/placeholder.jpg';
+                        }}
+                      />
                       {!p.inStock && (
                         <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
                           <span className="bg-red-600 text-white px-6 py-2 rounded-full font-bold text-sm">Out of Stock</span>
@@ -712,6 +760,7 @@ export default function AdminPanel() {
                   image: '',
                   sizeColorImages: [],
                   category: 'Men',
+                  subcategory: '',
                   brand: 'B&B',
                   sizes: [],
                   colors: [],
@@ -746,7 +795,18 @@ export default function AdminPanel() {
                 {salesProducts.map(p => (
                   <div key={p.id} className="bg-white p-6 rounded-3xl shadow-lg border-2 border-red-100 hover:shadow-2xl hover:scale-[1.02] transition-all group">
                     <div className="relative h-56 w-full mb-5 rounded-2xl overflow-hidden bg-gradient-to-br from-red-50 to-amber-50">
-                      <Image src={p.image || '/placeholder.jpg'} alt={p.name} fill className="object-cover group-hover:scale-110 transition-transform duration-300" />
+                      <Image 
+                        src={p.image || '/placeholder.jpg'} 
+                        alt={p.name} 
+                        fill 
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        className="object-cover group-hover:scale-110 transition-transform duration-300" 
+                        unoptimized={p.image?.includes('cloudinary')}
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = '/placeholder.jpg';
+                        }}
+                      />
                       <div className="absolute top-3 right-3 bg-red-600 text-white px-3 py-1 rounded-full font-bold text-xs shadow-lg">
                         SALE
                       </div>
@@ -806,6 +866,7 @@ export default function AdminPanel() {
                   image: '',
                   sizeColorImages: [],
                   category: 'Men',
+                  subcategory: '',
                   brand: 'B&B',
                   sizes: [],
                   colors: [],
@@ -840,7 +901,18 @@ export default function AdminPanel() {
                 {newArrivals.map(p => (
                   <div key={p.id} className="bg-white p-6 rounded-3xl shadow-lg border-2 border-green-100 hover:shadow-2xl hover:scale-[1.02] transition-all group">
                     <div className="relative h-56 w-full mb-5 rounded-2xl overflow-hidden bg-gradient-to-br from-green-50 to-emerald-50">
-                      <Image src={p.image || '/placeholder.jpg'} alt={p.name} fill className="object-cover group-hover:scale-110 transition-transform duration-300" />
+                      <Image 
+                        src={p.image || '/placeholder.jpg'} 
+                        alt={p.name} 
+                        fill 
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        className="object-cover group-hover:scale-110 transition-transform duration-300" 
+                        unoptimized={p.image?.includes('cloudinary')}
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = '/placeholder.jpg';
+                        }}
+                      />
                       <div className="absolute top-3 right-3 bg-green-600 text-white px-3 py-1 rounded-full font-bold text-xs shadow-lg">
                         NEW
                       </div>

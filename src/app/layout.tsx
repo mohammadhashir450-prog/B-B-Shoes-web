@@ -3,7 +3,7 @@ import './globals.css'
 import NextAuthProvider from '@/components/providers/AuthProvider'
 import { CartProvider } from '@/context/CartContext'
 import { ProductProvider } from '@/context/ProductContext'
-import { Metadata } from 'next'
+import { Metadata, Viewport } from 'next'
 
 // Fonts ko Next.js standard ke mutabiq load karna (Warnings fix)
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
@@ -16,11 +16,17 @@ export const metadata: Metadata = {
   description: "BRANDS YOU LIKE! Discover Pakistan's finest collection of premium footwear. From formal elegance to casual comfort - we've got your perfect match.",
   keywords: "shoes, footwear, B&B Shoes, premium shoes, Pakistan shoes, online shoe store",
   authors: [{ name: "B&B Shoes" }],
-  themeColor: "#0b132b",
-  viewport: "width=device-width, initial-scale=1, maximum-scale=5",
   icons: {
     icon: "/favicon.ico",
   },
+}
+
+// Viewport configuration (Next.js 14+ standard)
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: '#0b132b',
 }
 
 export default function RootLayout({
@@ -30,10 +36,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <head>
-        {/* Material Symbols ko hum abhi bhi link se rakh sakte hain ya skip kar sakte hain agar use nahi ho raha */}
-        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
-      </head>
       <body className={`${inter.className} ${manrope.variable} ${playfair.variable}`}>
         <NextAuthProvider>
           <ProductProvider>

@@ -12,6 +12,7 @@ export interface Product {
   image: string;
   sizeColorImages?: any[];
   category: string;
+  subcategory?: string;
   brand?: string;
   sizes?: string[];
   colors?: string[];
@@ -63,10 +64,15 @@ export function ProductProvider({ children }: { children: ReactNode }) {
       setLoading(true);
       setError(null);
       
-      const response = await fetch('/api/products');
+      const response = await fetch('/api/products', {
+        cache: 'no-store',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
       
       if (!response.ok) {
-        throw new Error('Failed to fetch products');
+        throw new Error(`Failed to fetch products: ${response.status}`);
       }
       
       const data = await response.json();
@@ -99,6 +105,11 @@ export function ProductProvider({ children }: { children: ReactNode }) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load products';
       setError(errorMessage);
       console.error('❌ Error loading products:', err);
+      
+      // Set empty arrays on error to prevent crashes
+      setAllProducts([]);
+      setMenProducts([]);
+      setWomenProducts([]);
     } finally {
       setLoading(false);
     }
@@ -120,9 +131,20 @@ export function ProductProvider({ children }: { children: ReactNode }) {
     if (category.toLowerCase() === 'men' || category.toLowerCase() === 'men\'s') return menProducts;
     if (category.toLowerCase() === 'women' || category.toLowerCase() === 'women\'s') return womenProducts;
     
-    return allProducts.filter(p => 
-      p.category?.toLowerCase() === category.toLowerCase()
-    );
+    // Handle subcategories (Sneakers, Basketball, Formal, Running, etc.)
+    return allProducts.filter(p => {
+      const productCategory = p.category?.toLowerCase() || '';
+      const searchCategory = category.toLowerCase();
+      
+      // Check if product has a subcategory field that matches
+      if ((p as any).subcategory) {
+        const subcategory = ((p as any).subcategory as string).toLowerCase();
+        if (subcategory === searchCategory) return true;
+      }
+      
+      // Also check main category
+      return productCategory.includes(searchCategory) || searchCategory.includes(productCategory);
+    });
   };
 
   // Helper: Get products by brand
