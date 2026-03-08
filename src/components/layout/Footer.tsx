@@ -10,13 +10,16 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
           {/* Column 1 - Brand */}
           <div className="lg:col-span-1">
-            <Link href="/" className="flex items-center gap-2.5 mb-6">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="#D4AF37" stroke="#D4AF37" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M2 17L12 22L22 17" stroke="#D4AF37" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M2 12L12 17L22 12" stroke="#D4AF37" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              <span className="text-[#D4AF37] text-2xl font-bold tracking-tight">B&B Shoes</span>
+            <Link href="/" className="mb-6 inline-block">
+              <div className="flex items-center gap-2.5 mb-1">
+                <svg width="38" height="24" viewBox="0 0 52 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M4 28 Q4 32 8 32 L44 32 Q48 32 48 28 L48 26 L4 26 Z" fill="#D4AF37"/>
+                  <path d="M4 26 L4 16 Q4 10 10 8 L24 7 Q30 7 34 10 L48 26 Z" fill="#D4AF37"/>
+                  <path d="M12 18 C16 15 22 15 26 17" stroke="#0B101E" strokeWidth="2.5" strokeLinecap="round"/>
+                </svg>
+                <span className="text-[#D4AF37] text-2xl font-bold tracking-tight">B&B Shoes</span>
+              </div>
+              <p className="text-[#D4AF37]/50 text-[10px] tracking-[0.28em] uppercase">Brand You Like</p>
             </Link>
             <p className="text-gray-400 text-sm leading-relaxed mb-2">
               Elevating the standard of luxury footwear.

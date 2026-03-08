@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Lock, Mail, Eye, EyeOff } from 'lucide-react';
+import { Lock, Mail, Eye, EyeOff, MoreVertical } from 'lucide-react';
 import { signIn } from 'next-auth/react';
 
 export default function LoginPage() {
@@ -14,6 +14,18 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showDotsMenu, setShowDotsMenu] = useState(false);
+  const dotsMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dotsMenuRef.current && !dotsMenuRef.current.contains(e.target as Node)) {
+        setShowDotsMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,14 +100,27 @@ export default function LoginPage() {
           </div>
         </Link>
 
-        <div className="flex items-center gap-8">
-          <Link 
-            href="/admin" 
-            className="border border-[#D4AF37] text-[#D4AF37] px-4 py-2 rounded text-xs font-semibold tracking-wider uppercase hover:bg-[#D4AF37] hover:text-black transition-all"
+        <div className="relative" ref={dotsMenuRef}>
+          <button
+            onClick={() => setShowDotsMenu(!showDotsMenu)}
+            className="w-9 h-9 flex items-center justify-center rounded-full text-[#D4AF37] hover:bg-white/5 transition-colors"
+            aria-label="More options"
           >
-            <Lock className="inline w-3 h-3 mr-2" />
-            Admin Portal
-          </Link>
+            <MoreVertical className="w-5 h-5" />
+          </button>
+
+          {showDotsMenu && (
+            <div className="absolute right-0 top-full mt-2 w-48 bg-[#0F1F35] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50">
+              <Link
+                href="/admin"
+                onClick={() => setShowDotsMenu(false)}
+                className="flex items-center gap-3 px-4 py-3 text-sm text-[#D4AF37] hover:bg-white/5 transition-colors"
+              >
+                <Lock className="w-4 h-4" />
+                <span className="font-semibold tracking-wider uppercase text-xs">Boss</span>
+              </Link>
+            </div>
+          )}
         </div>
       </nav>
 

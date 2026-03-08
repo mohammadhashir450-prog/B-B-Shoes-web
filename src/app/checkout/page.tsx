@@ -1,11 +1,51 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import { CreditCard, Smartphone, Banknote, Check, ChevronRight, Shield } from 'lucide-react';
+import { CreditCard, Smartphone, Banknote, Check, ChevronRight, Shield, AlertCircle, Save, CheckCircle2 } from 'lucide-react';
+
+const STORE_BANKS = [
+  { name: 'HBL', account: '1234567890', title: 'B&B Shoes' },
+  { name: 'Meezan Bank', account: '0987654321', title: 'B&B Shoes' },
+  { name: 'Allied Bank', account: '1122334455', title: 'B&B Shoes' },
+  { name: 'UBL', account: '5544332211', title: 'B&B Shoes' },
+];
+
+const PAKISTAN_BANKS = [
+  'Allied Bank Limited (ABL)',
+  'Askari Bank',
+  'Bank Al Habib',
+  'Bank Alfalah',
+  'Bank of Khyber',
+  'Bank of Punjab',
+  'BankIslami Pakistan',
+  'Dubai Islamic Bank Pakistan',
+  'Faysal Bank',
+  'First Women Bank',
+  'Habib Bank Limited (HBL)',
+  'Habib Metropolitan Bank',
+  'Industrial Development Bank',
+  'JS Bank',
+  'KASB Bank',
+  'MCB Bank (Muslim Commercial Bank)',
+  'MCB Islamic Bank',
+  'Meezan Bank',
+  'National Bank of Pakistan (NBP)',
+  'NIB Bank',
+  'Pak Oman Investment Company',
+  'Samba Bank',
+  'Silk Bank',
+  'Sindh Bank',
+  'Soneri Bank',
+  'Standard Chartered Pakistan',
+  'Summit Bank',
+  'United Bank Limited (UBL)',
+  'Zarai Taraqiati Bank (ZTBL)',
+  'Al Baraka Bank Pakistan',
+];
 
 const paymentMethods = [
   {
@@ -13,31 +53,23 @@ const paymentMethods = [
     name: 'Bank Transfer',
     icon: CreditCard,
     description: 'Transfer to our bank account',
-    banks: [
-      { name: 'HBL', account: '1234567890', title: 'B&B Shoes' },
-      { name: 'Meezan Bank', account: '0987654321', title: 'B&B Shoes' },
-      { name: 'Allied Bank', account: '1122334455', title: 'B&B Shoes' },
-      { name: 'UBL', account: '5544332211', title: 'B&B Shoes' },
-    ]
   },
   {
     id: 'jazzcash',
     name: 'JazzCash',
     icon: Smartphone,
     description: 'Pay via JazzCash wallet',
-    details: {
-      number: '03XX-XXXXXXX',
-      name: 'B&B Shoes'
-    }
+    details: { number: '03XX-XXXXXXX', name: 'B&B Shoes' }
   },
   {
     id: 'cod',
     name: 'Cash on Delivery',
     icon: Banknote,
     description: 'Pay when you receive',
-    note: 'Available for orders in all major cities'
   }
 ];
+
+const STORAGE_KEY = 'user-payment-details';
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -45,8 +77,164 @@ export default function CheckoutPage() {
   const [selectedMethod, setSelectedMethod] = useState<string>('cod');
   const [showSuccess, setShowSuccess] = useState(false);
 
+  // Payment Form States
+  const [jazzCashNumber, setJazzCashNumber] = useState('');
+  const [jazzCashTransactionId, setJazzCashTransactionId] = useState('');
+  const [selectedBank, setSelectedBank] = useState('');
+  const [bankTransactionId, setBankTransactionId] = useState('');
+  const [senderAccountNumber, setSenderAccountNumber] = useState('');
+  const [codName, setCodName] = useState('');
+  const [codPhone, setCodPhone] = useState('');
+  const [codAddress, setCodAddress] = useState('');
+  const [codCity, setCodCity] = useState('');
+  const [formError, setFormError] = useState('');
+
+  // Save state indicators
+  const [bankSaved, setBankSaved] = useState(false);
+  const [jazzCashSaved, setJazzCashSaved] = useState(false);
+  const [codSaved, setCodSaved] = useState(false);
+  const [saveMessage, setSaveMessage] = useState('');
+
+  // Load saved payment details from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.bank) {
+          setSelectedBank(parsed.bank.selectedBank || '');
+          setSenderAccountNumber(parsed.bank.accountNumber || '');
+          setBankSaved(true);
+        }
+        if (parsed.jazzcash) {
+          setJazzCashNumber(parsed.jazzcash.number || '');
+          setJazzCashSaved(true);
+        }
+        if (parsed.cod) {
+          setCodName(parsed.cod.name || '');
+          setCodPhone(parsed.cod.phone || '');
+          setCodAddress(parsed.cod.address || '');
+          setCodCity(parsed.cod.city || '');
+          setCodSaved(true);
+        }
+      } catch (_) {}
+    }
+  }, []);
+
+  const showTempMessage = (msg: string) => {
+    setSaveMessage(msg);
+    setTimeout(() => setSaveMessage(''), 2500);
+  };
+
+  const handleSaveBank = () => {
+    if (!selectedBank) { setFormError('Please select your bank first'); return; }
+    if (!senderAccountNumber.trim()) { setFormError('Please enter your account number'); return; }
+    setFormError('');
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    saved.bank = { selectedBank, accountNumber: senderAccountNumber };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+    setBankSaved(true);
+    showTempMessage('Bank details saved!');
+  };
+
+  const handleSaveJazzCash = () => {
+    if (!jazzCashNumber.trim()) { setFormError('Please enter your JazzCash number'); return; }
+    if (!/^03\d{9}$/.test(jazzCashNumber.replace(/-/g, ''))) { setFormError('Enter a valid number (03XXXXXXXXX)'); return; }
+    setFormError('');
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    saved.jazzcash = { number: jazzCashNumber };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+    setJazzCashSaved(true);
+    showTempMessage('JazzCash number saved!');
+  };
+
+  const handleSaveCod = () => {
+    if (!codName.trim()) { setFormError('Please enter your full name'); return; }
+    if (!codPhone.trim() || !/^03\d{9}$/.test(codPhone.replace(/-/g, ''))) { setFormError('Enter a valid phone number (03XXXXXXXXX)'); return; }
+    if (!codAddress.trim()) { setFormError('Please enter your delivery address'); return; }
+    if (!codCity) { setFormError('Please select your city'); return; }
+    setFormError('');
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    saved.cod = { name: codName, phone: codPhone, address: codAddress, city: codCity };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+    setCodSaved(true);
+    showTempMessage('Delivery details saved!');
+  };
+
+  const validatePaymentDetails = () => {
+    setFormError('');
+
+    if (selectedMethod === 'jazzcash') {
+      if (!jazzCashNumber.trim()) {
+        setFormError('Please enter your JazzCash number');
+        return false;
+      }
+      if (!/^03\d{9}$/.test(jazzCashNumber.replace(/-/g, ''))) {
+        setFormError('Please enter a valid JazzCash number (03XXXXXXXXX)');
+        return false;
+      }
+      if (!jazzCashTransactionId.trim()) {
+        setFormError('Please enter transaction ID after payment');
+        return false;
+      }
+    }
+
+    if (selectedMethod === 'bank') {
+      if (!selectedBank) {
+        setFormError('Please select your bank');
+        return false;
+      }
+      if (!senderAccountNumber.trim()) {
+        setFormError('Please enter your account number');
+        return false;
+      }
+      if (!bankTransactionId.trim()) {
+        setFormError('Please enter transaction reference/ID');
+        return false;
+      }
+    }
+
+    if (selectedMethod === 'cod') {
+      if (!codName.trim()) {
+        setFormError('Please enter your full name');
+        return false;
+      }
+      if (!codPhone.trim()) {
+        setFormError('Please enter your phone number');
+        return false;
+      }
+      if (!/^03\d{9}$/.test(codPhone.replace(/-/g, ''))) {
+        setFormError('Please enter a valid phone number (03XXXXXXXXX)');
+        return false;
+      }
+      if (!codAddress.trim()) {
+        setFormError('Please enter your delivery address');
+        return false;
+      }
+      if (!codCity.trim()) {
+        setFormError('Please select your city');
+        return false;
+      }
+    }
+
+    return true;
+  };
+
   const handlePlaceOrder = () => {
-    // Simulate order placement
+    if (!validatePaymentDetails()) return;
+
+    const orderData = {
+      items,
+      totalPrice,
+      paymentMethod: selectedMethod,
+      paymentDetails: selectedMethod === 'jazzcash'
+        ? { number: jazzCashNumber, transactionId: jazzCashTransactionId }
+        : selectedMethod === 'bank'
+        ? { bank: selectedBank, accountNumber: senderAccountNumber, transactionId: bankTransactionId }
+        : { name: codName, phone: codPhone, address: codAddress, city: codCity }
+    };
+
+    console.log('Order Data:', orderData);
     setShowSuccess(true);
     setTimeout(() => {
       clearCart();
@@ -60,15 +248,23 @@ export default function CheckoutPage() {
 
       <div className="pt-24 pb-16">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          
+
           {/* Header */}
           <div className="mb-12">
             <h1 className="text-4xl md:text-5xl font-bold mb-4">Payment Method</h1>
             <p className="text-gray-400">Choose your preferred payment option</p>
           </div>
 
+          {/* Global save notification */}
+          {saveMessage && (
+            <div className="mb-6 bg-green-500/10 border border-green-500/30 rounded-lg p-4 flex items-center gap-3">
+              <CheckCircle2 className="w-5 h-5 text-green-400 flex-shrink-0" />
+              <p className="text-sm text-green-400 font-semibold">{saveMessage}</p>
+            </div>
+          )}
+
           <div className="grid lg:grid-cols-3 gap-8">
-            
+
             {/* Payment Methods */}
             <div className="lg:col-span-2 space-y-4">
               {paymentMethods.map((method) => {
@@ -94,7 +290,18 @@ export default function CheckoutPage() {
 
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-2">
-                          <h3 className="text-xl font-bold">{method.name}</h3>
+                          <div className="flex items-center gap-3">
+                            <h3 className="text-xl font-bold">{method.name}</h3>
+                            {method.id === 'bank' && bankSaved && (
+                              <span className="text-xs bg-green-500/20 text-green-400 border border-green-500/30 px-2 py-0.5 rounded-full">Saved</span>
+                            )}
+                            {method.id === 'jazzcash' && jazzCashSaved && (
+                              <span className="text-xs bg-green-500/20 text-green-400 border border-green-500/30 px-2 py-0.5 rounded-full">Saved</span>
+                            )}
+                            {method.id === 'cod' && codSaved && (
+                              <span className="text-xs bg-green-500/20 text-green-400 border border-green-500/30 px-2 py-0.5 rounded-full">Saved</span>
+                            )}
+                          </div>
                           {isSelected && (
                             <div className="w-6 h-6 bg-[#D4AF37] rounded-full flex items-center justify-center">
                               <Check className="w-4 h-4 text-black" />
@@ -103,39 +310,241 @@ export default function CheckoutPage() {
                         </div>
                         <p className="text-gray-400 text-sm mb-4">{method.description}</p>
 
-                        {/* Bank Details */}
-                        {method.id === 'bank' && isSelected && method.banks && (
-                          <div className="bg-black/30 rounded-lg p-4 space-y-3">
-                            <p className="text-xs text-gray-400 uppercase tracking-wider mb-3">Available Banks:</p>
-                            {method.banks.map((bank) => (
-                              <div key={bank.name} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
-                                <div>
-                                  <p className="font-semibold">{bank.name}</p>
-                                  <p className="text-xs text-gray-400">{bank.title}</p>
-                                </div>
-                                <p className="text-[#D4AF37] font-mono text-sm">{bank.account}</p>
+                        {/* ── Bank Transfer Form ── */}
+                        {method.id === 'bank' && isSelected && (
+                          <div className="bg-black/30 rounded-lg p-4 space-y-4" onClick={(e) => e.stopPropagation()}>
+
+                            {/* Store bank accounts */}
+                            <div>
+                              <p className="text-xs text-gray-400 uppercase tracking-wider mb-3">Our Bank Accounts (Transfer Here):</p>
+                              <div className="space-y-2 mb-1">
+                                {STORE_BANKS.map((bank) => (
+                                  <div key={bank.name} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
+                                    <div>
+                                      <p className="font-semibold text-sm">{bank.name}</p>
+                                      <p className="text-xs text-gray-400">{bank.title}</p>
+                                    </div>
+                                    <p className="text-[#D4AF37] font-mono text-sm">{bank.account}</p>
+                                  </div>
+                                ))}
                               </div>
-                            ))}
-                            <p className="text-xs text-yellow-400 mt-3">📌 Please send screenshot of payment receipt to confirm order</p>
+                            </div>
+
+                            {/* User bank details */}
+                            <div className="space-y-4 pt-4 border-t border-white/10">
+                              <p className="text-sm font-semibold text-[#D4AF37]">Your Bank Details:</p>
+
+                              <div>
+                                <label className="block text-sm font-semibold mb-2">Select Your Bank *</label>
+                                <select
+                                  value={selectedBank}
+                                  onChange={(e) => { setSelectedBank(e.target.value); setBankSaved(false); }}
+                                  className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-[#D4AF37] focus:outline-none transition-colors"
+                                >
+                                  <option value="">Choose your bank...</option>
+                                  {PAKISTAN_BANKS.map((bank) => (
+                                    <option key={bank} value={bank}>{bank}</option>
+                                  ))}
+                                </select>
+                              </div>
+
+                              <div>
+                                <label className="block text-sm font-semibold mb-2">Your Account Number *</label>
+                                <input
+                                  type="text"
+                                  placeholder="Enter your account number"
+                                  value={senderAccountNumber}
+                                  onChange={(e) => { setSenderAccountNumber(e.target.value); setBankSaved(false); }}
+                                  className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-[#D4AF37] focus:outline-none transition-colors"
+                                />
+                              </div>
+
+                              <div className="flex items-center gap-3">
+                                <button
+                                  type="button"
+                                  onClick={(e) => { e.stopPropagation(); handleSaveBank(); }}
+                                  className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-all ${
+                                    bankSaved
+                                      ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                                      : 'bg-[#D4AF37] text-black hover:bg-[#F4CE5C]'
+                                  }`}
+                                >
+                                  {bankSaved ? <><CheckCircle2 className="w-4 h-4" /> Details Saved</> : <><Save className="w-4 h-4" /> Save Bank Details</>}
+                                </button>
+                                {bankSaved && <span className="text-xs text-green-400">✓ Saved to device</span>}
+                              </div>
+
+                              <div className="pt-2 border-t border-white/10">
+                                <label className="block text-sm font-semibold mb-2">Transaction Reference / ID *</label>
+                                <input
+                                  type="text"
+                                  placeholder="Enter transaction reference number"
+                                  value={bankTransactionId}
+                                  onChange={(e) => setBankTransactionId(e.target.value)}
+                                  className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-[#D4AF37] focus:outline-none transition-colors"
+                                />
+                                <p className="text-xs text-gray-400 mt-1">Enter the reference number from your bank transfer receipt</p>
+                              </div>
+                            </div>
+
+                            <div className="bg-yellow-400/10 border border-yellow-400/20 rounded-lg p-3">
+                              <p className="text-xs text-yellow-400">📌 Complete the bank transfer first, then enter your details and transaction ID above</p>
+                            </div>
                           </div>
                         )}
 
-                        {/* JazzCash Details */}
+                        {/* ── JazzCash Form ── */}
                         {method.id === 'jazzcash' && isSelected && method.details && (
-                          <div className="bg-black/30 rounded-lg p-4">
-                            <p className="text-xs text-gray-400 uppercase tracking-wider mb-2">JazzCash Number:</p>
-                            <p className="text-2xl font-bold text-[#D4AF37] mb-2">{method.details.number}</p>
-                            <p className="text-sm text-gray-400">Account Title: {method.details.name}</p>
-                            <p className="text-xs text-yellow-400 mt-3">📌 Send payment and share transaction ID</p>
+                          <div className="bg-black/30 rounded-lg p-4 space-y-4" onClick={(e) => e.stopPropagation()}>
+                            <div>
+                              <p className="text-xs text-gray-400 uppercase tracking-wider mb-2">Send Payment To:</p>
+                              <p className="text-2xl font-bold text-[#D4AF37] mb-1">{method.details.number}</p>
+                              <p className="text-sm text-gray-400 mb-4">Account Title: {method.details.name}</p>
+                            </div>
+
+                            <div className="space-y-4 pt-4 border-t border-white/10">
+                              <p className="text-sm font-semibold text-[#D4AF37]">Your JazzCash Details:</p>
+
+                              <div>
+                                <label className="block text-sm font-semibold mb-2">Your JazzCash Number *</label>
+                                <input
+                                  type="text"
+                                  placeholder="03XX-XXXXXXX"
+                                  value={jazzCashNumber}
+                                  maxLength={11}
+                                  onChange={(e) => { setJazzCashNumber(e.target.value); setJazzCashSaved(false); }}
+                                  className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-[#D4AF37] focus:outline-none transition-colors"
+                                />
+                                <p className="text-xs text-gray-400 mt-1">The number you are sending from</p>
+                              </div>
+
+                              <div className="flex items-center gap-3">
+                                <button
+                                  type="button"
+                                  onClick={(e) => { e.stopPropagation(); handleSaveJazzCash(); }}
+                                  className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-all ${
+                                    jazzCashSaved
+                                      ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                                      : 'bg-[#D4AF37] text-black hover:bg-[#F4CE5C]'
+                                  }`}
+                                >
+                                  {jazzCashSaved ? <><CheckCircle2 className="w-4 h-4" /> Number Saved</> : <><Save className="w-4 h-4" /> Save JazzCash Number</>}
+                                </button>
+                                {jazzCashSaved && <span className="text-xs text-green-400">✓ Saved to device</span>}
+                              </div>
+
+                              <div className="pt-2 border-t border-white/10">
+                                <label className="block text-sm font-semibold mb-2">Transaction ID *</label>
+                                <input
+                                  type="text"
+                                  placeholder="Enter JazzCash transaction ID"
+                                  value={jazzCashTransactionId}
+                                  onChange={(e) => setJazzCashTransactionId(e.target.value)}
+                                  className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-[#D4AF37] focus:outline-none transition-colors"
+                                />
+                                <p className="text-xs text-gray-400 mt-1">Transaction ID received after sending payment</p>
+                              </div>
+                            </div>
+
+                            <div className="bg-yellow-400/10 border border-yellow-400/20 rounded-lg p-3">
+                              <p className="text-xs text-yellow-400">📌 Send payment first, then enter your number and transaction ID</p>
+                            </div>
                           </div>
                         )}
 
-                        {/* COD Note */}
-                        {method.id === 'cod' && isSelected && method.note && (
-                          <div className="bg-black/30 rounded-lg p-4">
-                            <p className="text-sm text-gray-400">{method.note}</p>
+                        {/* ── Cash on Delivery Form ── */}
+                        {method.id === 'cod' && isSelected && (
+                          <div className="bg-black/30 rounded-lg p-4 space-y-4" onClick={(e) => e.stopPropagation()}>
+                            <div className="bg-blue-400/10 border border-blue-400/20 rounded-lg p-3">
+                              <p className="text-sm text-blue-400">💰 Pay in cash when your order is delivered to your door</p>
+                            </div>
+
+                            <div className="space-y-4">
+                              <div>
+                                <label className="block text-sm font-semibold mb-2">Full Name *</label>
+                                <input
+                                  type="text"
+                                  placeholder="Enter your full name"
+                                  value={codName}
+                                  onChange={(e) => { setCodName(e.target.value); setCodSaved(false); }}
+                                  className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-[#D4AF37] focus:outline-none transition-colors"
+                                />
+                              </div>
+
+                              <div>
+                                <label className="block text-sm font-semibold mb-2">Phone Number *</label>
+                                <input
+                                  type="text"
+                                  placeholder="03XX-XXXXXXX"
+                                  value={codPhone}
+                                  maxLength={11}
+                                  onChange={(e) => { setCodPhone(e.target.value); setCodSaved(false); }}
+                                  className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-[#D4AF37] focus:outline-none transition-colors"
+                                />
+                              </div>
+
+                              <div>
+                                <label className="block text-sm font-semibold mb-2">Delivery Address *</label>
+                                <textarea
+                                  placeholder="House/Flat #, Street, Area"
+                                  value={codAddress}
+                                  rows={3}
+                                  onChange={(e) => { setCodAddress(e.target.value); setCodSaved(false); }}
+                                  className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-[#D4AF37] focus:outline-none transition-colors resize-none"
+                                />
+                              </div>
+
+                              <div>
+                                <label className="block text-sm font-semibold mb-2">City *</label>
+                                <select
+                                  value={codCity}
+                                  onChange={(e) => { setCodCity(e.target.value); setCodSaved(false); }}
+                                  className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-[#D4AF37] focus:outline-none transition-colors"
+                                >
+                                  <option value="">Select your city...</option>
+                                  <option value="Karachi">Karachi</option>
+                                  <option value="Lahore">Lahore</option>
+                                  <option value="Islamabad">Islamabad</option>
+                                  <option value="Rawalpindi">Rawalpindi</option>
+                                  <option value="Faisalabad">Faisalabad</option>
+                                  <option value="Multan">Multan</option>
+                                  <option value="Peshawar">Peshawar</option>
+                                  <option value="Quetta">Quetta</option>
+                                  <option value="Sialkot">Sialkot</option>
+                                  <option value="Gujranwala">Gujranwala</option>
+                                  <option value="Hyderabad">Hyderabad</option>
+                                  <option value="Bahawalpur">Bahawalpur</option>
+                                  <option value="Sargodha">Sargodha</option>
+                                  <option value="Sukkur">Sukkur</option>
+                                  <option value="Abbottabad">Abbottabad</option>
+                                  <option value="Mardan">Mardan</option>
+                                  <option value="Sahiwal">Sahiwal</option>
+                                  <option value="Rahim Yar Khan">Rahim Yar Khan</option>
+                                </select>
+                              </div>
+
+                              <div className="flex items-center gap-3">
+                                <button
+                                  type="button"
+                                  onClick={(e) => { e.stopPropagation(); handleSaveCod(); }}
+                                  className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-all ${
+                                    codSaved
+                                      ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                                      : 'bg-[#D4AF37] text-black hover:bg-[#F4CE5C]'
+                                  }`}
+                                >
+                                  {codSaved ? <><CheckCircle2 className="w-4 h-4" /> Details Saved</> : <><Save className="w-4 h-4" /> Save Delivery Details</>}
+                                </button>
+                                {codSaved && <span className="text-xs text-green-400">✓ Saved to device</span>}
+                              </div>
+                            </div>
+
+                            <div className="bg-green-400/10 border border-green-400/20 rounded-lg p-3">
+                              <p className="text-xs text-green-400">✓ Available across all major cities of Pakistan</p>
+                            </div>
                           </div>
                         )}
+
                       </div>
                     </div>
                   </div>
@@ -195,6 +604,14 @@ export default function CheckoutPage() {
                     </div>
                   </div>
                 </div>
+
+                {/* Error Message */}
+                {formError && (
+                  <div className="mb-4 bg-red-500/10 border border-red-500/30 rounded-lg p-3 flex items-start gap-2">
+                    <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+                    <p className="text-sm text-red-400">{formError}</p>
+                  </div>
+                )}
 
                 <button
                   onClick={handlePlaceOrder}

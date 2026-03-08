@@ -29,7 +29,7 @@ export default function BrandStory() {
             {/* Est. Badge */}
             <div className="absolute -bottom-8 -right-8 bg-[#0e1724] border-4 border-[#f4cf3e] rounded-full w-36 h-36 flex flex-col items-center justify-center shadow-2xl">
               <span className="text-[#f4cf3e] text-xs tracking-[0.2em] uppercase">Est.</span>
-              <span className="text-[#f4cf3e] text-4xl font-bold">1924</span>
+              <span className="text-[#f4cf3e] text-4xl font-bold">2023</span>
             </div>
           </motion.div>
 

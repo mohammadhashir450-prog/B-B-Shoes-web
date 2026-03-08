@@ -10,11 +10,19 @@ export default function LuxuryFooter() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
           {/* Brand - Column 1 */}
           <div>
-            <div className="flex items-center gap-1 mb-4">
-              <span className="text-[#f4cf3e] text-2xl font-bold tracking-tight">B&B Shoes</span>
+            <div className="mb-4">
+              <div className="flex items-center gap-2 mb-1">
+                <svg width="34" height="22" viewBox="0 0 52 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M4 28 Q4 32 8 32 L44 32 Q48 32 48 28 L48 26 L4 26 Z" fill="#f4cf3e"/>
+                  <path d="M4 26 L4 16 Q4 10 10 8 L24 7 Q30 7 34 10 L48 26 Z" fill="#f4cf3e"/>
+                  <path d="M12 18 C16 15 22 15 26 17" stroke="#0e1724" strokeWidth="2.5" strokeLinecap="round"/>
+                </svg>
+                <span className="text-[#f4cf3e] text-2xl font-bold tracking-tight">B&B Shoes</span>
+              </div>
+              <p className="text-[#f4cf3e]/50 text-[9px] tracking-[0.28em] uppercase">Brand You Like</p>
             </div>
             <p className="text-white/50 text-sm leading-relaxed mb-6">
-              A family of timeless brands crafting bespoke footwear since 1924.
+              Luxury footwear for every occasion, since 2023.
             </p>
             <div className="flex gap-4">
               <a href="#" className="text-white/50 hover:text-[#f4cf3e] transition-colors">
@@ -114,7 +122,7 @@ export default function LuxuryFooter() {
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-white/5 text-center">
           <p className="text-white/30 text-xs">
-            © 2025 B&B Shoes & Berluti. All rights reserved.
+            © 2023 B&B Shoes. All rights reserved.
           </p>
         </div>
       </div>

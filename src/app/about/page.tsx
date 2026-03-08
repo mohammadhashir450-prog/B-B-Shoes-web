@@ -27,7 +27,7 @@ export default function AboutPage() {
               About <span className="text-[#D4AF37]">B&B Shoes</span>
             </h1>
             <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-              Crafting luxury footwear excellence since 1924
+              Crafting luxury footwear excellence since 2023
             </p>
           </div>
 
@@ -39,7 +39,7 @@ export default function AboutPage() {
               </div>
               <div>
                 <h2 className="text-white text-2xl font-bold">Our Heritage</h2>
-                <p className="text-[#D4AF37] text-sm">Since 1924</p>
+                <p className="text-[#D4AF37] text-sm">Since 2023</p>
               </div>
             </div>
             

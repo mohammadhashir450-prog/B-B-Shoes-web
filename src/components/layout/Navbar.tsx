@@ -141,12 +141,15 @@ export default function Navbar() {
         
         {/* Logo Section */}
         <Link href="/" className="flex items-center gap-3">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="#D4AF37"/>
-            <path d="M2 17L12 22L22 17" stroke="#D4AF37" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M2 12L12 17L22 12" stroke="#D4AF37" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <svg width="34" height="22" viewBox="0 0 52 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4 28 Q4 32 8 32 L44 32 Q48 32 48 28 L48 26 L4 26 Z" fill="#D4AF37"/>
+            <path d="M4 26 L4 16 Q4 10 10 8 L24 7 Q30 7 34 10 L48 26 Z" fill="#D4AF37"/>
+            <path d="M12 18 C16 15 22 15 26 17" stroke="#0B101E" strokeWidth="2.5" strokeLinecap="round"/>
           </svg>
-          <span className="text-[#D4AF37] text-xl font-bold tracking-widest">B&B Shoes</span>
+          <div>
+            <span className="text-[#D4AF37] text-xl font-bold tracking-widest block leading-tight">B&B Shoes</span>
+            <span className="text-[#D4AF37]/55 text-[8px] tracking-[0.28em] uppercase">Brand You Like</span>
+          </div>
         </Link>
 
         {/* Navigation Links (Centered) */}
@@ -336,11 +339,15 @@ export default function Navbar() {
                 {/* Brand Section */}
                 <div className="flex items-center gap-3 px-4 py-6 mb-6 border-b border-white/10">
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#D4AF37] to-[#F4CE5C] flex items-center justify-center shadow-lg shadow-[#D4AF37]/30">
-                    <span className="text-black font-bold text-xl">B</span>
+                    <svg width="22" height="15" viewBox="0 0 52 36" fill="none">
+                      <path d="M4 28 Q4 32 8 32 L44 32 Q48 32 48 28 L48 26 L4 26 Z" fill="#0B101E"/>
+                      <path d="M4 26 L4 16 Q4 10 10 8 L24 7 Q30 7 34 10 L48 26 Z" fill="#0B101E"/>
+                      <path d="M12 18 C16 15 22 15 26 17" stroke="#D4AF37" strokeWidth="2.5" strokeLinecap="round"/>
+                    </svg>
                   </div>
                   <div>
-                    <span className="text-xl font-bold tracking-wider text-white">B&B Shoes LUXURY</span>
-                    <p className="text-[10px] text-gray-400 tracking-wider">EST. 1924</p>
+                    <span className="text-xl font-bold tracking-wider text-white">B&B Shoes</span>
+                    <p className="text-[10px] text-gray-400 tracking-wider">EST. 2023 • Brand You Like</p>
                   </div>
                 </div>
 

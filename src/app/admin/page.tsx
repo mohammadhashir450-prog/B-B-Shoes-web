@@ -139,7 +139,7 @@ export default function AdminPanel() {
               <Crown className="w-12 h-12 text-white" />
             </div>
             <h1 className="text-4xl font-bold bg-gradient-to-r from-[#0047AB] to-[#0B101E] bg-clip-text text-transparent mb-2">
-              Admin Portal
+              Boss
             </h1>
             <p className="text-gray-600 font-medium">B&B Exclusive Management</p>
           </div>
@@ -252,7 +252,7 @@ export default function AdminPanel() {
               <Crown className="w-7 h-7 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">B&B Admin Portal</h1>
+              <h1 className="text-3xl font-bold tracking-tight">B&B Boss</h1>
               <p className="text-sm text-[#D4AF37] font-medium">Luxury Brand Management System</p>
             </div>
           </div>

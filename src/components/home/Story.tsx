@@ -29,7 +29,7 @@ export default function Story() {
             {/* Est Badge */}
             <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-[#0B101E] border-4 border-[#D4AF37] rounded-full flex flex-col items-center justify-center">
               <span className="text-[#D4AF37] text-[9px] tracking-widest uppercase">Est.</span>
-              <span className="text-[#D4AF37] text-3xl font-bold">1924</span>
+              <span className="text-[#D4AF37] text-3xl font-bold">2023</span>
             </div>
           </motion.div>
 

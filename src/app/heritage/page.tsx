@@ -37,7 +37,7 @@ export default function HeritagePage() {
                 <div className="w-1 h-12 bg-[#D4AF37]"></div>
                 <div>
                   <p className="text-[#D4AF37] text-xs tracking-[0.3em] uppercase font-bold">
-                    EST. 1924
+                    EST. 2023
                   </p>
                   <p className="text-gray-400 text-xs">A Century of Excellence</p>
                 </div>
@@ -181,8 +181,7 @@ export default function HeritagePage() {
                   <span className="text-[#D4AF37]">Quiet Luxury</span>
                 </h2>
                 <p className="text-gray-400 leading-relaxed mb-6">
-                  Since 1924, the Bianchi & Berluti families have preserved the dying art of traditional Italian shoemaking. 
-                  Every Heritage piece undergoes the same 180-hour process our founders perfected a century ago.
+                  Since 2023, B&B Shoes has brought quality footwear to Pakistan.
                 </p>
                 <p className="text-gray-400 leading-relaxed mb-8">
                   From selecting hides to the final hand-polish, we refuse to compromise. This isn&apos;t fast fashion—
@@ -212,7 +211,7 @@ export default function HeritagePage() {
                 />
                 <div className="absolute bottom-8 right-8 w-32 h-32 bg-[#0B101E] border-4 border-[#D4AF37] rounded-full flex flex-col items-center justify-center">
                   <span className="text-[#D4AF37] text-xs tracking-widest">EST.</span>
-                  <span className="text-[#D4AF37] text-3xl font-bold">1924</span>
+                  <span className="text-[#D4AF37] text-3xl font-bold">2023</span>
                 </div>
               </div>
             </div>
