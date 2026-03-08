@@ -1,61 +1,44 @@
 import mongoose from 'mongoose';
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/bbluxury';
+// Globally disable command buffering — fail fast instead of waiting 10s
+mongoose.set('bufferCommands', false);
 
-if (!MONGODB_URI) {
-  throw new Error('Please define the MONGODB_URI environment variable inside .env.local');
-}
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/bnb_shoes';
 
-interface MongooseCache {
-  conn: typeof mongoose | null;
-  promise: Promise<typeof mongoose> | null;
-}
-
-declare global {
-  var mongoose: MongooseCache;
-}
-
-let cached: MongooseCache = global.mongoose || {
-  conn: null,
-  promise: null,
-};
-
-if (!global.mongoose) {
-  global.mongoose = cached;
-}
+let isConnecting = false;
 
 async function connectDB() {
-  if (cached.conn) {
-    return cached.conn;
+  // readyState: 0=disconnected, 1=connected, 2=connecting, 3=disconnecting
+  if (mongoose.connection.readyState === 1) {
+    return mongoose.connection;
   }
 
-  if (!cached.promise) {
-    const opts = {
-      bufferCommands: false,
-      serverSelectionTimeoutMS: 5000, // Timeout after 5 seconds
-      socketTimeoutMS: 45000,
-    };
-
-    cached.promise = mongoose.connect(MONGODB_URI, opts)
-      .then((mongoose) => {
-        console.log('✅ MongoDB Connected Successfully');
-        return mongoose;
-      })
-      .catch((error) => {
-        cached.promise = null; // Reset on error
-        console.log('⚠️ MongoDB connection failed (will use fallback storage)');
-        throw error;
-      });
+  if (isConnecting) {
+    // Wait for the in-progress connection
+    await new Promise<void>((resolve, reject) => {
+      const onConnected = () => { mongoose.connection.off('error', onError); resolve(); };
+      const onError = (err: Error) => { mongoose.connection.off('connected', onConnected); reject(err); };
+      mongoose.connection.once('connected', onConnected);
+      mongoose.connection.once('error', onError);
+    });
+    return mongoose.connection;
   }
 
+  isConnecting = true;
   try {
-    cached.conn = await cached.promise;
-  } catch (e) {
-    cached.promise = null;
-    throw e;
+    await mongoose.connect(MONGODB_URI, {
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+      maxPoolSize: 10,
+    });
+    console.log('✅ MongoDB Connected Successfully to:', MONGODB_URI.replace(/:([^@]+)@/, ':***@'));
+    return mongoose.connection;
+  } catch (error: any) {
+    console.error('❌ MongoDB connection failed:', error.message);
+    throw error;
+  } finally {
+    isConnecting = false;
   }
-
-  return cached.conn;
 }
 
 export default connectDB;

@@ -110,13 +110,13 @@ name: '',
       {/* Top Navigation */}
       <nav className="relative z-10 px-8 py-6 flex items-center justify-between border-b border-white/5">
         <Link href="/" className="flex items-center gap-3">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="#D4AF37" stroke="#D4AF37" strokeWidth="1.5"/>
-            <path d="M2 17L12 22L22 17" stroke="#D4AF37" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M2 12L12 17L22 12" stroke="#D4AF37" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <svg width="38" height="24" viewBox="0 0 52 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4 28 Q4 32 8 32 L44 32 Q48 32 48 28 L48 26 L4 26 Z" fill="#D4AF37"/>
+            <path d="M4 26 L4 16 Q4 10 10 8 L24 7 Q30 7 34 10 L48 26 Z" fill="#D4AF37"/>
+            <path d="M12 18 C16 15 22 15 26 17" stroke="#0B1829" strokeWidth="2.5" strokeLinecap="round"/>
           </svg>
           <div className="flex flex-col">
-            <span className="text-[#D4AF37] text-xl font-bold tracking-[0.15em] uppercase">B&B Shoes</span>
+            <span className="text-[#D4AF37] text-xl font-bold tracking-[0.15em] uppercase">B&amp;B Shoes</span>
             <span className="text-gray-400 text-[10px] tracking-[0.2em] uppercase">Brands You Like</span>
           </div>
         </Link>

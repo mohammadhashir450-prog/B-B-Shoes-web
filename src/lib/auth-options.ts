@@ -1,8 +1,8 @@
 import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
+import connectDB from "@/lib/mongodb"; // must import before User so bufferCommands:false is set first
 import User from "@/models/User";
-import connectDB from "@/lib/mongodb";
 import { persistentStorage } from "@/lib/persistentStorage";
 import bcrypt from "bcryptjs";
 
@@ -31,50 +31,65 @@ export const authOptions: NextAuthOptions = {
         console.log("🔑 Credentials login attempt:", credentials?.email);
 
         if (!credentials?.email || !credentials?.password) {
-          console.log("❌ Missing credentials");
           throw new Error("Please provide email and password");
         }
 
+        const emailLower = credentials.email.toLowerCase();
+
+        // ── Try MongoDB first ──────────────────────────────────────────────
         try {
-          // Connect to MongoDB
           await connectDB();
           console.log("✅ MongoDB connected for login");
 
-          // Find user by email (include password field)
-          const user = await User.findOne({ email: credentials.email.toLowerCase() }).select('+password');
-          console.log("📧 User lookup result:", user ? "Found" : "Not found");
+          const user = await User.findOne({ email: emailLower }).select('+password');
+          console.log("📧 MongoDB user lookup:", user ? "Found" : "Not found");
 
-          if (!user) {
-            console.log("❌ No user found with email:", credentials.email);
-            throw new Error("Invalid email or password");
+          if (user) {
+            if (!user.password) {
+              throw new Error("Please sign in with the provider you used to register");
+            }
+            const isValid = await bcrypt.compare(credentials.password, user.password);
+            if (!isValid) throw new Error("Invalid email or password");
+
+            console.log("✅ MongoDB login successful:", user.email);
+            return {
+              id: user._id.toString(),
+              email: user.email,
+              name: user.name,
+              image: user.image,
+              role: user.role || 'user',
+            };
+          }
+          // User not found in MongoDB — fall through to persistentStorage check
+          throw new Error("Invalid email or password");
+
+        } catch (dbError: any) {
+          // If it's a business-logic error (wrong password / not found), rethrow immediately
+          if (dbError.message === "Invalid email or password" ||
+              dbError.message === "Please sign in with the provider you used to register") {
+            throw dbError;
           }
 
-          if (!user.password) {
-            console.log("❌ User has no password (OAuth user?)");
-            throw new Error("Please sign in with the provider you used to register");
+          // ── MongoDB unavailable → fall back to persistentStorage ──────────
+          console.log("⚠️ MongoDB unavailable, trying persistent storage:", dbError.message);
+          try {
+            const storedUser = persistentStorage.getUser(emailLower);
+            if (!storedUser) throw new Error("Invalid email or password");
+
+            const isValid = await bcrypt.compare(credentials.password, storedUser.password);
+            if (!isValid) throw new Error("Invalid email or password");
+
+            console.log("✅ Persistent storage login successful:", emailLower);
+            return {
+              id: emailLower,
+              email: emailLower,
+              name: storedUser.name || emailLower,
+              image: "",
+              role: "user",
+            };
+          } catch (fallbackError: any) {
+            throw new Error(fallbackError.message || "Invalid email or password");
           }
-
-          // Verify password
-          const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
-          console.log("🔐 Password validation:", isPasswordValid ? "Valid" : "Invalid");
-
-          if (!isPasswordValid) {
-            console.log("❌ Invalid password for:", credentials.email);
-            throw new Error("Invalid email or password");
-          }
-
-          console.log("✅ Login successful for:", user.email);
-
-          return {
-            id: user._id.toString(),
-            email: user.email,
-            name: user.name,
-            image: user.image,
-            role: user.role || 'user',
-          };
-        } catch (error: any) {
-          console.error("❌ Credentials login error:", error.message);
-          throw new Error(error.message || "Invalid email or password");
         }
       }
     }),

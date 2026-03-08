@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
+import { persistentStorage } from '@/lib/persistentStorage';
 
 /**
  * POST /api/auth/register
@@ -49,7 +50,7 @@ export async function POST(req: Request) {
     const hashedPassword = await bcrypt.hash(password, 12);
     console.log('✅ Password hashed');
 
-    // Create new user
+    // Create new user in MongoDB
     const newUser = await User.create({
       name,
       email: email.toLowerCase(),
@@ -60,6 +61,16 @@ export async function POST(req: Request) {
     });
 
     console.log('✅ User created successfully:', newUser.email);
+
+    // Also save to persistentStorage as backup (so login works if MongoDB connection drops)
+    try {
+      persistentStorage.addUser(email.toLowerCase(), {
+        email: email.toLowerCase(),
+        password: hashedPassword,
+        name,
+        createdAt: new Date().toISOString(),
+      });
+    } catch (_) { /* non-critical */ }
 
     // Return success response (don't return password)
     return NextResponse.json(

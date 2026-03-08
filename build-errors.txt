@@ -1,0 +1,197 @@
+
+> shoe-store@0.1.0 build
+> next build
+
+  Γû▓ Next.js 14.2.35
+  - Environments: .env.local, .env
+
+   Creating an optimized production build ...
+
+
+Source path: C:\Users\Mohammad Hashir\Desktop\B&B web\src\app\globals.css
+Setting up new context...
+Finding changed files: 17.448ms
+Reading changed files: 525.01ms
+Sorting candidates: 4.418ms
+Generate rules: 183.077ms
+Build stylesheet: 7.405ms
+Potential classes:  4736
+Active contexts:  1
+JIT TOTAL: 939.314ms
+
+
+ Γ£ô Compiled successfully
+   Linting and checking validity of types ...
+
+./src/app/bag/page.tsx
+92:25  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/app/checkout/page.tsx
+578:25  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/app/my-orders/page.tsx
+147:27  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+259:35  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/app/product/[id]/page.tsx
+141:17  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+342:15  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/hooks/useApi.ts
+53:6  Warning: React Hook useEffect has a missing dependency: 'options'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/basic-features/eslint#disabling-rules
+   Collecting page data ...
+Γ¥î MongoDB Connection Error: Error: querySrv ECONNREFUSED _mongodb._tcp.bnbwebs.7lltnpr.mongodb.net
+    at QueryReqWrap.onresolve [as oncomplete] (node:internal/dns/promises:294:17) {
+  errno: undefined,
+  code: 'ECONNREFUSED',
+  syscall: 'querySrv',
+  hostname: '_mongodb._tcp.bnbwebs.7lltnpr.mongodb.net'
+}
+Γ¥î MongoDB Connection Error: Error: querySrv ECONNREFUSED _mongodb._tcp.bnbwebs.7lltnpr.mongodb.net
+    at QueryReqWrap.onresolve [as oncomplete] (node:internal/dns/promises:294:17) {
+  errno: undefined,
+  code: 'ECONNREFUSED',
+  syscall: 'querySrv',
+  hostname: '_mongodb._tcp.bnbwebs.7lltnpr.mongodb.net'
+}
+Γ¥î MongoDB Connection Error: Error: querySrv ECONNREFUSED _mongodb._tcp.bnbwebs.7lltnpr.mongodb.net
+    at QueryReqWrap.onresolve [as oncomplete] (node:internal/dns/promises:294:17) {
+  errno: undefined,
+  code: 'ECONNREFUSED',
+  syscall: 'querySrv',
+  hostname: '_mongodb._tcp.bnbwebs.7lltnpr.mongodb.net'
+}
+Γ¥î MongoDB Connection Error: Error: querySrv ECONNREFUSED _mongodb._tcp.bnbwebs.7lltnpr.mongodb.net
+    at QueryReqWrap.onresolve [as oncomplete] (node:internal/dns/promises:294:17) {
+  errno: undefined,
+  code: 'ECONNREFUSED',
+  syscall: 'querySrv',
+  hostname: '_mongodb._tcp.bnbwebs.7lltnpr.mongodb.net'
+}
+   Generating static pages (0/37) ...
+Γ¥î Email transporter configuration error: Error: Invalid login: 535-5.7.8 Username and Password not accepted. For more information, go to
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials 5b1f17b1804b1-4853a4df13bsm39053945e9.4 - gsmtp
+    at h._formatError (C:\Users\Mohammad Hashir\Desktop\B&B web\.next\server\chunks\5245.js:1:167810)
+    at h._actionAUTHComplete (C:\Users\Mohammad Hashir\Desktop\B&B web\.next\server\chunks\5245.js:1:179348)
+    at h.<anonymous> (C:\Users\Mohammad Hashir\Desktop\B&B web\.next\server\chunks\5245.js:1:164049)
+    at h._processResponse (C:\Users\Mohammad Hashir\Desktop\B&B web\.next\server\chunks\5245.js:1:170167)
+    at h._onData (C:\Users\Mohammad Hashir\Desktop\B&B web\.next\server\chunks\5245.js:1:167417)
+    at TLSSocket._onSocketData (C:\Users\Mohammad Hashir\Desktop\B&B web\.next\server\chunks\5245.js:1:157376)
+    at TLSSocket.emit (node:events:508:28)
+    at addChunk (node:internal/streams/readable:559:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:510:3)
+    at Readable.push (node:internal/streams/readable:390:5) {
+  code: 'EAUTH',
+  response: '535-5.7.8 Username and Password not accepted. For more information, go to\n' +
+    '535 5.7.8  https://support.google.com/mail/?p=BadCredentials 5b1f17b1804b1-4853a4df13bsm39053945e9.4 - gsmtp',
+  responseCode: 535,
+  command: 'AUTH PLAIN'
+}
+Γ¥î Email transporter configuration error: Error: Invalid login: 535-5.7.8 Username and Password not accepted. For more information, go to
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials ffacd0b85a97d-439dad8d840sm22310007f8f.8 - gsmtp
+    at h._formatError (C:\Users\Mohammad Hashir\Desktop\B&B web\.next\server\chunks\5245.js:1:167810)
+    at h._actionAUTHComplete (C:\Users\Mohammad Hashir\Desktop\B&B web\.next\server\chunks\5245.js:1:179348)
+    at h.<anonymous> (C:\Users\Mohammad Hashir\Desktop\B&B web\.next\server\chunks\5245.js:1:164049)
+    at h._processResponse (C:\Users\Mohammad Hashir\Desktop\B&B web\.next\server\chunks\5245.js:1:170167)
+    at h._onData (C:\Users\Mohammad Hashir\Desktop\B&B web\.next\server\chunks\5245.js:1:167417)
+    at TLSSocket._onSocketData (C:\Users\Mohammad Hashir\Desktop\B&B web\.next\server\chunks\5245.js:1:157376)
+    at TLSSocket.emit (node:events:508:28)
+    at addChunk (node:internal/streams/readable:559:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:510:3)
+    at Readable.push (node:internal/streams/readable:390:5) {
+  code: 'EAUTH',
+  response: '535-5.7.8 Username and Password not accepted. For more information, go to\n' +
+    '535 5.7.8  https://support.google.com/mail/?p=BadCredentials ffacd0b85a97d-439dad8d840sm22310007f8f.8 - gsmtp',
+  responseCode: 535,
+  command: 'AUTH PLAIN'
+}
+   Generating static pages (9/37) 
+   Generating static pages (18/37) 
+Γ¥î MongoDB Connection Error: Error: querySrv ECONNREFUSED _mongodb._tcp.bnbwebs.7lltnpr.mongodb.net
+    at QueryReqWrap.onresolve [as oncomplete] (node:internal/dns/promises:294:17) {
+  errno: undefined,
+  code: 'ECONNREFUSED',
+  syscall: 'querySrv',
+  hostname: '_mongodb._tcp.bnbwebs.7lltnpr.mongodb.net'
+}
+   Generating static pages (27/37) 
+Γ¥î MongoDB Connection Error: Error: querySrv ECONNREFUSED _mongodb._tcp.bnbwebs.7lltnpr.mongodb.net
+    at QueryReqWrap.onresolve [as oncomplete] (node:internal/dns/promises:294:17) {
+  errno: undefined,
+  code: 'ECONNREFUSED',
+  syscall: 'querySrv',
+  hostname: '_mongodb._tcp.bnbwebs.7lltnpr.mongodb.net'
+}
+Γ¥î Email transporter configuration error: Error: Invalid login: 535-5.7.8 Username and Password not accepted. For more information, go to
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials 5b1f17b1804b1-4851fb3668csm438884905e9.13 - gsmtp
+    at h._formatError (C:\Users\Mohammad Hashir\Desktop\B&B web\.next\server\chunks\5245.js:1:167810)
+    at h._actionAUTHComplete (C:\Users\Mohammad Hashir\Desktop\B&B web\.next\server\chunks\5245.js:1:179348)
+    at h.<anonymous> (C:\Users\Mohammad Hashir\Desktop\B&B web\.next\server\chunks\5245.js:1:164049)
+    at h._processResponse (C:\Users\Mohammad Hashir\Desktop\B&B web\.next\server\chunks\5245.js:1:170167)
+    at h._onData (C:\Users\Mohammad Hashir\Desktop\B&B web\.next\server\chunks\5245.js:1:167417)
+    at TLSSocket._onSocketData (C:\Users\Mohammad Hashir\Desktop\B&B web\.next\server\chunks\5245.js:1:157376)
+    at TLSSocket.emit (node:events:508:28)
+    at addChunk (node:internal/streams/readable:559:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:510:3)
+    at Readable.push (node:internal/streams/readable:390:5) {
+  code: 'EAUTH',
+  response: '535-5.7.8 Username and Password not accepted. For more information, go to\n' +
+    '535 5.7.8  https://support.google.com/mail/?p=BadCredentials 5b1f17b1804b1-4851fb3668csm438884905e9.13 - gsmtp',
+  responseCode: 535,
+  command: 'AUTH PLAIN'
+}
+ Γ£ô Generating static pages (37/37)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                              Size     First Load JS
+Γöî Γùï /                                    4.24 kB         159 kB
+Γö£ Γùï /_not-found                          873 B          88.2 kB
+Γö£ Γùï /about                               1.82 kB         152 kB
+Γö£ Γùï /admin                               49.2 kB         142 kB
+Γö£ ╞Æ /api/admin-only                      0 B                0 B
+Γö£ ╞Æ /api/auth/[...nextauth]              0 B                0 B
+Γö£ ╞Æ /api/auth/login                      0 B                0 B
+Γö£ ╞Æ /api/auth/register                   0 B                0 B
+Γö£ ╞Æ /api/auth/reset-password             0 B                0 B
+Γö£ ╞Æ /api/auth/send-otp                   0 B                0 B
+Γö£ ╞Æ /api/auth/verify-otp                 0 B                0 B
+Γö£ ╞Æ /api/orders                          0 B                0 B
+Γö£ ╞Æ /api/orders/[id]                     0 B                0 B
+Γö£ ╞Æ /api/products                        0 B                0 B
+Γö£ ╞Æ /api/products/[id]                   0 B                0 B
+Γö£ ╞Æ /api/protected                       0 B                0 B
+Γö£ ╞Æ /api/register                        0 B                0 B
+Γö£ Γùï /api/test-db                         0 B                0 B
+Γö£ ╞Æ /api/users                           0 B                0 B
+Γö£ Γùï /bag                                 2.2 kB          152 kB
+Γö£ Γùï /basketball                          4.5 kB          160 kB
+Γö£ Γùï /checkout                            5.07 kB         155 kB
+Γö£ Γùï /collections                         1.09 kB         151 kB
+Γö£ Γùï /contact                             1.85 kB         152 kB
+Γö£ Γùï /formal                              4.52 kB         160 kB
+Γö£ Γùï /heritage                            3.82 kB         159 kB
+Γö£ Γùï /login                               4.99 kB         111 kB
+Γö£ Γùï /men                                 3.43 kB         159 kB
+Γö£ Γùï /my-addresses                        2.5 kB          152 kB
+Γö£ Γùï /my-orders                           2.62 kB         153 kB
+Γö£ Γùï /new-arrivals                        3.5 kB          159 kB
+Γö£ ╞Æ /product/[id]                        4.36 kB         154 kB
+Γö£ Γùï /profile                             1.84 kB         152 kB
+Γö£ Γùï /register                            5.28 kB         112 kB
+Γö£ Γùï /running                             4.48 kB         160 kB
+Γö£ Γùï /sales                               2.96 kB         158 kB
+Γö£ Γùï /settings                            2.25 kB         152 kB
+Γö£ Γùï /sneakers                            4.53 kB         160 kB
+Γöö Γùï /women                               3.53 kB         159 kB
++ First Load JS shared by all            87.3 kB
+  Γö£ chunks/966-7dcb04987c90449e.js       31.7 kB
+  Γö£ chunks/fd9d1056-b11b2651f33aae7f.js  53.6 kB
+  Γöö other shared chunks (total)          1.95 kB
+
+
+Γùï  (Static)   prerendered as static content
+╞Æ  (Dynamic)  server-rendered on demand
+
