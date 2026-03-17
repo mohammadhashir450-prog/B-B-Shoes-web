@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { Suspense, useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -9,7 +9,7 @@ import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import { useProducts } from '@/context/ProductContext'
 
-export default function SearchPage() {
+function SearchPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { allProducts, loading } = useProducts()
@@ -85,7 +85,7 @@ export default function SearchPage() {
 
           {!loading && query.trim() && (
             <p className="text-white/60 text-sm mb-5">
-              {results.length} result{results.length === 1 ? '' : 's'} for "{query.trim()}"
+              {results.length} result{results.length === 1 ? '' : 's'} for &quot;{query.trim()}&quot;
             </p>
           )}
 
@@ -128,5 +128,25 @@ export default function SearchPage() {
       </main>
       <Footer />
     </>
+  )
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense
+      fallback={
+        <>
+          <Navbar />
+          <main className="min-h-screen bg-[#0B101E] pt-28 pb-16">
+            <div className="max-w-[1200px] mx-auto px-6 md:px-10">
+              <p className="text-white/60 text-sm">Loading search...</p>
+            </div>
+          </main>
+          <Footer />
+        </>
+      }
+    >
+      <SearchPageContent />
+    </Suspense>
   )
 }

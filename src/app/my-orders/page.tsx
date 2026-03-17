@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -54,7 +54,7 @@ const mapApiOrderToUi = (order: any): Order => ({
   shippingAddress: order.customerAddress || order.shippingAddress,
 });
 
-export default function MyOrdersPage() {
+function MyOrdersContent() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -369,5 +369,26 @@ export default function MyOrdersPage() {
 
       <Footer />
     </div>
+  );
+}
+
+export default function MyOrdersPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#0B101E] text-white">
+          <Navbar />
+          <div className="pt-24 pb-16 flex items-center justify-center min-h-[calc(100vh-80px)]">
+            <div className="flex flex-col items-center gap-4">
+              <Loader2 className="w-12 h-12 text-[#D4AF37] animate-spin" />
+              <p className="text-gray-400">Loading...</p>
+            </div>
+          </div>
+          <Footer />
+        </div>
+      }
+    >
+      <MyOrdersContent />
+    </Suspense>
   );
 }

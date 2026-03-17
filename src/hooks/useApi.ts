@@ -6,6 +6,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRef } from 'react';
 
 interface UseApiOptions {
   onSuccess?: (data: any) => void;
@@ -18,6 +19,13 @@ export function useFetch<T>(url: string, options?: UseApiOptions) {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const onSuccessRef = useRef<UseApiOptions['onSuccess']>(options?.onSuccess);
+  const onErrorRef = useRef<UseApiOptions['onError']>(options?.onError);
+
+  useEffect(() => {
+    onSuccessRef.current = options?.onSuccess;
+    onErrorRef.current = options?.onError;
+  }, [options?.onSuccess, options?.onError]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -34,15 +42,15 @@ export function useFetch<T>(url: string, options?: UseApiOptions) {
 
         setData(result.data || result);
         
-        if (options?.onSuccess) {
-          options.onSuccess(result.data || result);
+        if (onSuccessRef.current) {
+          onSuccessRef.current(result.data || result);
         }
       } catch (err: any) {
         const errorMessage = err.message || 'An error occurred';
         setError(errorMessage);
         
-        if (options?.onError) {
-          options.onError(err);
+        if (onErrorRef.current) {
+          onErrorRef.current(err);
         }
       } finally {
         setLoading(false);
