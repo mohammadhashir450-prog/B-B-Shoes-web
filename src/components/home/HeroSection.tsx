@@ -1,76 +1,116 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
+import { ArrowUpRight, PlayCircle, Award } from 'lucide-react'
 
 export default function HeroSection() {
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   return (
-    <section className="relative min-h-screen bg-[#0B101E] pt-24 pb-20 overflow-hidden">
-      <div className="max-w-[1400px] mx-auto px-6 md:px-10">
-        <div className="grid lg:grid-cols-2 gap-16 items-center min-h-[calc(100vh-120px)]">
+    <section className="relative h-screen bg-[#0B101E] overflow-hidden flex flex-col justify-end" suppressHydrationWarning>
+      
+      {/* Subtle Premium Grid Background */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:100px_100px] pointer-events-none" />
+
+      {/* 1. Highly Visible Background Typography */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none z-0 mt-[-5vh]">
+        <motion.h1 
+          initial={false}
+          animate={mounted ? { opacity: 1, y: 0 } : { opacity: 1, y: 0 }}
+          transition={{ duration: 1.5, ease: "easeOut" }}
+          className="text-[20vw] md:text-[16vw] font-serif font-black text-white/10 leading-[0.75] tracking-tighter whitespace-nowrap drop-shadow-2xl"
+        >
+          PURE
+        </motion.h1>
+        <motion.h1 
+          initial={false}
+          animate={mounted ? { opacity: 1, y: 0 } : { opacity: 1, y: 0 }}
+          transition={{ duration: 1.5, ease: "easeOut", delay: 0.2 }}
+          // Designer trick: Transparent fill with a Gold text stroke
+          className="text-[20vw] md:text-[16vw] font-serif font-black text-transparent [-webkit-text-stroke:2px_rgba(212,175,55,0.6)] md:[-webkit-text-stroke:4px_rgba(212,175,55,0.4)] leading-[0.75] tracking-tighter whitespace-nowrap"
+        >
+          ARTISTRY
+        </motion.h1>
+      </div>
+
+      {/* 2. Center Stage Floating Product */}
+      <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+        <motion.div 
+          initial={false}
+          animate={mounted ? { opacity: 1, scale: 1 } : { opacity: 1, scale: 1 }}
+          transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: 0.3 }}
+          className="relative w-full max-w-[700px] aspect-square md:aspect-video mt-[-10vh]"
+        >
+          {/* Intense gold radial glow to highlight the shoe */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[50vw] h-[50vw] max-w-[600px] max-h-[600px] bg-gradient-to-tr from-[#D4AF37]/20 to-[#D4AF37]/5 blur-[100px] rounded-full" />
           
-          {/* Left Content */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="pt-8"
-          >
-            <div className="space-y-4">
+          {/* <motion.div
+            animate={{ y: [-15, 15, -15] }}
+            transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
+            className="w-full h-full relative"
+          > */}
+            {/* IMPORTANT: Ensure 'herosection_image' is a .PNG or .WEBP file, not a .JPG */}
+            {/* <Image
+              src="/images/herosection_image.jpg" 
+              alt="Premium Product"
+              fill
+              className="object-contain drop-shadow-[0_40px_60px_rgba(0,0,0,0.9)] pointer-events-auto cursor-crosshair hover:scale-110 transition-transform duration-700 ease-out"
+              priority
+            /> */}
+          {/* </motion.div> */}
+        </motion.div>
+      </div>
+
+      {/* 3. Bottom Glass Control Bar */}
+      <motion.div 
+        initial={false}
+        animate={mounted ? { opacity: 1, y: 0 } : { opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, delay: 0.8 }}
+        className="relative z-20 w-full max-w-[1400px] mx-auto px-6 md:px-10 pb-8 md:pb-12"
+      >
+        <div className="bg-[#121A2F]/60 border border-white/10 backdrop-blur-2xl rounded-3xl p-6 md:p-8 grid grid-cols-1 md:grid-cols-3 gap-8 items-center shadow-[0_0_40px_-10px_rgba(0,0,0,0.5)]">
+          
+          {/* Left: Context */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <Award className="w-4 h-4 text-[#D4AF37]" />
               <p className="text-[#D4AF37] text-[10px] tracking-[0.25em] uppercase font-bold">
                 The 2024 Collection
               </p>
-              
-              {/* Added font-serif to give it that premium, elegant look from the image */}
-              <h1 className="text-6xl md:text-7xl lg:text-[90px] font-serif font-bold text-[#D4AF37] leading-[0.95] tracking-tight">
-                Pure
-                <br />
-                Artistry
-              </h1>
-              
-              <p className="text-white/70 text-sm max-w-[360px] leading-relaxed pt-2">
-                Redefining luxury footwear through centuries of craftsmanship and modern Italian design.
-              </p>
             </div>
+            <p className="text-white/80 text-sm max-w-[280px] leading-relaxed font-light">
+              Redefining luxury footwear through centuries of craftsmanship and modern Italian design.
+            </p>
+          </div>
 
-            {/* Buttons updated to rounded-full (pill shape) to match image */}
-            <div className="flex gap-4 pt-10">
-              <button className="px-8 py-3 bg-[#D4AF37] text-[#0B101E] text-xs font-bold tracking-[0.15em] uppercase rounded-full hover:bg-white transition-all">
-                Shop Now
-              </button>
-              <button className="px-8 py-3 border border-white/20 text-white text-xs font-bold tracking-[0.15em] uppercase rounded-full hover:border-white hover:bg-white hover:text-[#0B101E] transition-all">
-                View Film
-              </button>
-            </div>
-          </motion.div>
+          {/* Center: Primary Actions */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <button className="w-full sm:w-auto group flex items-center justify-center gap-2 px-8 py-4 bg-[#D4AF37] text-[#0B101E] text-xs font-bold tracking-[0.15em] uppercase rounded-full hover:bg-white hover:scale-105 transition-all duration-300">
+              Shop Collection
+              <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+            </button>
+            <button className="w-full sm:w-auto group flex items-center justify-center gap-2 px-8 py-4 border border-white/20 text-white text-xs font-bold tracking-[0.15em] uppercase rounded-full hover:bg-white hover:text-[#0B101E] transition-all duration-300">
+              <PlayCircle className="w-4 h-4 group-hover:text-[#0B101E] transition-colors" />
+              Watch Film
+            </button>
+          </div>
 
-          {/* Right Product Image */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="relative flex items-center justify-center lg:justify-end"
-          >
-            <div className="relative w-full max-w-[500px] aspect-square">
-              {/* Background box slightly tilted anti-clockwise (-rotate-6) like the image */}
-              <div className="absolute inset-8 bg-[#121A2F] rounded-sm shadow-2xl transform -rotate-6 border border-white/5"></div>
-              
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="relative w-[90%] h-[90%] transform -rotate-2">
-                  <Image
-                    src="https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=800&q=80"
-                    alt="Premium Red Boot"
-                    fill
-                    className="object-contain drop-shadow-2xl hover:scale-105 transition-transform duration-700"
-                    priority
-                  />
-                </div>
-              </div>
+          {/* Right: Price / Detail */}
+          <div className="flex md:justify-end items-center gap-6">
+            <div className="text-right">
+              <p className="text-white/50 text-xs uppercase tracking-widest mb-1">Starting At</p>
+              <p className="text-white font-serif text-3xl">$895</p>
             </div>
-          </motion.div>
+          </div>
 
         </div>
-      </div>
+      </motion.div>
     </section>
   )
 }

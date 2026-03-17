@@ -7,7 +7,7 @@ import { logger } from './logger';
 // =========================================================
 
 // Primary MongoDB URI (Atlas Cloud)
-const MONGODB_URI = process.env.MONGODB_URI || "";
+const MONGODB_URI = process.env.MONGODB_URI || process.env.DATABASE_URL || "";
 
 // Fallback local MongoDB (for development when Atlas fails)
 const MONGODB_LOCAL_URI = process.env.MONGODB_LOCAL_URI || "mongodb://localhost:27017/bnb_shoes";

@@ -3,8 +3,15 @@ import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import connectDB from "@/lib/mongodb"; // must import before User so bufferCommands:false is set first
 import User from "@/models/User";
-import { persistentStorage } from "@/lib/persistentStorage";
 import bcrypt from "bcryptjs";
+
+async function generateUniqueUserId(): Promise<string> {
+  let nextId = `USR-${Date.now()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+  while (await User.findOne({ user_id: nextId }).select('_id')) {
+    nextId = `USR-${Date.now()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+  }
+  return nextId;
+}
 
 export const authOptions: NextAuthOptions = {
   // ❌ Don't use MongoDBAdapter - it fails when MongoDB is down
@@ -45,6 +52,10 @@ export const authOptions: NextAuthOptions = {
           console.log("📧 MongoDB user lookup:", user ? "Found" : "Not found");
 
           if (user) {
+            if (!user.user_id) {
+              user.user_id = await generateUniqueUserId();
+              await user.save();
+            }
             if (!user.password) {
               throw new Error("Please sign in with the provider you used to register");
             }
@@ -54,6 +65,7 @@ export const authOptions: NextAuthOptions = {
             console.log("✅ MongoDB login successful:", user.email);
             return {
               id: user._id.toString(),
+              user_id: user.user_id,
               email: user.email,
               name: user.name,
               image: user.image,
@@ -70,26 +82,9 @@ export const authOptions: NextAuthOptions = {
             throw dbError;
           }
 
-          // ── MongoDB unavailable → fall back to persistentStorage ──────────
-          console.log("⚠️ MongoDB unavailable, trying persistent storage:", dbError.message);
-          try {
-            const storedUser = persistentStorage.getUser(emailLower);
-            if (!storedUser) throw new Error("Invalid email or password");
-
-            const isValid = await bcrypt.compare(credentials.password, storedUser.password);
-            if (!isValid) throw new Error("Invalid email or password");
-
-            console.log("✅ Persistent storage login successful:", emailLower);
-            return {
-              id: emailLower,
-              email: emailLower,
-              name: storedUser.name || emailLower,
-              image: "",
-              role: "user",
-            };
-          } catch (fallbackError: any) {
-            throw new Error(fallbackError.message || "Invalid email or password");
-          }
+          // MongoDB-only auth: do not use users.json fallback.
+          console.log("❌ MongoDB unavailable for credentials login:", dbError.message);
+          throw new Error("Authentication service unavailable. Please try again.");
         }
       }
     }),
@@ -110,43 +105,33 @@ export const authOptions: NextAuthOptions = {
       
       console.log("✅ Google Sign-In successful:", userEmail);
       
-      // Save user to database in background (non-blocking)
-      setImmediate(async () => {
-        try {
-          // Try MongoDB first
-          await connectDB();
-          let existingUser = await User.findOne({ email: userEmail });
-          
-          if (!existingUser) {
-            await User.create({
-              name: userName,
-              email: userEmail,
-              image: userImage,
-              role: "user",
-              isAdmin: false,
-              provider: "google",
-              wishlist: [],
-              cart: [],
-            });
-            console.log("💾 User saved to MongoDB:", userEmail);
-          }
-        } catch (dbError: any) {
-          console.log("⚠️ MongoDB unavailable, using persistent storage");
-          
-          // Fallback to persistent storage
-          if (!persistentStorage.hasUser(userEmail)) {
-            persistentStorage.addUser(userEmail, {
-              email: userEmail,
-              password: '', // OAuth users don't have password
-              name: userName,
-              createdAt: new Date().toISOString()
-            });
-            console.log("💾 User saved to persistent storage:", userEmail);
-          } else {
-            console.log("✅ User already exists in persistent storage");
-          }
+      // Persist/ensure user synchronously so user_id exists in User documents.
+      try {
+        await connectDB();
+        let existingUser = await User.findOne({ email: userEmail });
+
+        if (!existingUser) {
+          const generatedUserId = await generateUniqueUserId();
+          existingUser = await User.create({
+            user_id: generatedUserId,
+            name: userName,
+            email: userEmail,
+            image: userImage,
+            role: "user",
+            isAdmin: false,
+            provider: "google",
+            wishlist: [],
+            cart: [],
+          });
+          console.log("💾 User saved to MongoDB:", userEmail);
+        } else if (!existingUser.user_id) {
+          existingUser.user_id = await generateUniqueUserId();
+          await existingUser.save();
         }
-      });
+      } catch (dbError: any) {
+        console.log("❌ MongoDB unavailable during Google sign-in:", dbError.message || dbError);
+        return false;
+      }
       
       // Continue sign-in immediately (don't wait for database)
       return true;
@@ -177,17 +162,57 @@ export const authOptions: NextAuthOptions = {
     },
     async jwt({ token, user, account }) {
       if (user && user.email) {
-        // Skip MongoDB - set default values instantly
-        token.role = "user";
-        token.id = user.email;
-        console.log("🎫 JWT token created instantly for:", user.email);
+        token.role = (user.role as "user" | "admin") || "user";
+
+        try {
+          await connectDB();
+          const dbUser = await User.findOne({ email: user.email }).select('_id user_id role');
+          if (dbUser) {
+            if (!dbUser.user_id) {
+              dbUser.user_id = await generateUniqueUserId();
+              await dbUser.save();
+            }
+            token.id = dbUser._id.toString();
+            token.user_id = dbUser.user_id;
+            token.role = (dbUser.role as "user" | "admin") || "user";
+          } else {
+            token.id = (user.id as string) || String(user.email);
+            token.user_id = (user.user_id as string) || (token.user_id as string) || '';
+          }
+        } catch {
+          token.id = (user.id as string) || String(user.email);
+          token.user_id = (user.user_id as string) || (token.user_id as string) || '';
+        }
+
+        console.log("🎫 JWT token created for:", user.email, "id:", token.id, "user_id:", token.user_id);
       }
+
+      // Handle existing sessions where token was created before user_id was added.
+      if ((!token.user_id || !token.id) && token.email) {
+        try {
+          await connectDB();
+          const dbUser = await User.findOne({ email: token.email }).select('_id user_id role');
+          if (dbUser) {
+            if (!dbUser.user_id) {
+              dbUser.user_id = await generateUniqueUserId();
+              await dbUser.save();
+            }
+            token.id = dbUser._id.toString();
+            token.user_id = dbUser.user_id;
+            token.role = (dbUser.role as "user" | "admin") || (token.role as "user" | "admin") || "user";
+          }
+        } catch {
+          // Keep existing token values on DB failure.
+        }
+      }
+
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.role = token.role as "user" | "admin";
         session.user.id = token.id as string;
+        session.user.user_id = (token.user_id as string) || '';
         console.log("✅ Session created for:", session.user.email, "Role:", session.user.role);
       }
       return session;

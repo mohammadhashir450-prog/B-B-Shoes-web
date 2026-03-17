@@ -3,6 +3,7 @@ import mongoose, { Document, Schema } from 'mongoose';
 // Order Interface
 export interface IOrder extends Document {
   orderId: string;
+  user_id: string;
   customerName: string;
   customerEmail: string;
   customerPhone: string;
@@ -12,7 +13,7 @@ export interface IOrder extends Document {
     productName: string;
     productImage: string;
     quantity: number;
-    size: number;
+    size: string;
     color: string;
     price: number;
   }>;
@@ -20,7 +21,7 @@ export interface IOrder extends Document {
   shippingFee: number;
   total: number;
   status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
-  paymentMethod: 'cod' | 'jazzcash' | 'easypaisa' | 'stripe' | 'paypal';
+  paymentMethod: 'cod' | 'bank' | 'jazzcash' | 'easypaisa' | 'stripe' | 'paypal';
   paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded';
   trackingNumber?: string;
   notes?: string;
@@ -35,6 +36,11 @@ const OrderSchema = new Schema<IOrder>(
       type: String,
       required: true,
       unique: true,
+    },
+    user_id: {
+      type: String,
+      required: [true, 'User ID is required'],
+      index: true,
     },
     customerName: {
       type: String,
@@ -77,8 +83,9 @@ const OrderSchema = new Schema<IOrder>(
           min: 1,
         },
         size: {
-          type: Number,
+          type: String,
           required: true,
+          default: 'N/A',
         },
         color: {
           type: String,
@@ -112,7 +119,7 @@ const OrderSchema = new Schema<IOrder>(
     },
     paymentMethod: {
       type: String,
-      enum: ['cod', 'jazzcash', 'easypaisa', 'stripe', 'paypal'],
+      enum: ['cod', 'bank', 'jazzcash', 'easypaisa', 'stripe', 'paypal'],
       default: 'cod',
     },
     paymentStatus: {
@@ -136,8 +143,15 @@ const OrderSchema = new Schema<IOrder>(
 
 // Create indexes
 OrderSchema.index({ orderId: 1 });
+OrderSchema.index({ user_id: 1 });
 OrderSchema.index({ customerEmail: 1 });
 OrderSchema.index({ status: 1 });
 OrderSchema.index({ createdAt: -1 });
 
-export default mongoose.models.Order || mongoose.model<IOrder>('Order', OrderSchema);
+// In dev hot-reload, an older cached model may not include newly added fields.
+const existingOrderModel = mongoose.models.Order as mongoose.Model<IOrder> | undefined;
+if (existingOrderModel && !existingOrderModel.schema.path('user_id')) {
+  mongoose.deleteModel('Order');
+}
+
+export default (mongoose.models.Order as mongoose.Model<IOrder>) || mongoose.model<IOrder>('Order', OrderSchema);

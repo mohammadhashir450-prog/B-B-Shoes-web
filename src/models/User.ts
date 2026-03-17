@@ -1,6 +1,7 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export interface IUser extends Document {
+  user_id: string;
   name: string;
   email: string;
   password?: string;
@@ -18,6 +19,14 @@ export interface IUser extends Document {
 
 const UserSchema: Schema<IUser> = new Schema(
   {
+    user_id: {
+      type: String,
+      unique: true,
+      sparse: true,
+      required: true,
+      default: () => `USR-${Date.now()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`,
+      index: true,
+    },
     name: {
       type: String,
       required: [true, 'Please provide a name'],
@@ -68,6 +77,12 @@ const UserSchema: Schema<IUser> = new Schema(
   }
 );
 
-const User: Model<IUser> = mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
+// In dev hot-reload, an older cached model may not include new schema fields.
+const existingUserModel = mongoose.models.User as Model<IUser> | undefined;
+if (existingUserModel && !existingUserModel.schema.path('user_id')) {
+  mongoose.deleteModel('User');
+}
+
+const User: Model<IUser> = (mongoose.models.User as Model<IUser>) || mongoose.model<IUser>('User', UserSchema);
 
 export default User;

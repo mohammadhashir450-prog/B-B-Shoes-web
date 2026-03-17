@@ -60,60 +60,64 @@ export function ProductProvider({ children }: { children: ReactNode }) {
 
   // Fetch all products once
   const fetchProducts = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const response = await fetch('/api/products', {
-        cache: 'no-store',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Failed to fetch products: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      const products = data.products || [];
-      
-      // Set all products
-      setAllProducts(products);
-      
-      // Filter and set Men products
-      const men = products.filter((p: Product) => 
-        p.category?.toLowerCase() === 'men' || 
-        p.category?.toLowerCase() === 'men\'s'
-      );
-      setMenProducts(men);
-      
-      // Filter and set Women products
-      const women = products.filter((p: Product) => 
-        p.category?.toLowerCase() === 'women' || 
-        p.category?.toLowerCase() === 'women\'s'
-      );
-      setWomenProducts(women);
-      
-      console.log('✅ Products loaded in context:', {
-        total: products.length,
-        men: men.length,
-        women: women.length
-      });
-      
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load products';
-      setError(errorMessage);
-      console.error('❌ Error loading products:', err);
-      
-      // Set empty arrays on error to prevent crashes
-      setAllProducts([]);
-      setMenProducts([]);
-      setWomenProducts([]);
-    } finally {
-      setLoading(false);
+  try {
+    setLoading(true);
+    setError(null);
+    
+    const response = await fetch('/api/products', {
+      cache: 'no-store',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch products: ${response.status}`);
     }
-  };
+    
+    // 1. Parse the JSON
+    const responseData = await response.json();
+    
+    // 2. Extract products from responseData.data.products
+    // Using optional chaining (?.) is a good practice here just in case 'data' is missing
+    const products = responseData.data?.products || []; 
+    
+    // Set all products
+    setAllProducts(products);
+    
+    // Filter and set Men products
+    const men = products.filter((p: Product) => 
+      p.category?.toLowerCase() === 'men' || 
+      p.category?.toLowerCase() === "men's"
+    );
+    setMenProducts(men);
+    
+    // Filter and set Women products
+    const women = products.filter((p: Product) => 
+      p.category?.toLowerCase() === 'women' || 
+      p.category?.toLowerCase() === "women's"
+    );
+    setWomenProducts(women);
+    
+    console.log('✅ Products loaded in context:', {
+      total: products.length,
+      men: men.length,
+      women: women.length
+    });
+    
+  } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : 'Failed to load products';
+    setError(errorMessage);
+    console.error('❌ Error loading products:', err);
+    
+    // Set empty arrays on error to prevent crashes
+    setAllProducts([]);
+    setMenProducts([]);
+    setWomenProducts([]);
+  } finally {
+    setLoading(false);
+  }
+};
 
   // Fetch products on mount
   useEffect(() => {

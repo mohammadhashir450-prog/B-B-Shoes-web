@@ -104,73 +104,11 @@ export async function POST(req: NextRequest) {
       console.log('✅ Password reset using MongoDB');
 
     } catch (dbError: any) {
-      // MongoDB failed, use persistent storage
-      console.log('⚠️ MongoDB unavailable for password reset, using persistent storage');
-      usingPersistentStorage = true;
-
-      // Get OTP from persistent storage
-      const storedOTP = persistentStorage.getOTP(email, 'password-reset');
-
-      if (!storedOTP) {
-        return NextResponse.json(
-          { success: false, message: 'OTP not found or already used' },
-          { status: 404 }
-        );
-      }
-
-      // Check if expired
-      if (new Date() > storedOTP.expiresAt) {
-        persistentStorage.deleteOTP(email, 'password-reset');
-        return NextResponse.json(
-          { success: false, message: 'OTP has expired. Please request a new one.' },
-          { status: 400 }
-        );
-      }
-
-      // Verify OTP
-      if (storedOTP.otp !== otp) {
-        storedOTP.attempts += 1;
-        
-        if (storedOTP.attempts >= 5) {
-          persistentStorage.deleteOTP(email, 'password-reset');
-          return NextResponse.json(
-            { success: false, message: 'Too many failed attempts. Please request a new OTP.' },
-            { status: 429 }
-          );
-        }
-
-        return NextResponse.json(
-          {
-            success: false,
-            message: `Invalid OTP. ${5 - storedOTP.attempts} attempts remaining.`,
-          },
-          { status: 400 }
-        );
-      }
-
-      // Get user from persistent storage
-      const user = persistentStorage.getUser(email);
-
-      if (!user) {
-        return NextResponse.json(
-          { success: false, message: 'User not found' },
-          { status: 404 }
-        );
-      }
-
-      // Hash new password
-      const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-      // Update user in persistent storage
-      persistentStorage.addUser(email, {
-        ...user,
-        password: hashedPassword,
-      });
-
-      // Delete OTP
-      persistentStorage.deleteOTP(email, 'password-reset');
-
-      console.log('✅ Password reset using persistent storage');
+      console.log('❌ MongoDB unavailable for password reset:', dbError.message || dbError);
+      return NextResponse.json(
+        { success: false, message: 'Password reset requires database connection. Please try again shortly.' },
+        { status: 503 }
+      );
     }
 
     return NextResponse.json({

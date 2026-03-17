@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { useCart } from '@/context/CartContext';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
@@ -73,9 +74,11 @@ const STORAGE_KEY = 'user-payment-details';
 
 export default function CheckoutPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const { items, totalPrice, clearCart } = useCart();
   const [selectedMethod, setSelectedMethod] = useState<string>('cod');
   const [showSuccess, setShowSuccess] = useState(false);
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
 
   // Payment Form States
   const [jazzCashNumber, setJazzCashNumber] = useState('');
@@ -121,6 +124,12 @@ export default function CheckoutPage() {
     }
   }, []);
 
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/login');
+    }
+  }, [status, router]);
+
   const showTempMessage = (msg: string) => {
     setSaveMessage(msg);
     setTimeout(() => setSaveMessage(''), 2500);
@@ -163,6 +172,23 @@ export default function CheckoutPage() {
 
   const validatePaymentDetails = () => {
     setFormError('');
+
+    if (!codName.trim()) {
+      setFormError('Please enter your full name in delivery details');
+      return false;
+    }
+    if (!codPhone.trim() || !/^03\d{9}$/.test(codPhone.replace(/-/g, ''))) {
+      setFormError('Please enter a valid delivery phone number (03XXXXXXXXX)');
+      return false;
+    }
+    if (!codAddress.trim()) {
+      setFormError('Please enter your delivery address');
+      return false;
+    }
+    if (!codCity.trim()) {
+      setFormError('Please select your delivery city');
+      return false;
+    }
 
     if (selectedMethod === 'jazzcash') {
       if (!jazzCashNumber.trim()) {
@@ -220,26 +246,72 @@ export default function CheckoutPage() {
     return true;
   };
 
-  const handlePlaceOrder = () => {
+  const handlePlaceOrder = async () => {
     if (!validatePaymentDetails()) return;
 
-    const orderData = {
-      items,
-      totalPrice,
-      paymentMethod: selectedMethod,
-      paymentDetails: selectedMethod === 'jazzcash'
-        ? { number: jazzCashNumber, transactionId: jazzCashTransactionId }
-        : selectedMethod === 'bank'
-        ? { bank: selectedBank, accountNumber: senderAccountNumber, transactionId: bankTransactionId }
-        : { name: codName, phone: codPhone, address: codAddress, city: codCity }
-    };
+    if (!session?.user?.email || !session?.user?.user_id) {
+      setFormError('Please sign in again to place your order.');
+      return;
+    }
 
-    console.log('Order Data:', orderData);
-    setShowSuccess(true);
-    setTimeout(() => {
-      clearCart();
-      router.push('/my-orders');
-    }, 2000);
+    setIsPlacingOrder(true);
+
+    try {
+      const normalizedItems = items.map((item) => ({
+        productId: item.id,
+        productName: item.name,
+        productImage: item.image,
+        quantity: item.quantity,
+        size: item.size || 'N/A',
+        color: item.color || 'Default',
+        price: item.price,
+      }));
+
+      const payload = {
+        user_id: session.user.user_id,
+        customerName: codName || session.user.name || 'Customer',
+        customerEmail: session.user.email,
+        customerPhone: codPhone,
+        customerAddress: `${codAddress}${codCity ? `, ${codCity}` : ''}`,
+        items: normalizedItems,
+        subtotal: totalPrice,
+        shippingFee: 0,
+        total: totalPrice,
+        paymentMethod: selectedMethod,
+        paymentStatus: selectedMethod === 'cod' ? 'pending' : 'paid',
+      };
+
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      let result: any = null;
+      try {
+        result = await response.json();
+      } catch {
+        result = null;
+      }
+
+      if (!response.ok || !result.success) {
+        const message = result?.message || `Failed to place order (HTTP ${response.status}). Please try again.`;
+        throw new Error(message);
+      }
+
+      const placedOrderId = result.data?.orderId || result.data?.id || `ORD-${Date.now()}`;
+
+      setShowSuccess(true);
+      setTimeout(() => {
+        clearCart();
+        router.push(`/my-orders?placed=${encodeURIComponent(placedOrderId)}&t=${Date.now()}`);
+      }, 1200);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to place order. Please try again.';
+      setFormError(message);
+    } finally {
+      setIsPlacingOrder(false);
+    }
   };
 
   return (
@@ -551,6 +623,94 @@ export default function CheckoutPage() {
                 );
               })}
 
+              {/* Delivery details are required for every payment method */}
+              <div className="bg-gradient-to-r from-[#1A2435] to-[#0F1825] rounded-xl p-6 border border-white/10">
+                <h3 className="text-lg font-bold mb-4">Delivery Details</h3>
+                <p className="text-sm text-gray-400 mb-4">Used for shipping regardless of payment method.</p>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold mb-2">Full Name *</label>
+                    <input
+                      type="text"
+                      placeholder="Enter your full name"
+                      value={codName}
+                      onChange={(e) => { setCodName(e.target.value); setCodSaved(false); }}
+                      className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-[#D4AF37] focus:outline-none transition-colors"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold mb-2">Phone Number *</label>
+                    <input
+                      type="text"
+                      placeholder="03XXXXXXXXX"
+                      value={codPhone}
+                      maxLength={11}
+                      onChange={(e) => { setCodPhone(e.target.value); setCodSaved(false); }}
+                      className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-[#D4AF37] focus:outline-none transition-colors"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4 mt-4">
+                  <div>
+                    <label className="block text-sm font-semibold mb-2">Delivery Address *</label>
+                    <textarea
+                      placeholder="House/Flat #, Street, Area"
+                      value={codAddress}
+                      rows={3}
+                      onChange={(e) => { setCodAddress(e.target.value); setCodSaved(false); }}
+                      className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-[#D4AF37] focus:outline-none transition-colors resize-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold mb-2">City *</label>
+                    <select
+                      value={codCity}
+                      onChange={(e) => { setCodCity(e.target.value); setCodSaved(false); }}
+                      className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-[#D4AF37] focus:outline-none transition-colors"
+                    >
+                      <option value="">Select your city...</option>
+                      <option value="Karachi">Karachi</option>
+                      <option value="Lahore">Lahore</option>
+                      <option value="Islamabad">Islamabad</option>
+                      <option value="Rawalpindi">Rawalpindi</option>
+                      <option value="Faisalabad">Faisalabad</option>
+                      <option value="Multan">Multan</option>
+                      <option value="Peshawar">Peshawar</option>
+                      <option value="Quetta">Quetta</option>
+                      <option value="Sialkot">Sialkot</option>
+                      <option value="Gujranwala">Gujranwala</option>
+                      <option value="Hyderabad">Hyderabad</option>
+                      <option value="Bahawalpur">Bahawalpur</option>
+                      <option value="Sargodha">Sargodha</option>
+                      <option value="Sukkur">Sukkur</option>
+                      <option value="Abbottabad">Abbottabad</option>
+                      <option value="Mardan">Mardan</option>
+                      <option value="Sahiwal">Sahiwal</option>
+                      <option value="Rahim Yar Khan">Rahim Yar Khan</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 mt-4">
+                  <button
+                    type="button"
+                    onClick={handleSaveCod}
+                    className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-all ${
+                      codSaved
+                        ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                        : 'bg-[#D4AF37] text-black hover:bg-[#F4CE5C]'
+                    }`}
+                  >
+                    {codSaved ? <><CheckCircle2 className="w-4 h-4" /> Details Saved</> : <><Save className="w-4 h-4" /> Save Delivery Details</>}
+                  </button>
+                  {codSaved && <span className="text-xs text-green-400">✓ Saved to device</span>}
+                </div>
+              </div>
+
               {/* Security Notice */}
               <div className="bg-gradient-to-r from-[#1A2435] to-[#0F1825] rounded-xl p-6 border border-white/10">
                 <div className="flex items-start gap-4">
@@ -615,10 +775,10 @@ export default function CheckoutPage() {
 
                 <button
                   onClick={handlePlaceOrder}
-                  disabled={items.length === 0}
+                  disabled={items.length === 0 || isPlacingOrder || status !== 'authenticated'}
                   className="w-full bg-[#D4AF37] hover:bg-[#F4CE5C] text-black font-bold py-4 rounded-full transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Place Order
+                  {isPlacingOrder ? 'Placing Order...' : 'Place Order'}
                   <ChevronRight className="w-5 h-5" />
                 </button>
               </div>

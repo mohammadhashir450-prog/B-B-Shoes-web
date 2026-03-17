@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
 import Navbar from '@/components/layout/Navbar';
@@ -12,7 +12,7 @@ import { Package, Clock, CheckCircle, XCircle, Eye, MapPin, Calendar, Loader2 } 
 interface Order {
   id: string;
   date: string;
-  status: 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled';
+  status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   items: Array<{
     id: string;
     name: string;
@@ -30,17 +30,39 @@ interface Order {
 const statusConfig = {
   pending: { label: 'Pending', icon: Clock, color: 'text-yellow-400', bg: 'bg-yellow-400/10' },
   confirmed: { label: 'Confirmed', icon: CheckCircle, color: 'text-blue-400', bg: 'bg-blue-400/10' },
+  processing: { label: 'Processing', icon: Package, color: 'text-indigo-400', bg: 'bg-indigo-400/10' },
   shipped: { label: 'Shipped', icon: Package, color: 'text-purple-400', bg: 'bg-purple-400/10' },
   delivered: { label: 'Delivered', icon: CheckCircle, color: 'text-green-400', bg: 'bg-green-400/10' },
   cancelled: { label: 'Cancelled', icon: XCircle, color: 'text-red-400', bg: 'bg-red-400/10' },
 };
 
+const mapApiOrderToUi = (order: any): Order => ({
+  id: String(order.orderId || order.id),
+  date: String(order.date || order.createdAt || new Date().toISOString()),
+  status: (order.status || 'pending') as Order['status'],
+  items: (order.items || []).map((item: any) => ({
+    id: String(item.productId || item.id || ''),
+    name: String(item.productName || item.name || 'Product'),
+    price: Number(item.price || 0),
+    image: String(item.productImage || item.image || ''),
+    quantity: Number(item.quantity || 1),
+    size: item.size ? String(item.size) : undefined,
+    color: item.color ? String(item.color) : undefined,
+  })),
+  total: Number(order.total || 0),
+  paymentMethod: String(order.paymentMethod || 'cod'),
+  shippingAddress: order.customerAddress || order.shippingAddress,
+});
+
 export default function MyOrdersPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { items: bagItems } = useCart();
   const [orders, setOrders] = useState<Order[]>([]);
   const [selectedTab, setSelectedTab] = useState<'bag' | 'orders'>('bag');
+  const [ordersLoading, setOrdersLoading] = useState(true);
+  const [ordersError, setOrdersError] = useState<string | null>(null);
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -50,12 +72,47 @@ export default function MyOrdersPage() {
   }, [status, router]);
 
   useEffect(() => {
-    // Load orders from localStorage
-    const savedOrders = localStorage.getItem('user-orders');
-    if (savedOrders) {
-      setOrders(JSON.parse(savedOrders));
+    const placedOrderId = searchParams.get('placed');
+    if (placedOrderId) {
+      setSelectedTab('orders');
     }
-  }, []);
+  }, [searchParams]);
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      if (!session?.user?.user_id) {
+        setOrdersLoading(false);
+        return;
+      }
+
+      try {
+        setOrdersLoading(true);
+        setOrdersError(null);
+
+        const response = await fetch(`/api/orders?user_id=${encodeURIComponent(session.user.user_id)}`, {
+          cache: 'no-store',
+        });
+
+        const result = await response.json();
+        if (!response.ok || !result.success) {
+          throw new Error(result?.message || 'Failed to load orders');
+        }
+
+        const apiOrders = (result?.data?.orders || []).map(mapApiOrderToUi);
+        setOrders(apiOrders);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Failed to load orders';
+        setOrdersError(message);
+        setOrders([]);
+      } finally {
+        setOrdersLoading(false);
+      }
+    };
+
+    if (status === 'authenticated') {
+      fetchOrders();
+    }
+  }, [session?.user?.user_id, status, searchParams]);
 
   // Loading state
   if (status === 'loading') {
@@ -191,6 +248,17 @@ export default function MyOrdersPage() {
           {/* Orders Tab */}
           {selectedTab === 'orders' && (
             <div>
+              {ordersLoading ? (
+                <div className="bg-[#1A2435] rounded-3xl p-16 text-center border border-white/10">
+                  <Loader2 className="w-10 h-10 text-[#D4AF37] animate-spin mx-auto mb-4" />
+                  <p className="text-gray-400">Loading your orders...</p>
+                </div>
+              ) : ordersError ? (
+                <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-6 mb-6">
+                  <p className="text-red-300 text-sm">{ordersError}</p>
+                </div>
+              ) : null}
+
               {orders.length === 0 ? (
                 <div className="bg-[#1A2435] rounded-3xl p-16 text-center border border-white/10">
                   <div className="w-20 h-20 bg-[#D4AF37]/10 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -208,7 +276,7 @@ export default function MyOrdersPage() {
               ) : (
                 <div className="space-y-6">
                   {orders.map((order) => {
-                    const status = statusConfig[order.status];
+                    const status = statusConfig[order.status] || statusConfig.pending;
                     const StatusIcon = status.icon;
 
                     return (

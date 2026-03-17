@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "next lint",
     "check-setup": "node scripts/check-setup.js",
-    "test-mongodb": "node scripts/test-mongodb.js"
+    "test-mongodb": "node scripts/test-mongodb.js",
+    "backfill:user-id": "node scripts/backfill-user-id.js",
+    "backfill:order-user-id": "node scripts/backfill-order-user-id.js"
   },
   "dependencies": {
     "@auth/mongodb-adapter": "^3.11.1",

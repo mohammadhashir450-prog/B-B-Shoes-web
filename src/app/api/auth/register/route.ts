@@ -2,7 +2,14 @@ import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
-import { persistentStorage } from '@/lib/persistentStorage';
+
+async function generateUniqueUserId(): Promise<string> {
+  let nextId = `USR-${Date.now()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+  while (await User.findOne({ user_id: nextId }).select('_id')) {
+    nextId = `USR-${Date.now()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+  }
+  return nextId;
+}
 
 /**
  * POST /api/auth/register
@@ -50,8 +57,12 @@ export async function POST(req: Request) {
     const hashedPassword = await bcrypt.hash(password, 12);
     console.log('✅ Password hashed');
 
+    const generatedUserId = await generateUniqueUserId();
+    console.log('🆔 Generated user_id:', generatedUserId);
+
     // Create new user in MongoDB
     const newUser = await User.create({
+      user_id: generatedUserId,
       name,
       email: email.toLowerCase(),
       password: hashedPassword,
@@ -60,17 +71,21 @@ export async function POST(req: Request) {
       isAdmin: false,
     });
 
-    console.log('✅ User created successfully:', newUser.email);
+    console.log('✅ User created in DB, user_id in response:', newUser.user_id);
 
-    // Also save to persistentStorage as backup (so login works if MongoDB connection drops)
-    try {
-      persistentStorage.addUser(email.toLowerCase(), {
-        email: email.toLowerCase(),
-        password: hashedPassword,
-        name,
-        createdAt: new Date().toISOString(),
+    // Verify user_id was saved (for debugging)
+    if (!newUser.user_id) {
+      console.error('❌ CRITICAL: user_id is missing after creation!');
+      const refetchedUser = await User.findById(newUser._id);
+      console.log('🔍 Refetched user from DB:', { 
+        _id: refetchedUser?._id, 
+        user_id: refetchedUser?.user_id,
+        email: refetchedUser?.email 
       });
-    } catch (_) { /* non-critical */ }
+    }
+
+    const resolvedUserId = newUser.user_id || generatedUserId;
+    console.log('✅ User registered successfully:', newUser.email, 'with user_id:', resolvedUserId);
 
     // Return success response (don't return password)
     return NextResponse.json(

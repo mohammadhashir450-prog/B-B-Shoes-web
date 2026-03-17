@@ -1,14 +1,17 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { Package, ShoppingCart, Users, Plus, Edit2, Trash2, X, Save, Camera, Upload, Tag, Lock, Eye, EyeOff, TrendingUp, Sparkles, Crown, Check } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Package, ShoppingCart, Users, Plus, Edit2, Trash2, X, Save, Camera, Upload, Tag, Lock, Eye, EyeOff, TrendingUp, Sparkles, Crown, Check, ArrowRight, ChevronRight } from 'lucide-react';
 import { CldUploadWidget } from 'next-cloudinary';
 import { useProducts, Product } from '@/context/ProductContext';
 
 interface Order {
   id: string;
+  orderId?: string;
+  user_id?: string;
   customerName: string;
   customerEmail: string;
   customerPhone: string;
@@ -31,6 +34,7 @@ export default function AdminPanel() {
   
   const [activeTab, setActiveTab] = useState('products');
   const [orders, setOrders] = useState<Order[]>([]);
+  const [statusSavingId, setStatusSavingId] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [showAddSaleForm, setShowAddSaleForm] = useState(false);
   const [showAddNewArrivalForm, setShowAddNewArrivalForm] = useState(false);
@@ -92,10 +96,10 @@ export default function AdminPanel() {
     if (isAuthenticated) {
       const fetchOrders = async () => {
         try {
-          const response = await fetch('/api/orders');
+          const response = await fetch('/api/orders?scope=all');
           if (response.ok) {
             const data = await response.json();
-            setOrders(data.orders || []);
+            setOrders(data?.data?.orders || []);
           }
         } catch (error) { 
           console.error(error); 
@@ -114,7 +118,7 @@ export default function AdminPanel() {
       sessionStorage.setItem('adminAuth', 'authenticated');
       setPassword('');
     } else {
-      setAuthError('Invalid password');
+      setAuthError('Access Denied: Invalid Security Key');
       setPassword('');
     }
   };
@@ -125,67 +129,115 @@ export default function AdminPanel() {
     router.push('/');
   };
 
+  const updateOrderStatus = async (order: Order, nextStatus: 'pending' | 'processing' | 'delivered') => {
+    const targetId = order.orderId || order.id;
+    if (!targetId) return;
+
+    try {
+      setStatusSavingId(order.id);
+      const response = await fetch('/api/orders', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: targetId, status: nextStatus }),
+      });
+
+      const result = await response.json();
+      if (!response.ok || !result?.success) {
+        throw new Error(result?.message || 'Failed to update order status');
+      }
+
+      setOrders((prev) => prev.map((o) => (
+        o.id === order.id ? { ...o, status: nextStatus } : o
+      )));
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Failed to update order status');
+    } finally {
+      setStatusSavingId(null);
+    }
+  };
+
+  // --- PRE-AUTH VIEW (THE VAULT LOGIN) ---
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#0B101E] via-[#1a1f3a] to-[#0047AB] flex items-center justify-center p-4">
-        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-[#D4AF37]/10 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-20 right-10 w-96 h-96 bg-[#FFC107]/10 rounded-full blur-3xl"></div>
-        </div>
-        
-        <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-10 w-full max-w-md relative z-10 border border-[#D4AF37]/20">
-          <div className="text-center mb-8">
-            <div className="w-24 h-24 bg-gradient-to-br from-[#D4AF37] to-[#FFC107] rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-              <Crown className="w-12 h-12 text-white" />
+      <div className="min-h-screen bg-[#0B101E] relative flex flex-col items-center justify-center overflow-hidden selection:bg-[#D4AF37]/30 selection:text-white">
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px] pointer-events-none" />
+        <div className="absolute top-[-20%] right-[-10%] w-[60vw] h-[60vw] max-w-[800px] max-h-[800px] bg-red-900/10 blur-[120px] rounded-full pointer-events-none" />
+        <div className="absolute bottom-[-20%] left-[-10%] w-[60vw] h-[60vw] max-w-[800px] max-h-[800px] bg-[#D4AF37]/10 blur-[120px] rounded-full pointer-events-none" />
+
+        <motion.div 
+          initial={{ opacity: 0, y: 40, filter: 'blur(10px)' }}
+          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          className="w-full max-w-[420px] relative z-10 px-6"
+        >
+          <div className="text-center mb-10">
+            <div className="w-20 h-20 mx-auto bg-gradient-to-br from-[#D4AF37] to-[#F4CE5C] rounded-full flex items-center justify-center mb-6 shadow-[0_0_40px_rgba(212,175,55,0.3)]">
+              <Crown className="w-10 h-10 text-[#0B101E]" />
             </div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-[#0047AB] to-[#0B101E] bg-clip-text text-transparent mb-2">
-              Boss
+            <p className="text-[#D4AF37] text-[10px] tracking-[0.3em] uppercase font-bold mb-4">
+              Restricted Area
+            </p>
+            <h1 className="text-4xl md:text-5xl font-serif font-black text-white leading-tight mb-2">
+              The <span className="text-transparent [-webkit-text-stroke:1px_rgba(255,255,255,0.4)]">Vault</span>
             </h1>
-            <p className="text-gray-600 font-medium">B&B Exclusive Management</p>
           </div>
-          
-          <form onSubmit={handleLogin} className="space-y-6">
-            <div>
-              <label className="block text-sm font-bold text-[#0047AB] mb-3">Admin Password</label>
-              <div className="relative group">
-                <input 
-                  type={showPassword ? 'text' : 'password'} 
-                  value={password} 
-                  onChange={(e) => setPassword(e.target.value)} 
-                  className="w-full px-5 py-4 border-2 border-[#0047AB]/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent pr-12 transition-all group-hover:border-[#0047AB]/50" 
-                  placeholder="Enter admin password" 
-                  required 
-                  autoFocus
-                />
-                <button 
-                  type="button" 
-                  onClick={() => setShowPassword(!showPassword)} 
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#0047AB] transition"
-                >
-                  {showPassword ? <EyeOff size={22} /> : <Eye size={22} />}
-                </button>
+
+          <div className="bg-[#121A2F]/40 backdrop-blur-2xl rounded-3xl p-8 md:p-10 border border-white/10 shadow-[0_0_60px_-15px_rgba(0,0,0,0.7)] relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
+
+            <AnimatePresence>
+              {authError && (
+                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden mb-6">
+                  <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center justify-center">
+                    <p className="text-red-400 text-xs tracking-wide text-center font-bold uppercase">{authError}</p>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <form onSubmit={handleLogin} className="space-y-6 relative z-10">
+              <div className="space-y-2">
+                <label className="block text-white/50 text-[10px] tracking-[0.2em] uppercase font-bold ml-1">
+                  Master Key
+                </label>
+                <div className="relative group">
+                  <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 group-focus-within:text-[#D4AF37] transition-colors duration-300" />
+                  <input 
+                    type={showPassword ? 'text' : 'password'} 
+                    value={password} 
+                    onChange={(e) => setPassword(e.target.value)} 
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-12 py-4 text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#D4AF37]/50 focus:bg-white/10 transition-all duration-300" 
+                    placeholder="Enter master key..." 
+                    required 
+                    autoFocus
+                  />
+                  <button 
+                    type="button" 
+                    onClick={() => setShowPassword(!showPassword)} 
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-white transition-colors"
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
               </div>
-            </div>
-            
-            {authError && (
-              <div className="bg-red-50 border-2 border-red-300 text-red-700 px-5 py-4 rounded-xl text-sm font-semibold">
-                {authError}
-              </div>
-            )}
-            
-            <button 
-              type="submit" 
-              className="w-full bg-gradient-to-r from-[#0047AB] to-[#0B101E] text-white font-bold py-4 rounded-xl hover:shadow-2xl hover:scale-[1.02] transition-all shadow-lg flex items-center justify-center gap-3"
-            >
-              <Lock className="w-5 h-5" />
-              Access Admin Panel
-            </button>
-          </form>
-        </div>
+              
+              <button 
+                type="submit" 
+                className="w-full group relative bg-[#D4AF37] text-[#0B101E] font-black py-4 rounded-2xl transition-all duration-300 uppercase tracking-[0.2em] text-[10px] hover:bg-white overflow-hidden mt-6"
+              >
+                <div className="relative z-10 flex items-center justify-center gap-3">
+                  <span>Authorize</span>
+                  <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                </div>
+              </button>
+            </form>
+          </div>
+        </motion.div>
       </div>
     );
   }
 
+  // --- POST-AUTH VIEW (THE ADMIN DASHBOARD) ---
   const addSize = () => {
     const size = newSize.trim();
     if (size && !selectedSizes.includes(size)) {
@@ -218,7 +270,7 @@ export default function AdminPanel() {
         body: JSON.stringify(body)
       });
       if (res.ok) {
-        alert('✓ Product saved successfully!');
+        alert('✓ Action completed successfully!');
         await refetchProducts();
         setShowAddForm(false);
         setShowAddSaleForm(false);
@@ -229,7 +281,7 @@ export default function AdminPanel() {
         setSelectedSizes(['7', '8', '9', '10', '11']);
         setSelectedColors(['Black']);
       } else {
-        alert('✗ Failed to save product');
+        alert('✗ Failed to save changes');
       }
     } catch (err) { 
       console.error(err);
@@ -242,746 +294,751 @@ export default function AdminPanel() {
   const currentProduct = editingProduct || editingSaleProduct || editingNewArrival || newProduct;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-amber-50/20">
+    <div className="min-h-screen bg-[#0B101E] text-white selection:bg-[#D4AF37]/30 selection:text-white relative overflow-x-hidden">
+      {/* Background Ambient Layers */}
+      <div className="fixed inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:64px_64px] pointer-events-none" />
+      <div className="fixed top-[-20%] right-[-10%] w-[50vw] h-[50vw] max-w-[800px] max-h-[800px] bg-[#D4AF37]/5 blur-[120px] rounded-full pointer-events-none" />
+
       {/* Premium Header */}
-      <div className="bg-gradient-to-r from-[#0B101E] via-[#0047AB] to-[#0B101E] text-white py-8 shadow-2xl border-b-4 border-[#D4AF37] relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-[#D4AF37]/5 to-transparent"></div>
-        <div className="max-w-7xl mx-auto px-6 flex justify-between items-center relative z-10">
+      <div className="sticky top-0 z-50 bg-[#0B101E]/80 backdrop-blur-2xl border-b border-white/5">
+        <div className="max-w-[1400px] mx-auto px-6 py-4 flex justify-between items-center">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 bg-gradient-to-br from-[#D4AF37] to-[#FFC107] rounded-full flex items-center justify-center shadow-xl">
-              <Crown className="w-7 h-7 text-white" />
+            <div className="w-10 h-10 bg-[#D4AF37] rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(212,175,55,0.3)]">
+              <Crown className="w-5 h-5 text-[#0B101E]" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">B&B Boss</h1>
-              <p className="text-sm text-[#D4AF37] font-medium">Luxury Brand Management System</p>
+              <h1 className="text-xl font-serif font-bold tracking-widest leading-none">B&B VAULT</h1>
+              <p className="text-[8px] text-[#D4AF37] tracking-[0.3em] uppercase mt-1">Management Console</p>
             </div>
           </div>
           <button 
             onClick={handleLogout} 
-            className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 px-6 py-3 rounded-xl text-sm font-bold shadow-lg hover:shadow-xl transition-all hover:scale-105"
+            className="group flex items-center gap-2 bg-red-500/10 border border-red-500/20 text-red-400 px-5 py-2.5 rounded-full text-[10px] font-bold tracking-[0.2em] uppercase hover:bg-red-500 hover:text-white hover:border-red-500 transition-all"
           >
             Logout
+            <Lock size={12} className="group-hover:scale-110" />
           </button>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-10">
+      <div className="max-w-[1400px] mx-auto px-6 py-12 relative z-10">
+        
         {/* Premium Tabs */}
-        <div className="flex gap-4 mb-10 overflow-x-auto pb-2">
+        <div className="flex gap-3 mb-12 overflow-x-auto pb-4 scrollbar-hide">
           {[
-            { key: 'products', label: 'Regular Products', icon: Package },
-            { key: 'sales', label: 'Sales & Discounts', icon: Tag },
-            { key: 'newarrivals', label: 'New Arrivals', icon: Sparkles },
-            { key: 'orders', label: 'Orders', icon: ShoppingCart }
+            { key: 'products', label: 'Portfolio', icon: Package },
+            { key: 'sales', label: 'Sales Event', icon: Tag },
+            { key: 'newarrivals', label: 'New Drops', icon: Sparkles },
+            { key: 'orders', label: 'Concierge (Orders)', icon: ShoppingCart }
           ].map((tab) => {
             const Icon = tab.icon;
+            const isActive = activeTab === tab.key;
             return (
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className={`px-8 py-4 rounded-2xl text-sm font-bold capitalize transition-all shadow-md hover:shadow-xl flex items-center gap-3 ${
-                  activeTab === tab.key 
-                    ? 'bg-gradient-to-r from-[#0047AB] to-[#0B101E] text-white scale-105' 
-                    : 'bg-white text-gray-600 hover:bg-gray-50'
+                className={`flex-shrink-0 px-6 py-3.5 rounded-full text-[10px] font-black tracking-[0.15em] uppercase transition-all flex items-center gap-2.5 ${
+                  isActive 
+                    ? 'bg-[#D4AF37] text-[#0B101E] shadow-[0_0_20px_rgba(212,175,55,0.3)]' 
+                    : 'bg-white/5 text-white/50 hover:bg-white/10 hover:text-white border border-white/5'
                 }`}
               >
-                <Icon size={20} />
+                <Icon size={16} />
                 {tab.label}
               </button>
             );
           })}
         </div>
 
-        {/* Premium Form for Adding/Editing */}
-        {(showAddForm || showAddSaleForm || showAddNewArrivalForm || editingProduct || editingSaleProduct || editingNewArrival) && (
-          <div className="bg-white p-10 rounded-3xl shadow-2xl border-2 border-[#D4AF37]/30 mb-12 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-[#FFC107]/10 to-transparent rounded-full blur-3xl"></div>
-            
-            <div className="relative z-10">
-              <div className="flex items-center gap-3 mb-8">
-                <Crown className="w-8 h-8 text-[#D4AF37]" />
-                <h2 className="text-2xl font-bold text-[#0047AB]">
-                  {editingProduct || editingSaleProduct || editingNewArrival ? 'Edit Product' : 'Add New Product'}
-                </h2>
-              </div>
+        {/* Global Form for Adding/Editing */}
+        <AnimatePresence>
+          {(showAddForm || showAddSaleForm || showAddNewArrivalForm || editingProduct || editingSaleProduct || editingNewArrival) && (
+            <motion.div 
+              initial={{ opacity: 0, height: 0, y: -20 }}
+              animate={{ opacity: 1, height: 'auto', y: 0 }}
+              exit={{ opacity: 0, height: 0, y: -20 }}
+              className="bg-[#121A2F]/60 backdrop-blur-2xl p-8 md:p-10 rounded-3xl shadow-2xl border border-white/10 mb-12 relative overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-[#D4AF37]/10 to-transparent rounded-full blur-3xl"></div>
               
-              {/* Image Upload Section */}
-              <div className="mb-8 p-6 bg-gradient-to-br from-slate-50 to-blue-50/30 rounded-2xl border border-slate-200">
-                <label className="block text-sm font-bold text-[#0047AB] mb-4">Product Main Image</label>
-                <div className="flex items-center gap-6">
-                  <div className="w-40 h-40 bg-white rounded-2xl border-3 border-dashed border-[#D4AF37]/40 flex items-center justify-center overflow-hidden relative shadow-lg group hover:shadow-xl transition-shadow">
-                    {currentProduct.image ? (
-                      <Image 
-                        src={currentProduct.image} 
-                        alt="preview" 
-                        fill 
-                        className="object-cover" 
-                        unoptimized={currentProduct.image.includes('cloudinary')}
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.style.display = 'none';
-                        }}
-                      />
-                    ) : (
-                      <Camera size={40} className="text-gray-300" />
-                    )}
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-10">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-white/5 rounded-full border border-white/10 flex items-center justify-center">
+                      <Edit2 className="w-5 h-5 text-[#D4AF37]" />
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-serif font-bold text-white">
+                        {editingProduct || editingSaleProduct || editingNewArrival ? 'Modify Asset' : 'Mint New Asset'}
+                      </h2>
+                      <p className="text-white/40 text-[10px] tracking-[0.2em] uppercase mt-1">Product Database</p>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <CldUploadWidget 
-                      uploadPreset="bb_web"
-                      options={{
-                        cloudName: 'dt2ikjlfc',
-                        sources: ['local', 'url', 'camera'],
-                        multiple: false,
-                        maxFiles: 1,
-                        maxFileSize: 5000000,
-                        clientAllowedFormats: ['png', 'jpg', 'jpeg', 'webp'],
-                        folder: 'bb_shoes'
-                      }}
-                      onSuccess={(result: any) => {
-                        console.log('Upload success:', result);
-                        const url = result.info.secure_url;
-                        if (editingProduct) setEditingProduct({...editingProduct, image: url});
-                        else if (editingSaleProduct) setEditingSaleProduct({...editingSaleProduct, image: url});
-                        else if (editingNewArrival) setEditingNewArrival({...editingNewArrival, image: url});
-                        else setNewProduct({...newProduct, image: url});
-                        alert('✓ Image uploaded successfully!');
-                      }}
-                      onError={(error: any) => {
-                        console.error('Upload error:', error);
-                        alert('✗ Failed to upload image. Please try again.');
-                      }}
-                    >
-                      {({ open }) => (
-                        <button 
-                          type="button"
-                          onClick={() => open()} 
-                          className="bg-gradient-to-r from-[#D4AF37] to-[#FFC107] text-white px-8 py-4 rounded-xl font-bold flex items-center gap-3 shadow-lg hover:shadow-xl hover:scale-105 transition-all"
-                        >
-                          <Upload size={20} /> 
-                          Upload to Cloudinary
-                        </button>
-                      )}
-                    </CldUploadWidget>
-                    <p className="text-xs text-gray-500 mt-3">Recommended: 800x800px, PNG or JPG, max 5MB</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Form Fields */}
-              <div className="grid md:grid-cols-2 gap-6 mb-6">
-                {/* Product Name */}
-                <div>
-                  <label className="block text-sm font-bold text-[#0047AB] mb-2">Product Name *</label>
-                  <input 
-                    type="text" 
-                    placeholder="e.g., Midnight Monarch Shoes" 
-                    value={currentProduct.name} 
-                    onChange={e => {
-                      const val = e.target.value;
-                      if(editingProduct) setEditingProduct({...editingProduct, name: val});
-                      else if(editingSaleProduct) setEditingSaleProduct({...editingSaleProduct, name: val});
-                      else if(editingNewArrival) setEditingNewArrival({...editingNewArrival, name: val});
-                      else setNewProduct({...newProduct, name: val});
-                    }} 
-                    className="w-full p-4 border-2 border-slate-200 rounded-xl focus:border-[#D4AF37] focus:ring-2 focus:ring-[#D4AF37]/20 outline-none transition-all" 
-                    required
-                  />
+                  <button 
+                    onClick={() => {
+                      setShowAddForm(false); setShowAddSaleForm(false); setShowAddNewArrivalForm(false);
+                      setEditingProduct(null); setEditingSaleProduct(null); setEditingNewArrival(null);
+                    }}
+                    className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-colors"
+                  >
+                    <X size={16} />
+                  </button>
                 </div>
                 
-                {/* Price */}
-                <div>
-                  <label className="block text-sm font-bold text-[#0047AB] mb-2">Price (PKR) *</label>
-                  <input 
-                    type="number" 
-                    placeholder="e.g., 12999" 
-                    value={currentProduct.price || ''} 
-                    onChange={e => {
-                      const val = Number(e.target.value);
-                      if(editingProduct) setEditingProduct({...editingProduct, price: val});
-                      else if(editingSaleProduct) setEditingSaleProduct({...editingSaleProduct, price: val});
-                      else if(editingNewArrival) setEditingNewArrival({...editingNewArrival, price: val});
-                      else setNewProduct({...newProduct, price: val});
-                    }} 
-                    className="w-full p-4 border-2 border-slate-200 rounded-xl focus:border-[#D4AF37] focus:ring-2 focus:ring-[#D4AF37]/20 outline-none transition-all" 
-                    required
-                  />
-                </div>
-
-                {/* Category Selection */}
-                <div>
-                  <label className="block text-sm font-bold text-[#0047AB] mb-2">Category *</label>
-                  <select 
-                    value={currentProduct.category} 
-                    onChange={e => {
-                      const val = e.target.value;
-                      if(editingProduct) setEditingProduct({...editingProduct, category: val});
-                      else if(editingSaleProduct) setEditingSaleProduct({...editingSaleProduct, category: val});
-                      else if(editingNewArrival) setEditingNewArrival({...editingNewArrival, category: val});
-                      else setNewProduct({...newProduct, category: val});
-                    }} 
-                    className="w-full p-4 border-2 border-slate-200 rounded-xl focus:border-[#D4AF37] focus:ring-2 focus:ring-[#D4AF37]/20 outline-none transition-all bg-white font-medium"
-                  >
-                    <option value="Men">Men</option>
-                    <option value="Women">Women</option>
-                    <option value="Heritage">Heritage</option>
-                  </select>
-                </div>
-
-                {/* Subcategory Selection */}
-                <div>
-                  <label className="block text-sm font-bold text-[#0047AB] mb-2">Subcategory</label>
-                  <select 
-                    value={(currentProduct as any).subcategory || ''} 
-                    onChange={e => {
-                      const val = e.target.value;
-                      if(editingProduct) setEditingProduct({...editingProduct, subcategory: val} as any);
-                      else if(editingSaleProduct) setEditingSaleProduct({...editingSaleProduct, subcategory: val} as any);
-                      else if(editingNewArrival) setEditingNewArrival({...editingNewArrival, subcategory: val} as any);
-                      else setNewProduct({...newProduct, subcategory: val});
-                    }} 
-                    className="w-full p-4 border-2 border-slate-200 rounded-xl focus:border-[#D4AF37] focus:ring-2 focus:ring-[#D4AF37]/20 outline-none transition-all bg-white font-medium"
-                  >
-                    <option value="">None</option>
-                    <option value="Sneakers">Sneakers</option>
-                    <option value="Basketball">Basketball</option>
-                    <option value="Formal">Formal</option>
-                    <option value="Running">Running</option>
-                    <option value="Oxford">Oxford</option>
-                    <option value="Loafers">Loafers</option>
-                    <option value="Boots">Boots</option>
-                  </select>
-                </div>
-
-                {/* Stock Status */}
-                <div>
-                  <label className="block text-sm font-bold text-[#0047AB] mb-2">Stock Status *</label>
-                  <div className="flex items-center gap-4 h-full">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if(editingProduct) setEditingProduct({...editingProduct, inStock: true});
-                        else if(editingSaleProduct) setEditingSaleProduct({...editingSaleProduct, inStock: true});
-                        else if(editingNewArrival) setEditingNewArrival({...editingNewArrival, inStock: true});
-                        else setNewProduct({...newProduct, inStock: true});
-                      }}
-                      className={`flex-1 py-4 px-6 rounded-xl font-bold transition-all ${
-                        currentProduct.inStock 
-                          ? 'bg-green-500 text-white shadow-lg' 
-                          : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                      }`}
-                    >
-                      ✓ In Stock
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if(editingProduct) setEditingProduct({...editingProduct, inStock: false});
-                        else if(editingSaleProduct) setEditingSaleProduct({...editingSaleProduct, inStock: false});
-                        else if(editingNewArrival) setEditingNewArrival({...editingNewArrival, inStock: false});
-                        else setNewProduct({...newProduct, inStock: false});
-                      }}
-                      className={`flex-1 py-4 px-6 rounded-xl font-bold transition-all ${
-                        !currentProduct.inStock 
-                          ? 'bg-red-500 text-white shadow-lg' 
-                          : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                      }`}
-                    >
-                      ✗ Out of Stock
-                    </button>
+                {/* Image Upload Section */}
+                <div className="mb-10 p-8 bg-white/5 rounded-2xl border border-white/5">
+                  <label className="block text-white/50 text-[10px] tracking-[0.2em] uppercase font-bold mb-4">Master Visual</label>
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-8">
+                    <div className="w-48 h-48 bg-[#0B101E] rounded-2xl border-2 border-dashed border-white/20 flex items-center justify-center overflow-hidden relative shadow-lg group">
+                      {currentProduct.image ? (
+                        <Image 
+                          src={currentProduct.image} 
+                          alt="preview" 
+                          fill 
+                          className="object-cover opacity-90 group-hover:opacity-100 transition-opacity" 
+                          unoptimized={currentProduct.image.includes('cloudinary')}
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                          }}
+                        />
+                      ) : (
+                        <Camera size={32} className="text-white/20" />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <CldUploadWidget 
+                        uploadPreset="bb_web"
+                        options={{
+                          cloudName: 'dt2ikjlfc',
+                          sources: ['local', 'url', 'camera'],
+                          multiple: false,
+                          maxFiles: 1,
+                          maxFileSize: 5000000,
+                          clientAllowedFormats: ['png', 'jpg', 'jpeg', 'webp'],
+                          folder: 'bb_shoes'
+                        }}
+                        onSuccess={(result: any) => {
+                          const url = result.info.secure_url;
+                          if (editingProduct) setEditingProduct({...editingProduct, image: url});
+                          else if (editingSaleProduct) setEditingSaleProduct({...editingSaleProduct, image: url});
+                          else if (editingNewArrival) setEditingNewArrival({...editingNewArrival, image: url});
+                          else setNewProduct({...newProduct, image: url});
+                        }}
+                      >
+                        {({ open }) => (
+                          <button 
+                            type="button"
+                            onClick={() => open()} 
+                            className="bg-white/10 border border-white/20 text-white px-8 py-4 rounded-xl font-bold tracking-wide flex items-center gap-3 hover:bg-white/20 transition-all text-sm"
+                          >
+                            <Upload size={18} /> 
+                            Upload via Cloudinary
+                          </button>
+                        )}
+                      </CldUploadWidget>
+                      <p className="text-[10px] tracking-wide text-white/30 uppercase mt-4">Req: 800x800px, PNG/WEBP/JPG (Transparent BG preferred)</p>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Description */}
-              <div className="mb-6">
-                <label className="block text-sm font-bold text-[#0047AB] mb-2">Product Description</label>
-                <textarea 
-                  placeholder="Describe the product features, materials, and unique selling points..." 
-                  value={currentProduct.description} 
-                  onChange={e => {
-                    const val = e.target.value;
-                    if(editingProduct) setEditingProduct({...editingProduct, description: val});
-                    else if(editingSaleProduct) setEditingSaleProduct({...editingSaleProduct, description: val});
-                    else if(editingNewArrival) setEditingNewArrival({...editingNewArrival, description: val});
-                    else setNewProduct({...newProduct, description: val});
-                  }} 
-                  className="w-full p-4 border-2 border-slate-200 rounded-xl focus:border-[#D4AF37] focus:ring-2 focus:ring-[#D4AF37]/20 outline-none transition-all" 
-                  rows={4}
-                />
-              </div>
+                {/* Form Fields Grid */}
+                <div className="grid md:grid-cols-2 gap-8 mb-8">
+                  {/* Name */}
+                  <div className="space-y-2">
+                    <label className="block text-white/50 text-[10px] tracking-[0.2em] uppercase font-bold">Asset Name *</label>
+                    <input 
+                      type="text" 
+                      placeholder="Midnight Monarch" 
+                      value={currentProduct.name} 
+                      onChange={e => {
+                        const val = e.target.value;
+                        if(editingProduct) setEditingProduct({...editingProduct, name: val});
+                        else if(editingSaleProduct) setEditingSaleProduct({...editingSaleProduct, name: val});
+                        else if(editingNewArrival) setEditingNewArrival({...editingNewArrival, name: val});
+                        else setNewProduct({...newProduct, name: val});
+                      }} 
+                      className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#D4AF37]/50 focus:bg-white/10 transition-all" 
+                      required
+                    />
+                  </div>
+                  
+                  {/* Price */}
+                  <div className="space-y-2">
+                    <label className="block text-white/50 text-[10px] tracking-[0.2em] uppercase font-bold">Price (PKR) *</label>
+                    <input 
+                      type="number" 
+                      placeholder="12999" 
+                      value={currentProduct.price || ''} 
+                      onChange={e => {
+                        const val = Number(e.target.value);
+                        if(editingProduct) setEditingProduct({...editingProduct, price: val});
+                        else if(editingSaleProduct) setEditingSaleProduct({...editingSaleProduct, price: val});
+                        else if(editingNewArrival) setEditingNewArrival({...editingNewArrival, price: val});
+                        else setNewProduct({...newProduct, price: val});
+                      }} 
+                      className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#D4AF37]/50 focus:bg-white/10 transition-all" 
+                      required
+                    />
+                  </div>
 
-              {/* Size Selection */}
-              <div className="mb-6 p-6 bg-gradient-to-br from-blue-50/50 to-transparent rounded-2xl border border-blue-100">
-                <label className="flex items-center gap-2 text-sm font-bold text-[#0047AB] mb-4">
-                  <Package size={18} />
-                  Available Sizes
-                </label>
-                <div className="flex gap-3 mb-4">
-                  <input 
-                    type="number" 
-                    placeholder="Add size (e.g., 42)" 
-                    value={newSize} 
-                    onChange={e => setNewSize(e.target.value)} 
-                    className="flex-1 p-3 border-2 border-slate-200 rounded-xl focus:border-[#D4AF37] outline-none" 
-                  />
-                  <button 
-                    type="button"
-                    onClick={addSize} 
-                    className="bg-[#0047AB] text-white px-8 py-3 rounded-xl font-bold hover:bg-[#003A8C] transition-all shadow-md hover:shadow-lg"
-                  >
-                    Add Size
-                  </button>
-                </div>
-                <div className="flex flex-wrap gap-3">
-                  {selectedSizes.map(size => (
-                    <div 
-                      key={size} 
-                      className="bg-white border-2 border-[#D4AF37] text-[#0047AB] px-5 py-2 rounded-xl font-bold flex items-center gap-2 shadow-sm"
+                  {/* Category */}
+                  <div className="space-y-2">
+                    <label className="block text-white/50 text-[10px] tracking-[0.2em] uppercase font-bold">Category *</label>
+                    <select 
+                      value={currentProduct.category} 
+                      onChange={e => {
+                        const val = e.target.value;
+                        if(editingProduct) setEditingProduct({...editingProduct, category: val});
+                        else if(editingSaleProduct) setEditingSaleProduct({...editingSaleProduct, category: val});
+                        else if(editingNewArrival) setEditingNewArrival({...editingNewArrival, category: val});
+                        else setNewProduct({...newProduct, category: val});
+                      }} 
+                      className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white focus:outline-none focus:border-[#D4AF37]/50 focus:bg-[#121A2F] transition-all appearance-none"
                     >
-                      {size}
-                      <button 
+                      <option value="Men" className="bg-[#0B101E] text-white py-2">Men</option>
+                      <option value="Women" className="bg-[#0B101E] text-white py-2">Women</option>
+                      <option value="Heritage" className="bg-[#0B101E] text-white py-2">Heritage</option>
+                    </select>
+                  </div>
+
+                  {/* Subcategory */}
+                  <div className="space-y-2">
+                    <label className="block text-white/50 text-[10px] tracking-[0.2em] uppercase font-bold">Classification</label>
+                    <select 
+                      value={(currentProduct as any).subcategory || ''} 
+                      onChange={e => {
+                        const val = e.target.value;
+                        if(editingProduct) setEditingProduct({...editingProduct, subcategory: val} as any);
+                        else if(editingSaleProduct) setEditingSaleProduct({...editingSaleProduct, subcategory: val} as any);
+                        else if(editingNewArrival) setEditingNewArrival({...editingNewArrival, subcategory: val} as any);
+                        else setNewProduct({...newProduct, subcategory: val});
+                      }} 
+                      className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white focus:outline-none focus:border-[#D4AF37]/50 focus:bg-[#121A2F] transition-all appearance-none"
+                    >
+                      <option value="" className="bg-[#0B101E]">None</option>
+                      <option value="Sneakers" className="bg-[#0B101E]">Sneakers</option>
+                      <option value="Basketball" className="bg-[#0B101E]">Basketball</option>
+                      <option value="Formal" className="bg-[#0B101E]">Formal</option>
+                      <option value="Running" className="bg-[#0B101E]">Running</option>
+                      <option value="Oxford" className="bg-[#0B101E]">Oxford</option>
+                      <option value="Loafers" className="bg-[#0B101E]">Loafers</option>
+                      <option value="Boots" className="bg-[#0B101E]">Boots</option>
+                    </select>
+                  </div>
+
+                  {/* Stock Status */}
+                  <div className="space-y-2 md:col-span-2">
+                    <label className="block text-white/50 text-[10px] tracking-[0.2em] uppercase font-bold">Inventory Status *</label>
+                    <div className="flex items-center gap-4">
+                      <button
                         type="button"
-                        onClick={() => removeSize(size)} 
-                        className="text-red-500 hover:text-red-700"
+                        onClick={() => {
+                          if(editingProduct) setEditingProduct({...editingProduct, inStock: true});
+                          else if(editingSaleProduct) setEditingSaleProduct({...editingSaleProduct, inStock: true});
+                          else if(editingNewArrival) setEditingNewArrival({...editingNewArrival, inStock: true});
+                          else setNewProduct({...newProduct, inStock: true});
+                        }}
+                        className={`flex-1 py-4 px-6 rounded-xl text-[10px] tracking-[0.2em] uppercase font-bold transition-all border ${
+                          currentProduct.inStock 
+                            ? 'bg-[#D4AF37]/10 text-[#D4AF37] border-[#D4AF37]/50 shadow-[0_0_15px_rgba(212,175,55,0.2)]' 
+                            : 'bg-white/5 text-white/30 border-white/5 hover:bg-white/10'
+                        }`}
                       >
-                        <X size={16} />
+                        In Stock
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if(editingProduct) setEditingProduct({...editingProduct, inStock: false});
+                          else if(editingSaleProduct) setEditingSaleProduct({...editingSaleProduct, inStock: false});
+                          else if(editingNewArrival) setEditingNewArrival({...editingNewArrival, inStock: false});
+                          else setNewProduct({...newProduct, inStock: false});
+                        }}
+                        className={`flex-1 py-4 px-6 rounded-xl text-[10px] tracking-[0.2em] uppercase font-bold transition-all border ${
+                          !currentProduct.inStock 
+                            ? 'bg-red-500/10 text-red-400 border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.2)]' 
+                            : 'bg-white/5 text-white/30 border-white/5 hover:bg-white/10'
+                        }`}
+                      >
+                        Depleted
                       </button>
                     </div>
-                  ))}
+                  </div>
                 </div>
-              </div>
 
-              {/* Color Selection */}
-              <div className="mb-8 p-6 bg-gradient-to-br from-amber-50/50 to-transparent rounded-2xl border border-amber-100">
-                <label className="flex items-center gap-2 text-sm font-bold text-[#0047AB] mb-4">
-                  <Sparkles size={18} />
-                  Available Colors
-                </label>
-                <div className="flex gap-3 mb-4">
-                  <input 
-                    type="text" 
-                    placeholder="Add color (e.g., Navy Blue)" 
-                    value={newColor} 
-                    onChange={e => setNewColor(e.target.value)} 
-                    className="flex-1 p-3 border-2 border-slate-200 rounded-xl focus:border-[#D4AF37] outline-none" 
+                {/* Description */}
+                <div className="mb-8 space-y-2">
+                  <label className="block text-white/50 text-[10px] tracking-[0.2em] uppercase font-bold">Asset Details</label>
+                  <textarea 
+                    placeholder="Describe materials, craftsmanship, and unique attributes..." 
+                    value={currentProduct.description} 
+                    onChange={e => {
+                      const val = e.target.value;
+                      if(editingProduct) setEditingProduct({...editingProduct, description: val});
+                      else if(editingSaleProduct) setEditingSaleProduct({...editingSaleProduct, description: val});
+                      else if(editingNewArrival) setEditingNewArrival({...editingNewArrival, description: val});
+                      else setNewProduct({...newProduct, description: val});
+                    }} 
+                    className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#D4AF37]/50 focus:bg-white/10 transition-all" 
+                    rows={4}
                   />
-                  <button 
-                    type="button"
-                    onClick={addColor} 
-                    className="bg-[#0047AB] text-white px-8 py-3 rounded-xl font-bold hover:bg-[#003A8C] transition-all shadow-md hover:shadow-lg"
-                  >
-                    Add Color
-                  </button>
                 </div>
-                <div className="flex flex-wrap gap-3">
-                  {selectedColors.map(color => (
-                    <div 
-                      key={color} 
-                      className="bg-white border-2 border-[#D4AF37] text-[#0047AB] px-5 py-2 rounded-xl font-bold flex items-center gap-2 shadow-sm"
-                    >
-                      {color}
+
+                {/* Attributes (Size & Color) */}
+                <div className="grid md:grid-cols-2 gap-8 mb-10">
+                  {/* Sizes */}
+                  <div className="p-6 bg-white/5 rounded-2xl border border-white/5">
+                    <label className="flex items-center gap-2 text-white text-sm font-bold mb-4">
+                      <Package size={16} className="text-[#D4AF37]" /> Sizes
+                    </label>
+                    <div className="flex gap-3 mb-6">
+                      <input 
+                        type="number" 
+                        placeholder="Add size..." 
+                        value={newSize} 
+                        onChange={e => setNewSize(e.target.value)} 
+                        className="flex-1 bg-[#0B101E] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#D4AF37]/50" 
+                      />
                       <button 
                         type="button"
-                        onClick={() => removeColor(color)} 
-                        className="text-red-500 hover:text-red-700"
+                        onClick={addSize} 
+                        className="bg-white/10 text-white px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-white/20 transition-all border border-white/5"
                       >
-                        <X size={16} />
+                        Add
                       </button>
                     </div>
-                  ))}
+                    <div className="flex flex-wrap gap-2">
+                      {selectedSizes.map(size => (
+                        <div key={size} className="bg-[#D4AF37]/10 border border-[#D4AF37]/30 text-[#D4AF37] px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2">
+                          {size}
+                          <button type="button" onClick={() => removeSize(size)} className="hover:text-white transition-colors">
+                            <X size={14} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Colors */}
+                  <div className="p-6 bg-white/5 rounded-2xl border border-white/5">
+                    <label className="flex items-center gap-2 text-white text-sm font-bold mb-4">
+                      <Sparkles size={16} className="text-[#D4AF37]" /> Colors
+                    </label>
+                    <div className="flex gap-3 mb-6">
+                      <input 
+                        type="text" 
+                        placeholder="Add color..." 
+                        value={newColor} 
+                        onChange={e => setNewColor(e.target.value)} 
+                        className="flex-1 bg-[#0B101E] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#D4AF37]/50" 
+                      />
+                      <button 
+                        type="button"
+                        onClick={addColor} 
+                        className="bg-white/10 text-white px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-white/20 transition-all border border-white/5"
+                      >
+                        Add
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedColors.map(color => (
+                        <div key={color} className="bg-white/10 border border-white/20 text-white/80 px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2">
+                          {color}
+                          <button type="button" onClick={() => removeColor(color)} className="hover:text-red-400 transition-colors">
+                            <X size={14} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Final Actions */}
+                <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-white/10">
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      if (!currentProduct.name || !currentProduct.price || !currentProduct.image) {
+                        alert('Please fill all required fields: Name, Price, and Image');
+                        return;
+                      }
+                      const body = {
+                        ...currentProduct, 
+                        brand: 'B&B', 
+                        sizes: selectedSizes, 
+                        colors: selectedColors, 
+                        isOnSale: activeTab === 'sales' || showAddSaleForm, 
+                        isNewArrival: activeTab === 'newarrivals' || showAddNewArrivalForm,
+                        inStock: currentProduct.inStock !== undefined ? currentProduct.inStock : true
+                      };
+                      const method = (editingProduct || editingSaleProduct || editingNewArrival) ? 'PUT' : 'POST';
+                      const url = method === 'PUT' ? `/api/products/${currentProduct.id}` : '/api/products';
+                      handleAction(method, url, body);
+                    }} 
+                    disabled={loading}
+                    className="flex-1 bg-[#D4AF37] text-[#0B101E] px-8 py-5 rounded-2xl font-black text-[10px] tracking-[0.2em] uppercase hover:bg-white transition-all disabled:opacity-50 flex items-center justify-center gap-3"
+                  >
+                    <Save size={16} />
+                    {loading ? 'Committing...' : 'Commit Asset'}
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      setShowAddForm(false); setShowAddSaleForm(false); setShowAddNewArrivalForm(false);
+                      setEditingProduct(null); setEditingSaleProduct(null); setEditingNewArrival(null);
+                      setSelectedSizes(['7', '8', '9', '10', '11']);
+                      setSelectedColors(['Black']);
+                    }} 
+                    className="px-10 py-5 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-bold rounded-2xl transition-all text-[10px] tracking-[0.2em] uppercase"
+                  >
+                    Abort
+                  </button>
                 </div>
               </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-              {/* Action Buttons */}
-              <div className="flex gap-4">
-                <button 
-                  type="button"
-                  onClick={() => {
-                    if (!currentProduct.name || !currentProduct.price || !currentProduct.image) {
-                      alert('Please fill all required fields: Name, Price, and Image');
-                      return;
-                    }
-                    const body = {
-                      ...currentProduct, 
-                      brand: 'B&B', 
-                      sizes: selectedSizes, 
-                      colors: selectedColors, 
-                      isOnSale: activeTab === 'sales' || showAddSaleForm, 
-                      isNewArrival: activeTab === 'newarrivals' || showAddNewArrivalForm,
-                      inStock: currentProduct.inStock !== undefined ? currentProduct.inStock : true
-                    };
-                    const method = (editingProduct || editingSaleProduct || editingNewArrival) ? 'PUT' : 'POST';
-                    const url = method === 'PUT' ? `/api/products/${currentProduct.id}` : '/api/products';
-                    handleAction(method, url, body);
-                  }} 
-                  disabled={loading}
-                  className="flex-1 bg-gradient-to-r from-[#0047AB] to-[#0B101E] text-white px-12 py-5 rounded-xl font-bold text-lg shadow-xl hover:shadow-2xl hover:scale-[1.02] transition-all disabled:opacity-50 flex items-center justify-center gap-3"
-                >
-                  <Save size={22} />
-                  {loading ? 'Saving...' : 'Save Product'}
-                </button>
-                <button 
-                  type="button"
-                  onClick={() => {
-                    setShowAddForm(false); 
-                    setShowAddSaleForm(false); 
-                    setShowAddNewArrivalForm(false);
-                    setEditingProduct(null); 
-                    setEditingSaleProduct(null); 
-                    setEditingNewArrival(null);
-                    setSelectedSizes(['7', '8', '9', '10', '11']);
-                    setSelectedColors(['Black']);
-                  }} 
-                  className="px-12 py-5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition-all"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Products Tab */}
+        {/* --- PRODUCTS TAB --- */}
         {activeTab === 'products' && (
-          <div>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
             <button 
               onClick={() => {
                 setShowAddForm(true);
                 setNewProduct({
-                  id: '',
-                  name: '',
-                  price: 0,
-                  originalPrice: 0,
-                  discount: 0,
-                  image: '',
-                  sizeColorImages: [],
-                  category: 'Men',
-                  subcategory: '',
-                  brand: 'B&B',
-                  sizes: [],
-                  colors: [],
-                  description: '',
-                  rating: 4.5,
-                  reviews: 0,
-                  inStock: true,
-                  isOnSale: false,
-                  isNewArrival: false
+                  id: '', name: '', price: 0, originalPrice: 0, discount: 0, image: '', sizeColorImages: [],
+                  category: 'Men', subcategory: '', brand: 'B&B', sizes: [], colors: [], description: '',
+                  rating: 4.5, reviews: 0, inStock: true, isOnSale: false, isNewArrival: false
                 });
-                setSelectedSizes(['7', '8', '9', '10', '11']);
-                setSelectedColors(['Black']);
+                setSelectedSizes(['7', '8', '9', '10', '11']); setSelectedColors(['Black']);
               }} 
-              className="bg-gradient-to-r from-[#0047AB] to-[#0B101E] text-white px-8 py-4 rounded-2xl font-bold mb-8 flex items-center gap-3 shadow-lg hover:shadow-xl hover:scale-105 transition-all"
+              className="bg-white/5 border border-white/10 text-white px-6 py-4 rounded-full font-bold mb-10 flex items-center gap-3 hover:bg-white/10 transition-all text-[10px] tracking-[0.2em] uppercase"
             >
-              <Plus size={22}/> 
-              Add Regular Product
+              <Plus size={16}/> 
+              Register New Asset
             </button>
             
-            {loading ? (
-              <div className="text-center py-20">
-                <div className="inline-block w-12 h-12 border-4 border-[#D4AF37] border-t-transparent rounded-full animate-spin"></div>
-                <p className="text-gray-500 mt-4 font-medium">Loading products...</p>
+            {loading || contextLoading ? (
+              <div className="flex flex-col items-center justify-center py-32 opacity-50">
+                <div className="w-10 h-10 border-2 border-[#D4AF37]/20 border-t-[#D4AF37] rounded-full animate-spin mb-4" />
+                <p className="text-[10px] tracking-[0.3em] uppercase">Accessing Database</p>
               </div>
             ) : products.length === 0 ? (
-              <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-gray-300">
-                <Package size={64} className="mx-auto text-gray-300 mb-4" />
-                <p className="text-gray-500 font-medium">No regular products yet. Add your first product!</p>
+              <div className="text-center py-32 bg-[#121A2F]/40 backdrop-blur-sm rounded-3xl border border-white/5">
+                <Package size={48} className="mx-auto text-white/20 mb-6" strokeWidth={1} />
+                <p className="text-white/50 font-medium text-sm">Vault is empty. Initiate asset registration.</p>
               </div>
             ) : (
-              <div className="grid md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {products.map(p => (
-                  <div key={p.id} className="bg-white p-6 rounded-3xl shadow-lg border-2 border-slate-100 hover:shadow-2xl hover:scale-[1.02] transition-all group">
-                    <div className="relative h-56 w-full mb-5 rounded-2xl overflow-hidden bg-gradient-to-br from-slate-100 to-slate-50">
+                  <div key={p.id} className="bg-[#121A2F]/60 backdrop-blur-md rounded-3xl border border-white/5 overflow-hidden group hover:border-white/20 transition-all">
+                    <div className="relative aspect-square bg-[#0B101E] p-6">
                       <Image 
                         src={p.image || '/placeholder.jpg'} 
                         alt={p.name} 
                         fill 
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        className="object-cover group-hover:scale-110 transition-transform duration-300" 
+                        className="object-contain p-6 group-hover:scale-110 transition-transform duration-700 ease-out drop-shadow-2xl" 
                         unoptimized={p.image?.includes('cloudinary')}
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
                           target.src = '/placeholder.jpg';
                         }}
                       />
+                      <div className="absolute top-4 left-4">
+                        <span className="text-[8px] font-black tracking-[0.2em] text-[#D4AF37] bg-[#D4AF37]/10 border border-[#D4AF37]/20 px-3 py-1.5 rounded-full uppercase backdrop-blur-md">
+                          {p.category}
+                        </span>
+                      </div>
                       {!p.inStock && (
-                        <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                          <span className="bg-red-600 text-white px-6 py-2 rounded-full font-bold text-sm">Out of Stock</span>
+                        <div className="absolute inset-0 bg-[#0B101E]/80 backdrop-blur-sm flex items-center justify-center z-10">
+                          <span className="text-red-400 border border-red-500/30 bg-red-500/10 px-4 py-2 rounded-full font-bold text-[9px] tracking-[0.2em] uppercase">Depleted</span>
                         </div>
                       )}
                     </div>
-                    <div className="mb-1">
-                      <span className="text-xs font-bold text-[#D4AF37] bg-[#D4AF37]/10 px-3 py-1 rounded-full">{p.category}</span>
-                    </div>
-                    <h3 className="font-bold text-lg text-[#0B101E] mb-2 line-clamp-1">{p.name}</h3>
-                    <p className="text-2xl font-bold text-[#0047AB] mb-4">PKR {p.price.toLocaleString()}</p>
-                    <div className="flex gap-2">
-                      <button 
-                        onClick={() => {
-                          setEditingProduct(p);
-                          setSelectedSizes(p.sizes || []);
-                          setSelectedColors(p.colors || []);
-                        }} 
-                        className="flex-1 bg-blue-50 text-blue-600 py-3 rounded-xl font-bold hover:bg-blue-100 transition-all flex items-center justify-center gap-2"
-                      >
-                        <Edit2 size={16}/>
-                        Edit
-                      </button>
-                      <button 
-                        onClick={() => {
-                          if(confirm('Are you sure you want to delete this product?')) {
-                            handleAction('DELETE', `/api/products/${p.id}`, {});
-                          }
-                        }} 
-                        className="p-3 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-all"
-                      >
-                        <Trash2 size={18}/>
-                      </button>
+                    
+                    <div className="p-6 border-t border-white/5">
+                      <h3 className="font-serif font-bold text-lg text-white mb-1 truncate">{p.name}</h3>
+                      <p className="text-sm font-medium text-white/70 mb-5">PKR {p.price.toLocaleString()}</p>
+                      <div className="flex gap-2">
+                        <button 
+                          onClick={() => {
+                            setEditingProduct(p);
+                            setSelectedSizes(p.sizes || []); setSelectedColors(p.colors || []);
+                          }} 
+                          className="flex-1 bg-white/5 border border-white/10 text-white/70 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all flex items-center justify-center gap-2"
+                        >
+                          <Edit2 size={14}/> Edit
+                        </button>
+                        <button 
+                          onClick={() => {
+                            if(confirm('Purge this asset from the database?')) {
+                              handleAction('DELETE', `/api/products/${p.id}`, {});
+                            }
+                          }} 
+                          className="w-10 flex items-center justify-center bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl hover:bg-red-500 hover:text-white transition-all"
+                        >
+                          <Trash2 size={14}/>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
             )}
-          </div>
+          </motion.div>
         )}
 
-        {/* Sales Tab */}
+        {/* --- SALES TAB --- */}
         {activeTab === 'sales' && (
-          <div>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
             <button 
               onClick={() => {
                 setShowAddSaleForm(true);
                 setNewProduct({
-                  id: '',
-                  name: '',
-                  price: 0,
-                  originalPrice: 0,
-                  discount: 0,
-                  image: '',
-                  sizeColorImages: [],
-                  category: 'Men',
-                  subcategory: '',
-                  brand: 'B&B',
-                  sizes: [],
-                  colors: [],
-                  description: '',
-                  rating: 4.5,
-                  reviews: 0,
-                  inStock: true,
-                  isOnSale: true,
-                  isNewArrival: false
+                  id: '', name: '', price: 0, originalPrice: 0, discount: 0, image: '', sizeColorImages: [],
+                  category: 'Men', subcategory: '', brand: 'B&B', sizes: [], colors: [], description: '',
+                  rating: 4.5, reviews: 0, inStock: true, isOnSale: true, isNewArrival: false
                 });
-                setSelectedSizes(['7', '8', '9', '10', '11']);
-                setSelectedColors(['Black']);
+                setSelectedSizes(['7', '8', '9', '10', '11']); setSelectedColors(['Black']);
               }} 
-              className="bg-gradient-to-r from-red-600 to-red-700 text-white px-8 py-4 rounded-2xl font-bold mb-8 flex items-center gap-3 shadow-lg hover:shadow-xl hover:scale-105 transition-all"
+              className="bg-white/5 border border-white/10 text-white px-6 py-4 rounded-full font-bold mb-10 flex items-center gap-3 hover:bg-white/10 transition-all text-[10px] tracking-[0.2em] uppercase"
             >
-              <Tag size={22}/> 
-              Add Sale Product
+              <Tag size={16}/> 
+              Initiate Sale Event
             </button>
             
-            {loading ? (
-              <div className="text-center py-20">
-                <div className="inline-block w-12 h-12 border-4 border-red-500 border-t-transparent rounded-full animate-spin"></div>
-                <p className="text-gray-500 mt-4 font-medium">Loading sale products...</p>
+            {loading || contextLoading ? (
+              <div className="flex flex-col items-center justify-center py-32 opacity-50">
+                <div className="w-10 h-10 border-2 border-[#D4AF37]/20 border-t-[#D4AF37] rounded-full animate-spin mb-4" />
+                <p className="text-[10px] tracking-[0.3em] uppercase">Accessing Database</p>
               </div>
             ) : salesProducts.length === 0 ? (
-              <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-red-200">
-                <Tag size={64} className="mx-auto text-red-300 mb-4" />
-                <p className="text-gray-500 font-medium">No sale products yet. Add your first sale!</p>
+              <div className="text-center py-32 bg-[#121A2F]/40 backdrop-blur-sm rounded-3xl border border-white/5">
+                <Tag size={48} className="mx-auto text-white/20 mb-6" strokeWidth={1} />
+                <p className="text-white/50 font-medium text-sm">No active sales events.</p>
               </div>
             ) : (
-              <div className="grid md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {salesProducts.map(p => (
-                  <div key={p.id} className="bg-white p-6 rounded-3xl shadow-lg border-2 border-red-100 hover:shadow-2xl hover:scale-[1.02] transition-all group">
-                    <div className="relative h-56 w-full mb-5 rounded-2xl overflow-hidden bg-gradient-to-br from-red-50 to-amber-50">
+                  <div key={p.id} className="bg-[#121A2F]/60 backdrop-blur-md rounded-3xl border border-red-500/10 overflow-hidden group hover:border-red-500/30 transition-all shadow-[0_0_20px_rgba(239,68,68,0.05)]">
+                    <div className="relative aspect-square bg-[#0B101E] p-6">
                       <Image 
-                        src={p.image || '/placeholder.jpg'} 
-                        alt={p.name} 
-                        fill 
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        className="object-cover group-hover:scale-110 transition-transform duration-300" 
+                        src={p.image || '/placeholder.jpg'} alt={p.name} fill 
+                        className="object-contain p-6 group-hover:scale-110 transition-transform duration-700 ease-out drop-shadow-2xl" 
                         unoptimized={p.image?.includes('cloudinary')}
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.src = '/placeholder.jpg';
-                        }}
                       />
-                      <div className="absolute top-3 right-3 bg-red-600 text-white px-3 py-1 rounded-full font-bold text-xs shadow-lg">
-                        SALE
+                      <div className="absolute top-4 right-4">
+                        <span className="text-[8px] font-black tracking-[0.2em] text-white bg-red-600/80 border border-red-500 px-3 py-1.5 rounded-full uppercase backdrop-blur-md shadow-[0_0_15px_rgba(220,38,38,0.5)]">
+                          Sale
+                        </span>
                       </div>
                       {!p.inStock && (
-                        <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                          <span className="bg-red-600 text-white px-6 py-2 rounded-full font-bold text-sm">Out of Stock</span>
+                        <div className="absolute inset-0 bg-[#0B101E]/80 backdrop-blur-sm flex items-center justify-center z-10">
+                          <span className="text-red-400 border border-red-500/30 bg-red-500/10 px-4 py-2 rounded-full font-bold text-[9px] tracking-[0.2em] uppercase">Depleted</span>
                         </div>
                       )}
                     </div>
-                    <div className="mb-1">
-                      <span className="text-xs font-bold text-red-600 bg-red-50 px-3 py-1 rounded-full">{p.category}</span>
-                    </div>
-                    <h3 className="font-bold text-lg text-[#0B101E] mb-2 line-clamp-1">{p.name}</h3>
-                    <p className="text-2xl font-bold text-red-600 mb-4">PKR {p.price.toLocaleString()}</p>
-                    <div className="flex gap-2">
-                      <button 
-                        onClick={() => {
-                          setEditingSaleProduct(p);
-                          setSelectedSizes(p.sizes || []);
-                          setSelectedColors(p.colors || []);
-                        }} 
-                        className="flex-1 bg-red-50 text-red-600 py-3 rounded-xl font-bold hover:bg-red-100 transition-all flex items-center justify-center gap-2"
-                      >
-                        <Edit2 size={16}/>
-                        Edit Sale
-                      </button>
-                      <button 
-                        onClick={() => {
-                          if(confirm('Are you sure you want to delete this sale product?')) {
-                            handleAction('DELETE', `/api/products/${p.id}`, {});
-                          }
-                        }} 
-                        className="p-3 bg-red-100 text-red-700 rounded-xl hover:bg-red-200 transition-all"
-                      >
-                        <Trash2 size={18}/>
-                      </button>
+                    
+                    <div className="p-6 border-t border-white/5">
+                      <h3 className="font-serif font-bold text-lg text-white mb-1 truncate">{p.name}</h3>
+                      <p className="text-sm font-medium text-red-400 mb-5">PKR {p.price.toLocaleString()}</p>
+                      <div className="flex gap-2">
+                        <button 
+                          onClick={() => {
+                            setEditingSaleProduct(p);
+                            setSelectedSizes(p.sizes || []); setSelectedColors(p.colors || []);
+                          }} 
+                          className="flex-1 bg-white/5 border border-white/10 text-white/70 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all flex items-center justify-center gap-2"
+                        >
+                          <Edit2 size={14}/> Edit
+                        </button>
+                        <button 
+                          onClick={() => {
+                            if(confirm('Purge this sale asset?')) handleAction('DELETE', `/api/products/${p.id}`, {});
+                          }} 
+                          className="w-10 flex items-center justify-center bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl hover:bg-red-500 hover:text-white transition-all"
+                        >
+                          <Trash2 size={14}/>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
             )}
-          </div>
+          </motion.div>
         )}
 
-        {/* New Arrivals Tab */}
+        {/* --- NEW ARRIVALS TAB --- */}
         {activeTab === 'newarrivals' && (
-          <div>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
             <button 
               onClick={() => {
                 setShowAddNewArrivalForm(true);
                 setNewProduct({
-                  id: '',
-                  name: '',
-                  price: 0,
-                  originalPrice: 0,
-                  discount: 0,
-                  image: '',
-                  sizeColorImages: [],
-                  category: 'Men',
-                  subcategory: '',
-                  brand: 'B&B',
-                  sizes: [],
-                  colors: [],
-                  description: '',
-                  rating: 4.5,
-                  reviews: 0,
-                  inStock: true,
-                  isOnSale: false,
-                  isNewArrival: true
+                  id: '', name: '', price: 0, originalPrice: 0, discount: 0, image: '', sizeColorImages: [],
+                  category: 'Men', subcategory: '', brand: 'B&B', sizes: [], colors: [], description: '',
+                  rating: 4.5, reviews: 0, inStock: true, isOnSale: false, isNewArrival: true
                 });
-                setSelectedSizes(['7', '8', '9', '10', '11']);
-                setSelectedColors(['Black']);
+                setSelectedSizes(['7', '8', '9', '10', '11']); setSelectedColors(['Black']);
               }} 
-              className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-8 py-4 rounded-2xl font-bold mb-8 flex items-center gap-3 shadow-lg hover:shadow-xl hover:scale-105 transition-all"
+              className="bg-white/5 border border-white/10 text-white px-6 py-4 rounded-full font-bold mb-10 flex items-center gap-3 hover:bg-white/10 transition-all text-[10px] tracking-[0.2em] uppercase"
             >
-              <Sparkles size={22}/> 
-              Add New Arrival
+              <Sparkles size={16}/> 
+              Log New Arrival
             </button>
             
-            {loading ? (
-              <div className="text-center py-20">
-                <div className="inline-block w-12 h-12 border-4 border-green-500 border-t-transparent rounded-full animate-spin"></div>
-                <p className="text-gray-500 mt-4 font-medium">Loading new arrivals...</p>
+            {loading || contextLoading ? (
+              <div className="flex flex-col items-center justify-center py-32 opacity-50">
+                <div className="w-10 h-10 border-2 border-[#D4AF37]/20 border-t-[#D4AF37] rounded-full animate-spin mb-4" />
+                <p className="text-[10px] tracking-[0.3em] uppercase">Accessing Database</p>
               </div>
             ) : newArrivals.length === 0 ? (
-              <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-green-200">
-                <Sparkles size={64} className="mx-auto text-green-300 mb-4" />
-                <p className="text-gray-500 font-medium">No new arrivals yet. Add your first item!</p>
+              <div className="text-center py-32 bg-[#121A2F]/40 backdrop-blur-sm rounded-3xl border border-white/5">
+                <Sparkles size={48} className="mx-auto text-white/20 mb-6" strokeWidth={1} />
+                <p className="text-white/50 font-medium text-sm">No new arrivals currently active.</p>
               </div>
             ) : (
-              <div className="grid md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {newArrivals.map(p => (
-                  <div key={p.id} className="bg-white p-6 rounded-3xl shadow-lg border-2 border-green-100 hover:shadow-2xl hover:scale-[1.02] transition-all group">
-                    <div className="relative h-56 w-full mb-5 rounded-2xl overflow-hidden bg-gradient-to-br from-green-50 to-emerald-50">
+                  <div key={p.id} className="bg-[#121A2F]/60 backdrop-blur-md rounded-3xl border border-blue-400/10 overflow-hidden group hover:border-blue-400/30 transition-all shadow-[0_0_20px_rgba(96,165,250,0.05)]">
+                    <div className="relative aspect-square bg-[#0B101E] p-6">
                       <Image 
-                        src={p.image || '/placeholder.jpg'} 
-                        alt={p.name} 
-                        fill 
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        className="object-cover group-hover:scale-110 transition-transform duration-300" 
+                        src={p.image || '/placeholder.jpg'} alt={p.name} fill 
+                        className="object-contain p-6 group-hover:scale-110 transition-transform duration-700 ease-out drop-shadow-2xl" 
                         unoptimized={p.image?.includes('cloudinary')}
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.src = '/placeholder.jpg';
-                        }}
                       />
-                      <div className="absolute top-3 right-3 bg-green-600 text-white px-3 py-1 rounded-full font-bold text-xs shadow-lg">
-                        NEW
+                      <div className="absolute top-4 right-4">
+                        <span className="text-[8px] font-black tracking-[0.2em] text-blue-900 bg-blue-400/90 border border-blue-300 px-3 py-1.5 rounded-full uppercase backdrop-blur-md shadow-[0_0_15px_rgba(96,165,250,0.4)]">
+                          New
+                        </span>
                       </div>
                       {!p.inStock && (
-                        <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                          <span className="bg-red-600 text-white px-6 py-2 rounded-full font-bold text-sm">Out of Stock</span>
+                        <div className="absolute inset-0 bg-[#0B101E]/80 backdrop-blur-sm flex items-center justify-center z-10">
+                          <span className="text-red-400 border border-red-500/30 bg-red-500/10 px-4 py-2 rounded-full font-bold text-[9px] tracking-[0.2em] uppercase">Depleted</span>
                         </div>
-                        )}
+                      )}
                     </div>
-                    <div className="mb-1">
-                      <span className="text-xs font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full">{p.category}</span>
-                    </div>
-                    <h3 className="font-bold text-lg text-[#0B101E] mb-2 line-clamp-1">{p.name}</h3>
-                    <p className="text-2xl font-bold text-green-600 mb-4">PKR {p.price.toLocaleString()}</p>
-                    <div className="flex gap-2">
-                      <button 
-                        onClick={() => {
-                          setEditingNewArrival(p);
-                          setSelectedSizes(p.sizes || []);
-                          setSelectedColors(p.colors || []);
-                        }} 
-                        className="flex-1 bg-green-50 text-green-600 py-3 rounded-xl font-bold hover:bg-green-100 transition-all flex items-center justify-center gap-2"
-                      >
-                        <Edit2 size={16}/>
-                        Edit
-                      </button>
-                      <button 
-                        onClick={() => {
-                          if(confirm('Are you sure you want to delete this new arrival?')) {
-                            handleAction('DELETE', `/api/products/${p.id}`, {});
-                          }
-                        }} 
-                        className="p-3 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-all"
-                      >
-                        <Trash2 size={18}/>
-                      </button>
+                    
+                    <div className="p-6 border-t border-white/5">
+                      <h3 className="font-serif font-bold text-lg text-white mb-1 truncate">{p.name}</h3>
+                      <p className="text-sm font-medium text-blue-300 mb-5">PKR {p.price.toLocaleString()}</p>
+                      <div className="flex gap-2">
+                        <button 
+                          onClick={() => {
+                            setEditingNewArrival(p);
+                            setSelectedSizes(p.sizes || []); setSelectedColors(p.colors || []);
+                          }} 
+                          className="flex-1 bg-white/5 border border-white/10 text-white/70 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all flex items-center justify-center gap-2"
+                        >
+                          <Edit2 size={14}/> Edit
+                        </button>
+                        <button 
+                          onClick={() => {
+                            if(confirm('Purge this arrival asset?')) handleAction('DELETE', `/api/products/${p.id}`, {});
+                          }} 
+                          className="w-10 flex items-center justify-center bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl hover:bg-red-500 hover:text-white transition-all"
+                        >
+                          <Trash2 size={14}/>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
             )}
-          </div>
+          </motion.div>
         )}
 
-        {/* Orders Tab */}
+        {/* --- ORDERS TAB --- */}
         {activeTab === 'orders' && (
-          <div className="space-y-4">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }} className="space-y-6">
             {orders.length === 0 ? (
-              <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-gray-300">
-                <ShoppingCart size={64} className="mx-auto text-gray-300 mb-4" />
-                <p className="text-gray-500 font-medium">No orders yet</p>
+              <div className="text-center py-32 bg-[#121A2F]/40 backdrop-blur-sm rounded-3xl border border-white/5">
+                <ShoppingCart size={48} className="mx-auto text-white/20 mb-6" strokeWidth={1} />
+                <p className="text-white/50 font-medium text-sm">No incoming transmissions.</p>
               </div>
             ) : (
-              orders.map(o => (
-                <div key={o.id} className="bg-white p-8 rounded-3xl shadow-lg border border-slate-200 flex justify-between items-center hover:shadow-xl transition-all">
-                  <div>
-                    <p className="text-xs text-gray-400 font-medium mb-1">Order #{o.id}</p>
-                    <h4 className="font-bold text-xl text-[#0B101E] mb-2">{o.customerName}</h4>
-                    <p className="text-sm text-gray-600">
-                      {o.items.length} Items • <span className="font-bold text-[#0047AB]">PKR {o.total.toLocaleString()}</span>
-                    </p>
+              Object.entries(
+                orders.reduce<Record<string, Order[]>>((acc, order) => {
+                  const key = order.user_id || 'unknown-user';
+                  if (!acc[key]) acc[key] = [];
+                  acc[key].push(order);
+                  return acc;
+                }, {})
+              ).map(([userId, userOrders]) => (
+                <div key={userId} className="bg-[#121A2F]/30 backdrop-blur-md rounded-3xl border border-white/5 overflow-hidden">
+                  
+                  {/* User Group Header */}
+                  <div className="bg-white/5 border-b border-white/5 px-6 py-4 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Users size={16} className="text-[#D4AF37]" />
+                      <span className="text-[10px] tracking-[0.2em] uppercase font-bold text-white/70">Client ID: {userId.substring(0,8)}...</span>
+                    </div>
+                    <span className="text-[10px] text-white/40">{userOrders.length} Active Ledgers</span>
                   </div>
-                  <span className="bg-gradient-to-r from-[#FFC107] to-[#D4AF37] text-white px-6 py-3 rounded-full text-sm font-bold shadow-lg">
-                    {o.status}
-                  </span>
+
+                  {/* Orders List */}
+                  <div className="p-4 space-y-4">
+                    {userOrders.map((o) => (
+                      <div key={o.id} className="bg-[#0B101E]/80 border border-white/5 p-6 rounded-2xl flex flex-col lg:flex-row lg:items-center justify-between gap-6 hover:border-white/10 transition-colors">
+                        
+                        {/* Details */}
+                        <div>
+                          <div className="flex items-center gap-3 mb-2">
+                            <span className="text-[9px] text-[#D4AF37] border border-[#D4AF37]/30 bg-[#D4AF37]/10 px-2 py-0.5 rounded-md uppercase tracking-wider font-bold">
+                              #{o.orderId?.substring(0,8) || o.id.substring(0,8)}
+                            </span>
+                            <span className="text-xs text-white/40">{new Date(o.date).toLocaleDateString()}</span>
+                          </div>
+                          <h4 className="font-serif text-lg text-white mb-1">{o.customerName}</h4>
+                          <p className="text-xs text-white/50 mb-3">{o.customerEmail}</p>
+                          <div className="flex items-center gap-2 text-sm">
+                            <span className="text-white/40">{o.items.length} Assets</span>
+                            <span className="w-1 h-1 rounded-full bg-white/20" />
+                            <span className="font-bold text-white">PKR {o.total.toLocaleString()}</span>
+                          </div>
+                        </div>
+
+                        {/* Status & Actions */}
+                        <div className="flex flex-col items-start lg:items-end gap-4">
+                          
+                          {/* Dynamic Status Badge */}
+                          <div className={`px-4 py-1.5 rounded-full text-[9px] font-black tracking-[0.2em] uppercase border ${
+                            o.status === 'pending' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
+                            o.status === 'processing' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                            'bg-green-500/10 text-green-400 border-green-500/20'
+                          }`}>
+                            {o.status}
+                          </div>
+
+                          {/* Control Buttons */}
+                          <div className="flex bg-white/5 border border-white/5 rounded-xl p-1">
+                            {(['pending', 'processing', 'delivered'] as const).map((status) => (
+                              <button
+                                key={status}
+                                onClick={() => updateOrderStatus(o, status)}
+                                disabled={statusSavingId === o.id || o.status === status}
+                                className={`px-4 py-2 rounded-lg text-[9px] font-bold tracking-widest uppercase transition-all ${
+                                  o.status === status
+                                    ? 'bg-[#D4AF37] text-[#0B101E] shadow-md'
+                                    : 'text-white/40 hover:text-white hover:bg-white/5'
+                                } disabled:opacity-50`}
+                              >
+                                {statusSavingId === o.id && o.status !== status ? '...' : status}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                      </div>
+                    ))}
+                  </div>
                 </div>
               ))
             )}
-          </div>
+          </motion.div>
         )}
       </div>
     </div>
