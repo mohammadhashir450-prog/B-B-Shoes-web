@@ -85,6 +85,8 @@ export default function AdminPanel() {
   const [salesEndsAtInput, setSalesEndsAtInput] = useState('');
   const [timerSaving, setTimerSaving] = useState(false);
   const [timerMessage, setTimerMessage] = useState('');
+  const [imageUploadError, setImageUploadError] = useState('');
+  const [imageUploadStatus, setImageUploadStatus] = useState('');
   
   const [newProduct, setNewProduct] = useState<Product>({
     id: '',
@@ -334,11 +336,14 @@ export default function AdminPanel() {
   const handleAction = async (method: string, url: string, body: any) => {
     try {
       setLoading(true);
+      console.log(`📤 ${method} ${url}:`, { image: body.image ? '✅ Present' : '❌ Missing' });
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
       });
+      const responseData = await res.json();
+      console.log(`📥 Response:`, { ok: res.ok, image: responseData?.data?.image ? '✅ Saved' : '❌ Not saved' });
       if (res.ok) {
         alert('✓ Action completed successfully!');
         await refetchProducts();
@@ -350,14 +355,16 @@ export default function AdminPanel() {
         setEditingNewArrival(null);
         setSelectedSizes(['7', '8', '9', '10', '11']);
         setSelectedColors(['Black']);
+        setImageUploadError('');
+        setImageUploadStatus('');
       } else {
-        alert('✗ Failed to save changes');
+        alert('✗ Failed to save changes: ' + (responseData?.message || 'Unknown error'));
       }
     } catch (err) { 
-      console.error(err);
-      alert('✗ Error occurred');
-    } finally { 
-      setLoading(false); 
+      console.error('❌ Error:', err);
+      alert('✗ Error occurred: ' + (err instanceof Error ? err.message : 'Unknown'));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -489,11 +496,30 @@ export default function AdminPanel() {
                           folder: 'bb_shoes'
                         }}
                         onSuccess={(result: any) => {
-                          const url = result.info.secure_url;
-                          if (editingProduct) setEditingProduct({...editingProduct, image: url});
-                          else if (editingSaleProduct) setEditingSaleProduct({...editingSaleProduct, image: url});
-                          else if (editingNewArrival) setEditingNewArrival({...editingNewArrival, image: url});
-                          else setNewProduct({...newProduct, image: url});
+                          try {
+                            const url = result?.info?.secure_url;
+                            if (!url) {
+                              console.error('🔴 No URL from Cloudinary:', result);
+                              setImageUploadError('Image upload failed: No URL returned');
+                              return;
+                            }
+                            console.log('✅ Image uploaded:', url.substring(0, 50) + '...');
+                            setImageUploadError('');
+                            setImageUploadStatus('✓ Image uploaded');
+                            setTimeout(() => setImageUploadStatus(''), 3000);
+                            
+                            if (editingProduct) setEditingProduct({...editingProduct, image: url});
+                            else if (editingSaleProduct) setEditingSaleProduct({...editingSaleProduct, image: url});
+                            else if (editingNewArrival) setEditingNewArrival({...editingNewArrival, image: url});
+                            else setNewProduct({...newProduct, image: url});
+                          } catch (err) {
+                            console.error('🔴 Upload result error:', err);
+                            setImageUploadError('Failed to process upload');
+                          }
+                        }}
+                        onError={(error: any) => {
+                          console.error('🔴 Upload error:', error);
+                          setImageUploadError('Upload failed: ' + (error?.message || 'Unknown error'));
                         }}
                       >
                         {({ open }) => (
@@ -508,6 +534,16 @@ export default function AdminPanel() {
                         )}
                       </CldUploadWidget>
                       <p className="text-[10px] tracking-wide text-white/30 uppercase mt-4">Req: 800x800px, PNG/WEBP/JPG (Transparent BG preferred)</p>
+                      {imageUploadError && (
+                        <div className="mt-3 p-2 bg-red-500/10 border border-red-500/30 rounded text-xs text-red-400">
+                          🔴 {imageUploadError}
+                        </div>
+                      )}
+                      {imageUploadStatus && (
+                        <div className="mt-3 p-2 bg-green-500/10 border border-green-500/30 rounded text-xs text-green-400">
+                          {imageUploadStatus}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -729,8 +765,17 @@ export default function AdminPanel() {
                   <button 
                     type="button"
                     onClick={() => {
-                      if (!currentProduct.name || !currentProduct.price || !currentProduct.image) {
-                        alert('Please fill all required fields: Name, Price, and Image');
+                      if (!currentProduct.name) {
+                        alert('❌ Product name is required');
+                        return;
+                      }
+                      if (!currentProduct.price || currentProduct.price <= 0) {
+                        alert('❌ Price must be greater than 0');
+                        return;
+                      }
+                      if (!currentProduct.image || typeof currentProduct.image !== 'string' || currentProduct.image.trim() === '') {
+                        alert('❌ Image is required - please upload via Cloudinary first');
+                        console.error('Invalid image:', currentProduct.image, typeof currentProduct.image);
                         return;
                       }
                       const body = {

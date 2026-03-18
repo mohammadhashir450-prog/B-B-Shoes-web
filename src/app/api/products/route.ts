@@ -90,41 +90,53 @@ export const GET = asyncHandler(async (req: NextRequest) => {
  * Create a new product
  */
 export const POST = asyncHandler(async (req: NextRequest) => {
-  // UPDATE: Naya connection function call kiya
   await dbConnect();
 
   const body = await req.json();
+  
+  // 🔴 LOG IMAGE VALIDATION
+  if (!body.image) {
+    console.error('🔴 POST /api/products: No image provided');
+  } else {
+    const isValidUrl = typeof body.image === 'string' && body.image.includes('http');
+    console.log(`📥 POST /api/products - Image: ${isValidUrl ? '✅ Valid URL' : '❌ Invalid'}`, {
+      imageLength: body.image?.length,
+      isCloudinary: body.image?.includes('cloudinary')
+    });
+  }
 
-  // 🔴 FIX: Frontend se aane wali khali ID ko hata dein taake MongoDB apni ID khud banaye
+  // Remove empty ID
   if (body.id === '') {
     delete body.id;
   }
   
-  // FIX: Default values lazmi pass karein taake validation fail na ho
+  // Set defaults
   if (body.stock === undefined) body.stock = 100;
   if (body.sold === undefined) body.sold = 0;
   if (body.inStock === undefined) body.inStock = true;
   if (body.rating === undefined) body.rating = 0;
   if (body.reviews === undefined) body.reviews = 0;
 
-  // Validate product data
+  // Validate
   const validation = validateProduct(body);
   if (!validation.isValid) {
-    // 🔴 FIX: Ab agar form mein koi masla hoga toh VS Code ke terminal mein error red color mein nazar aayega
-    console.error("❌ Validation Failed! Form mein yeh galti hai:", validation.errors);
+    console.error("❌ Validation failed:", validation.errors);
     return validationErrorResponse(validation.errors);
   }
 
   // Create product
   const product = await Product.create(body);
+  
+  console.log('✅ Product created:', {
+    id: product._id.toString(),
+    name: product.name,
+    haImage: !!product.image
+  });
 
-  // Format response
   const formattedProduct = {
     id: product._id.toString(),
     ...product.toObject(),
   };
-
-  console.log('✅ Product created:', product.name);
 
   return createdResponse(formattedProduct, 'Product created successfully');
 });

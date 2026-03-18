@@ -76,42 +76,48 @@ export function ProductProvider({ children }: { children: ReactNode }) {
       throw new Error(`Failed to fetch products: ${response.status}`);
     }
     
-    // 1. Parse the JSON
+    // Parse the JSON
     const responseData = await response.json();
     
-    // 2. Extract products from responseData.data.products
-    // Using optional chaining (?.) is a good practice here just in case 'data' is missing
+    // Extract products
     const products = responseData.data?.products || []; 
+    
+    // Verify images
+    const withImages = products.filter((p: Product) => p.image && p.image.trim() !== '');
+    const withoutImages = products.filter((p: Product) => !p.image || p.image.trim() === '');
+    
+    console.log('✅ Products fetched:', {
+      total: products.length,
+      withImages: withImages.length,
+      withoutImages: withoutImages.length
+    });
+    
+    if (withoutImages.length > 0) {
+      console.warn('⚠️ Missing images:', withoutImages.map((p: Product) => p.name));
+    }
     
     // Set all products
     setAllProducts(products);
     
-    // Filter and set Men products
+    // Filter Men products
     const men = products.filter((p: Product) => 
       p.category?.toLowerCase() === 'men' || 
       p.category?.toLowerCase() === "men's"
     );
     setMenProducts(men);
     
-    // Filter and set Women products
+    // Filter Women products
     const women = products.filter((p: Product) => 
       p.category?.toLowerCase() === 'women' || 
       p.category?.toLowerCase() === "women's"
     );
     setWomenProducts(women);
     
-    console.log('✅ Products loaded in context:', {
-      total: products.length,
-      men: men.length,
-      women: women.length
-    });
-    
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : 'Failed to load products';
     setError(errorMessage);
     console.error('❌ Error loading products:', err);
     
-    // Set empty arrays on error to prevent crashes
     setAllProducts([]);
     setMenProducts([]);
     setWomenProducts([]);
