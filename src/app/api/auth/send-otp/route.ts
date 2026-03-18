@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { email, purpose = 'login' } = body;
 
-    // Validate email
+    // 1. Basic Validation
     if (!email || !email.includes('@')) {
       return NextResponse.json(
         { success: false, message: 'Valid email is required' },
@@ -20,95 +20,68 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const cleanEmail = email.toLowerCase();
     let existingUser: any = null;
-    let emailSent: boolean;
-    const otp = generateOTP();
 
+    // 2. Fetch User (Try MongoDB first, fallback to Persistent Storage)
     try {
-      // Try MongoDB first
       await dbConnect();
-      
-      existingUser = await User.findOne({ email: email.toLowerCase() });
-
-      if (purpose === 'login' && !existingUser) {
-        return NextResponse.json(
-          { success: false, message: 'User not found. Please sign up first.' },
-          { status: 404 }
-        );
-      }
-
-      if (purpose === 'register' && existingUser) {
-        return NextResponse.json(
-          { success: false, message: 'Email already registered. Please login.' },
-          { status: 400 }
-        );
-      }
-
-      if (purpose === 'password-reset' && !existingUser) {
-        return NextResponse.json(
-          { success: false, message: 'No account found with this email address.' },
-          { status: 404 }
-        );
-      }
-
-      // Delete any previous OTPs for this email/purpose
-      await OTP.deleteMany({
-        email: email.toLowerCase(),
-        purpose,
-        verified: false,
-      });
-
-      // Save OTP to database
-      const otpDoc = new OTP({
-        email: email.toLowerCase(),
-        otp,
-        purpose,
-        expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes
-      });
-
-      await otpDoc.save();
-      console.log('✅ OTP saved to MongoDB');
-
-    } catch (dbError: any) {
-      // MongoDB connection failed, use persistent storage
+      existingUser = await User.findOne({ email: cleanEmail });
+    } catch (dbError) {
       console.log('⚠️ MongoDB unavailable, using persistent storage');
       usingPersistentStorage = true;
+      existingUser = persistentStorage.getUser(cleanEmail);
+    }
 
-      // Check user in persistent storage
-      const persistentUser = persistentStorage.getUser(email);
+    // 3. Validations Based on Purpose (Fail early)
+    if (purpose === 'login' && !existingUser) {
+      return NextResponse.json(
+        { success: false, message: 'User not found. Please sign up first.' },
+        { status: 404 }
+      );
+    }
 
-      if (purpose === 'login' && !persistentUser) {
-        return NextResponse.json(
-          { success: false, message: 'User not found. Please sign up first.' },
-          { status: 404 }
-        );
+    if (purpose === 'register' && existingUser) {
+      return NextResponse.json(
+        { success: false, message: 'Email already registered. Please login.' },
+        { status: 400 }
+      );
+    }
+
+    if (purpose === 'password-reset' && !existingUser) {
+      return NextResponse.json(
+        { success: false, message: 'No account found with this email address.' },
+        { status: 404 }
+      );
+    }
+
+    // 4. Generate OTP (Ab generate hoga jab sab checks pass ho jayenge)
+    const otp = generateOTP();
+
+    // 5. Save OTP to DB or Fallback Storage
+    if (!usingPersistentStorage) {
+      try {
+        // Delete old unverified OTPs
+        await OTP.deleteMany({ email: cleanEmail, purpose, verified: false });
+
+        // Save new OTP
+        await OTP.create({
+          email: cleanEmail,
+          otp,
+          purpose,
+          expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes
+        });
+        console.log('✅ OTP saved to MongoDB');
+      } catch (saveError) {
+        console.log('⚠️ Failed to save OTP to MongoDB, switching to fallback');
+        usingPersistentStorage = true; // Agar save fail ho toh fallback active karo
       }
+    }
 
-      if (purpose === 'register' && persistentUser) {
-        return NextResponse.json(
-          { success: false, message: 'Email already registered. Please login.' },
-          { status: 400 }
-        );
-      }
-
-      if (purpose === 'password-reset' && !persistentUser) {
-        return NextResponse.json(
-          { success: false, message: 'No account found with this email address.' },
-          { status: 404 }
-        );
-      }
-
-      // Set existingUser for email template
-      if (persistentUser) {
-        existingUser = { name: persistentUser.name };
-      }
-
-      // Delete any previous OTPs
-      persistentStorage.deleteOTP(email, purpose);
-
-      // Save OTP to persistent storage
+    if (usingPersistentStorage) {
+      persistentStorage.deleteOTP(cleanEmail, purpose);
       persistentStorage.addOTP({
-        email: email.toLowerCase(),
+        email: cleanEmail,
         otp,
         purpose: purpose as any,
         expiresAt: new Date(Date.now() + 10 * 60 * 1000),
@@ -119,19 +92,14 @@ export async function POST(req: NextRequest) {
       console.log('✅ OTP saved to persistent storage');
     }
 
-    // Send OTP via email
+    // 6. Send OTP via email
+    let emailSent = false;
+    const userName = existingUser?.name || undefined;
+
     if (purpose === 'password-reset') {
-      emailSent = await sendPasswordResetOTP(
-        email,
-        otp,
-        existingUser?.name || undefined
-      );
+      emailSent = await sendPasswordResetOTP(cleanEmail, otp, userName);
     } else {
-      emailSent = await sendOTPEmail(
-        email,
-        otp,
-        existingUser?.name || undefined
-      );
+      emailSent = await sendOTPEmail(cleanEmail, otp, userName);
     }
 
     if (!emailSent) {
@@ -141,12 +109,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // 7. Success Response
     return NextResponse.json({
       success: true,
-      message: `OTP sent successfully to ${email}`,
+      message: `OTP sent successfully to ${cleanEmail}`,
       data: {
-        email,
-        expiresIn: 600, // seconds
+        email: cleanEmail,
+        expiresIn: 600, // 10 minutes in seconds
         usingFallback: usingPersistentStorage,
       },
     });
