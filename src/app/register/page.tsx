@@ -5,10 +5,11 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lock, Mail, User, Eye, EyeOff, MoreVertical, ArrowRight } from 'lucide-react';
-import { signIn } from 'next-auth/react';
+import { signIn, useSession } from 'next-auth/react';
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { status } = useSession();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -34,6 +35,13 @@ export default function RegisterPage() {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (status === 'authenticated') {
+      router.replace('/');
+      router.refresh();
+    }
+  }, [status, router]);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();

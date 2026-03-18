@@ -13,6 +13,14 @@ async function generateUniqueUserId(): Promise<string> {
   return nextId;
 }
 
+function fallbackUserId(email?: string | null): string {
+  const seed = String(email || "guest")
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "")
+    .slice(0, 20) || "guest";
+  return `USR-G-${seed}`;
+}
+
 export const authOptions: NextAuthOptions = {
   // ❌ Don't use MongoDBAdapter - it fails when MongoDB is down
   // We handle user creation manually in callbacks instead
@@ -130,7 +138,9 @@ export const authOptions: NextAuthOptions = {
         }
       } catch (dbError: any) {
         console.log("❌ MongoDB unavailable during Google sign-in:", dbError.message || dbError);
-        return false;
+        // Do not block OAuth success when DB write fails in production.
+        // JWT/session callbacks already have safe fallbacks for id/user_id.
+        return true;
       }
       
       // Continue sign-in immediately (don't wait for database)
@@ -139,26 +149,27 @@ export const authOptions: NextAuthOptions = {
     async redirect({ url, baseUrl }) {
       // Handle Google OAuth callback redirect
       console.log('🔄 Redirect callback:', { url, baseUrl });
-      
-      // After successful Google sign-in, always go to home page
-      if (url.includes('/api/auth/callback/google')) {
-        console.log('✅ Redirecting to home page after Google sign-in');
-        return `${baseUrl}/`;
+
+      // Always allow app-internal relative redirects. This avoids host mismatch issues
+      // when NEXTAUTH_URL is incorrect in production environments.
+      if (url.startsWith('/')) {
+        return url;
       }
-      
-      // Handle other auth callbacks
-      if (url.includes('/api/auth/callback')) {
-        return `${baseUrl}/`;
+
+      try {
+        const target = new URL(url);
+        const appBase = new URL(baseUrl);
+
+        // Keep same-origin absolute URLs.
+        if (target.origin === appBase.origin) {
+          return url;
+        }
+      } catch {
+        // Ignore malformed URL values and fall back to home.
       }
-      
-      // Handle relative URLs
-      if (url.startsWith("/")) return `${baseUrl}${url}`;
-      
-      // Handle same-origin URLs
-      if (new URL(url).origin === baseUrl) return url;
-      
-      // Default to home page
-      return `${baseUrl}/`;
+
+      // After OAuth (or any unknown external redirect), land users on home.
+      return '/';
     },
     async jwt({ token, user, account }) {
       if (user && user.email) {
@@ -177,11 +188,11 @@ export const authOptions: NextAuthOptions = {
             token.role = (dbUser.role as "user" | "admin") || "user";
           } else {
             token.id = (user.id as string) || String(user.email);
-            token.user_id = (user.user_id as string) || (token.user_id as string) || '';
+            token.user_id = (user.user_id as string) || (token.user_id as string) || fallbackUserId(user.email);
           }
         } catch {
           token.id = (user.id as string) || String(user.email);
-          token.user_id = (user.user_id as string) || (token.user_id as string) || '';
+          token.user_id = (user.user_id as string) || (token.user_id as string) || fallbackUserId(user.email);
         }
 
         console.log("🎫 JWT token created for:", user.email, "id:", token.id, "user_id:", token.user_id);
@@ -212,7 +223,7 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         session.user.role = token.role as "user" | "admin";
         session.user.id = token.id as string;
-        session.user.user_id = (token.user_id as string) || '';
+        session.user.user_id = (token.user_id as string) || fallbackUserId(session.user.email);
         console.log("✅ Session created for:", session.user.email, "Role:", session.user.role);
       }
       return session;
