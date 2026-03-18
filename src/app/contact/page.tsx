@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
-import { ChevronRight, Mail, Phone, MapPin, Send } from 'lucide-react'
+import { ChevronRight, Mail, Phone, MapPin, Send, CreditCard } from 'lucide-react'
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -118,8 +118,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="text-white font-bold mb-2">Email Us</h3>
-                    <p className="text-gray-400 text-sm">info@bbluxury.com</p>
-                    <p className="text-gray-400 text-sm">support@bbluxury.com</p>
+                    <p className="text-gray-400 text-sm">b&bshoessupport@gmail.com</p>
                   </div>
                 </div>
               </div>
@@ -131,7 +130,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="text-white font-bold mb-2">Call Us</h3>
-                    <p className="text-gray-400 text-sm">+1 (555) 123-4567</p>
+                    <p className="text-gray-400 text-sm">03361673742</p>
                     <p className="text-gray-400 text-sm">Mon-Fri, 9AM-6PM EST</p>
                   </div>
                 </div>
@@ -144,8 +143,21 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="text-white font-bold mb-2">Visit Us</h3>
-                    <p className="text-gray-400 text-sm">Milano • London</p>
-                    <p className="text-gray-400 text-sm">New York • Tokyo</p>
+                    <p className="text-gray-400 text-sm">Khanewal Rd, opposite to Chase up 2,</p>
+                    <p className="text-gray-400 text-sm">Rasheed Abad Khushal Colony, Multan, 60000.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div id="for-transactions" className="bg-[#1A2435] rounded-lg p-6 border border-white/5 scroll-mt-28">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-[#D4AF37] rounded-full flex items-center justify-center flex-shrink-0">
+                    <CreditCard size={20} className="text-[#0B101E]" />
+                  </div>
+                  <div>
+                    <h3 className="text-white font-bold mb-2">For Transactions</h3>
+                    <p className="text-gray-400 text-sm">JazzCash Account No# 03068846624</p>
+                    <p className="text-gray-400 text-sm">Meezan Bank Account No# 05100110600803</p>
                   </div>
                 </div>
               </div>

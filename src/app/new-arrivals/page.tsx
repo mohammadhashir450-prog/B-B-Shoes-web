@@ -12,7 +12,7 @@ const sizes = [7, 8, 9, 10, 11, 12, 13]
 
 export default function NewArrivals() {
   const { getNewArrivals, loading } = useProducts()
-  const [selectedSize, setSelectedSize] = useState<number | null>(9)
+  const [selectedSize, setSelectedSize] = useState<number | null>(null)
   const [priceRangeOpen, setPriceRangeOpen] = useState(false)
   const [materialOpen, setMaterialOpen] = useState(false)
   const [activeCategory, setActiveCategory] = useState('new-arrivals')
@@ -20,6 +20,28 @@ export default function NewArrivals() {
   const products = useMemo(() => {
     return getNewArrivals()
   }, [getNewArrivals])
+
+  const filteredProducts = useMemo(() => {
+    const normalize = (value: string | undefined) => (value || '').toLowerCase().trim()
+
+    return products.filter((product) => {
+      const category = normalize(product.category)
+      const subcategory = normalize(product.subcategory)
+
+      let categoryMatch = true
+      if (activeCategory !== 'new-arrivals') {
+        categoryMatch = category === activeCategory || subcategory === activeCategory
+      }
+
+      let sizeMatch = true
+      if (selectedSize !== null) {
+        const sizeList = (product.sizes || []).map((size) => Number(size))
+        sizeMatch = sizeList.includes(selectedSize)
+      }
+
+      return categoryMatch && sizeMatch
+    })
+  }, [products, activeCategory, selectedSize])
 
   return (
     <>
@@ -112,6 +134,16 @@ export default function NewArrivals() {
                   <ChevronDown size={16} className="text-[#D4AF37]" />
                 </div>
                 <div className="grid grid-cols-4 gap-2">
+                  <button
+                    onClick={() => setSelectedSize(null)}
+                    className={`py-2 rounded text-sm font-semibold transition-all col-span-2 ${
+                      selectedSize === null
+                        ? 'bg-[#D4AF37] text-[#0B101E]'
+                        : 'bg-[#1A2435] text-white hover:bg-[#243048]'
+                    }`}
+                  >
+                    All
+                  </button>
                   {sizes.map((size) => (
                     <button
                       key={size}
@@ -194,24 +226,27 @@ export default function NewArrivals() {
                 <div className="flex items-center justify-center py-20">
                   <Loader2 className="w-12 h-12 text-[#D4AF37] animate-spin" />
                 </div>
-              ) : products.length === 0 ? (
+              ) : filteredProducts.length === 0 ? (
                 <div className="text-center py-20">
                   <div className="w-20 h-20 bg-[#D4AF37]/10 rounded-full flex items-center justify-center mx-auto mb-6">
                     <Star className="w-10 h-10 text-[#D4AF37]" />
                   </div>
-                  <h2 className="text-2xl font-bold text-white mb-4">No New Arrivals Yet</h2>
-                  <p className="text-gray-400 mb-8">Check back soon for exciting new products!</p>
-                  <Link
-                    href="/"
+                  <h2 className="text-2xl font-bold text-white mb-4">No Matching Products</h2>
+                  <p className="text-gray-400 mb-8">Try another category or reset size filter.</p>
+                  <button
+                    onClick={() => {
+                      setActiveCategory('new-arrivals')
+                      setSelectedSize(null)
+                    }}
                     className="inline-block bg-[#D4AF37] hover:bg-[#F4CE5C] text-[#0B101E] font-bold py-3 px-8 rounded-full transition-all"
                   >
-                    Back to Home
-                  </Link>
+                    Reset Filters
+                  </button>
                 </div>
               ) : (
                 <>
                   <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6 mb-12">
-                    {products.map((product) => (
+                    {filteredProducts.map((product) => (
                       <Link 
                         href={`/product/${product.id}`}
                         key={product.id} 

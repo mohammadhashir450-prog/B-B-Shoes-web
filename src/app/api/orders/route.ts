@@ -33,6 +33,7 @@ const formatOrderForClient = (order: any) => ({
   status: order.status,
   paymentMethod: order.paymentMethod,
   paymentStatus: order.paymentStatus,
+  paymentDetails: order.paymentDetails || null,
   date: order.createdAt,
 });
 
@@ -105,6 +106,7 @@ export const POST = asyncHandler(async (req: NextRequest) => {
   const body = await req.json();
 
   const email = String(body.customerEmail || '').toLowerCase().trim();
+  const customerPhone = String(body.customerPhone || body.phone || '').trim();
   const customerName = String(body.customerName || 'User').trim();
   let resolvedUserId = String(body.user_id || '').trim();
 
@@ -150,11 +152,38 @@ export const POST = asyncHandler(async (req: NextRequest) => {
   const shippingFee = Number(body.shippingFee) || 0;
   const total = Number(body.total) || Number(body.totalPrice) || subtotal + shippingFee;
 
+  const requestPaymentDetails = body.paymentDetails || {};
+  const normalizedPaymentDetails = {
+    cod: requestPaymentDetails.cod
+      ? {
+          name: String(requestPaymentDetails.cod.name || '').trim(),
+          phone: String(requestPaymentDetails.cod.phone || '').trim(),
+          address: String(requestPaymentDetails.cod.address || '').trim(),
+          city: String(requestPaymentDetails.cod.city || '').trim(),
+        }
+      : undefined,
+    jazzcash: requestPaymentDetails.jazzcash
+      ? {
+          senderNumber: String(requestPaymentDetails.jazzcash.senderNumber || '').trim(),
+          transactionId: String(requestPaymentDetails.jazzcash.transactionId || '').trim(),
+          receiverNumber: String(requestPaymentDetails.jazzcash.receiverNumber || '').trim(),
+          receiverName: String(requestPaymentDetails.jazzcash.receiverName || '').trim(),
+        }
+      : undefined,
+    bank: requestPaymentDetails.bank
+      ? {
+          bankName: String(requestPaymentDetails.bank.bankName || '').trim(),
+          senderAccountNumber: String(requestPaymentDetails.bank.senderAccountNumber || '').trim(),
+          transactionId: String(requestPaymentDetails.bank.transactionId || '').trim(),
+        }
+      : undefined,
+  };
+
   const normalizedOrder = {
     user_id: resolvedUserId,
     customerName: body.customerName,
     customerEmail: email || body.customerEmail,
-    customerPhone: body.customerPhone,
+    customerPhone,
     customerAddress: body.customerAddress,
     items: normalizedItems,
     subtotal,
@@ -163,6 +192,7 @@ export const POST = asyncHandler(async (req: NextRequest) => {
     status: body.status || 'pending',
     paymentMethod: body.paymentMethod || 'cod',
     paymentStatus: body.paymentStatus || 'pending',
+    paymentDetails: normalizedPaymentDetails,
     notes: body.notes,
   };
 

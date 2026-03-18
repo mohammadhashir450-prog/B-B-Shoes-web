@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Package, ShoppingCart, Users, Plus, Edit2, Trash2, X, Save, Camera, Upload, Tag, Lock, Eye, EyeOff, TrendingUp, Sparkles, Crown, Check, ArrowRight, ChevronRight } from 'lucide-react';
+import { Package, ShoppingCart, Users, Plus, Edit2, Trash2, X, Save, Camera, Upload, Tag, Lock, Eye, EyeOff, TrendingUp, Sparkles, Crown, Check, ArrowRight, ChevronRight, Clock3 } from 'lucide-react';
 import { CldUploadWidget } from 'next-cloudinary';
 import { useProducts, Product } from '@/context/ProductContext';
 
@@ -19,6 +19,27 @@ interface Order {
   items: any[];
   total: number;
   status: string;
+  paymentMethod?: string;
+  paymentStatus?: string;
+  paymentDetails?: {
+    cod?: {
+      name?: string;
+      phone?: string;
+      address?: string;
+      city?: string;
+    };
+    jazzcash?: {
+      senderNumber?: string;
+      transactionId?: string;
+      receiverNumber?: string;
+      receiverName?: string;
+    };
+    bank?: {
+      bankName?: string;
+      senderAccountNumber?: string;
+      transactionId?: string;
+    };
+  };
   date: string;
 }
 
@@ -61,6 +82,9 @@ export default function AdminPanel() {
   const [newSize, setNewSize] = useState('');
   const [newColor, setNewColor] = useState('');
   const [loading, setLoading] = useState(false);
+  const [salesEndsAtInput, setSalesEndsAtInput] = useState('');
+  const [timerSaving, setTimerSaving] = useState(false);
+  const [timerMessage, setTimerMessage] = useState('');
   
   const [newProduct, setNewProduct] = useState<Product>({
     id: '',
@@ -107,8 +131,54 @@ export default function AdminPanel() {
       };
 
       fetchOrders();
+
+      const fetchSalesTimer = async () => {
+        try {
+          const response = await fetch('/api/settings/sales-timer', { cache: 'no-store' });
+          if (!response.ok) return;
+
+          const result = await response.json();
+          const endsAt = result?.data?.salesEndsAt;
+          if (endsAt) {
+            const date = new Date(endsAt);
+            if (!Number.isNaN(date.getTime())) {
+              const timezoneOffset = date.getTimezoneOffset() * 60000;
+              const localDate = new Date(date.getTime() - timezoneOffset).toISOString().slice(0, 16);
+              setSalesEndsAtInput(localDate);
+            }
+          }
+        } catch (error) {
+          console.error(error);
+        }
+      };
+
+      fetchSalesTimer();
     }
   }, [isAuthenticated]);
+
+  const saveSalesTimer = async () => {
+    setTimerMessage('');
+    setTimerSaving(true);
+
+    try {
+      const response = await fetch('/api/settings/sales-timer', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ salesEndsAt: salesEndsAtInput || null }),
+      });
+
+      const result = await response.json();
+      if (!response.ok || !result?.success) {
+        throw new Error(result?.message || 'Failed to update sales timer');
+      }
+
+      setTimerMessage('Sales timer updated successfully.');
+    } catch (error) {
+      setTimerMessage(error instanceof Error ? error.message : 'Failed to update sales timer');
+    } finally {
+      setTimerSaving(false);
+    }
+  };
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -792,6 +862,45 @@ export default function AdminPanel() {
         {/* --- SALES TAB --- */}
         {activeTab === 'sales' && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
+            <div className="bg-[#121A2F]/60 backdrop-blur-md rounded-3xl border border-white/10 p-6 mb-8">
+              <div className="flex items-start justify-between gap-6 flex-col md:flex-row">
+                <div>
+                  <h3 className="text-white font-bold text-lg flex items-center gap-2">
+                    <Clock3 size={18} className="text-[#D4AF37]" />
+                    Sales Countdown Timer
+                  </h3>
+                  <p className="text-white/50 text-sm mt-1">Set when the Sales & Discounts event should end.</p>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
+                  <input
+                    type="datetime-local"
+                    value={salesEndsAtInput}
+                    onChange={(e) => setSalesEndsAtInput(e.target.value)}
+                    className="bg-[#0B101E] border border-white/10 rounded-xl px-4 py-3 text-sm text-white"
+                  />
+                  <button
+                    type="button"
+                    onClick={saveSalesTimer}
+                    disabled={timerSaving}
+                    className="bg-[#D4AF37] text-[#0B101E] font-bold py-3 px-5 rounded-xl text-[10px] tracking-[0.15em] uppercase disabled:opacity-60"
+                  >
+                    {timerSaving ? 'Saving...' : 'Save Timer'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSalesEndsAtInput('')}
+                    className="bg-white/10 border border-white/10 text-white font-bold py-3 px-5 rounded-xl text-[10px] tracking-[0.15em] uppercase"
+                  >
+                    Clear
+                  </button>
+                </div>
+              </div>
+              {timerMessage ? (
+                <p className="text-xs mt-4 text-[#D4AF37] tracking-wider uppercase">{timerMessage}</p>
+              ) : null}
+            </div>
+
             <button 
               onClick={() => {
                 setShowAddSaleForm(true);
@@ -994,6 +1103,26 @@ export default function AdminPanel() {
                           </div>
                           <h4 className="font-serif text-lg text-white mb-1">{o.customerName}</h4>
                           <p className="text-xs text-white/50 mb-3">{o.customerEmail}</p>
+                          <p className="text-xs text-white/50 mb-3">{o.customerPhone || 'Phone not provided'}</p>
+                          <div className="space-y-1 mb-3">
+                            <p className="text-[11px] text-[#D4AF37]/80 uppercase tracking-[0.18em]">Payment Method: {o.paymentMethod || 'cod'}</p>
+                            {o.paymentMethod === 'cod' ? (
+                              <p className="text-xs text-white/50">COD - Pay on delivery</p>
+                            ) : null}
+                            {o.paymentMethod === 'jazzcash' ? (
+                              <>
+                                <p className="text-xs text-white/50">Sender JazzCash: {o.paymentDetails?.jazzcash?.senderNumber || 'N/A'}</p>
+                                <p className="text-xs text-white/50">Transaction ID: {o.paymentDetails?.jazzcash?.transactionId || 'N/A'}</p>
+                              </>
+                            ) : null}
+                            {o.paymentMethod === 'bank' ? (
+                              <>
+                                <p className="text-xs text-white/50">Bank: {o.paymentDetails?.bank?.bankName || 'N/A'}</p>
+                                <p className="text-xs text-white/50">Sender Account: {o.paymentDetails?.bank?.senderAccountNumber || 'N/A'}</p>
+                                <p className="text-xs text-white/50">Transaction ID: {o.paymentDetails?.bank?.transactionId || 'N/A'}</p>
+                              </>
+                            ) : null}
+                          </div>
                           <div className="flex items-center gap-2 text-sm">
                             <span className="text-white/40">{o.items.length} Assets</span>
                             <span className="w-1 h-1 rounded-full bg-white/20" />

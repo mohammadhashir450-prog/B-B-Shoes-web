@@ -1,9 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
-import { ArrowUpRight, PlayCircle, Award } from 'lucide-react'
+import { ArrowUpRight, Award } from 'lucide-react'
 
 export default function HeroSection() {
   const [mounted, setMounted] = useState(false)
@@ -19,7 +20,7 @@ export default function HeroSection() {
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:100px_100px] pointer-events-none" />
 
       {/* 1. Highly Visible Background Typography */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none z-0 mt-[-5vh]">
+      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none z-0 mt-[-14vh] md:mt-[-16vh]">
         <motion.h1 
           initial={false}
           animate={mounted ? { opacity: 1, y: 0 } : { opacity: 1, y: 0 }}
@@ -45,7 +46,7 @@ export default function HeroSection() {
           initial={false}
           animate={mounted ? { opacity: 1, scale: 1 } : { opacity: 1, scale: 1 }}
           transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: 0.3 }}
-          className="relative w-full max-w-[700px] aspect-square md:aspect-video mt-[-10vh]"
+          className="relative w-full max-w-[700px] aspect-square md:aspect-video mt-[-14vh] md:mt-[-16vh]"
         >
           {/* Intense gold radial glow to highlight the shoe */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[50vw] h-[50vw] max-w-[600px] max-h-[600px] bg-gradient-to-tr from-[#D4AF37]/20 to-[#D4AF37]/5 blur-[100px] rounded-full" />
@@ -72,9 +73,9 @@ export default function HeroSection() {
         initial={false}
         animate={mounted ? { opacity: 1, y: 0 } : { opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.8 }}
-        className="relative z-20 w-full max-w-[1400px] mx-auto px-6 md:px-10 pb-8 md:pb-12"
+        className="relative z-20 w-full max-w-[1400px] mx-auto px-6 md:px-10 pb-0 md:pb-2 translate-y-8 md:translate-y-12"
       >
-        <div className="bg-[#121A2F]/60 border border-white/10 backdrop-blur-2xl rounded-3xl p-6 md:p-8 grid grid-cols-1 md:grid-cols-3 gap-8 items-center shadow-[0_0_40px_-10px_rgba(0,0,0,0.5)]">
+        <div className="bg-[#121A2F]/60 border border-white/10 backdrop-blur-2xl rounded-3xl p-6 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-8 items-center shadow-[0_0_40px_-10px_rgba(0,0,0,0.5)]">
           
           {/* Left: Context */}
           <div className="space-y-3">
@@ -90,23 +91,11 @@ export default function HeroSection() {
           </div>
 
           {/* Center: Primary Actions */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <button className="w-full sm:w-auto group flex items-center justify-center gap-2 px-8 py-4 bg-[#D4AF37] text-[#0B101E] text-xs font-bold tracking-[0.15em] uppercase rounded-full hover:bg-white hover:scale-105 transition-all duration-300">
+          <div className="flex items-center justify-center">
+            <Link href="/collections#all-products-grid" className="w-full sm:w-auto group flex items-center justify-center gap-2 px-8 py-4 bg-[#D4AF37] text-[#0B101E] text-xs font-bold tracking-[0.15em] uppercase rounded-full hover:bg-white hover:scale-105 transition-all duration-300">
               Shop Collection
               <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-            </button>
-            <button className="w-full sm:w-auto group flex items-center justify-center gap-2 px-8 py-4 border border-white/20 text-white text-xs font-bold tracking-[0.15em] uppercase rounded-full hover:bg-white hover:text-[#0B101E] transition-all duration-300">
-              <PlayCircle className="w-4 h-4 group-hover:text-[#0B101E] transition-colors" />
-              Watch Film
-            </button>
-          </div>
-
-          {/* Right: Price / Detail */}
-          <div className="flex md:justify-end items-center gap-6">
-            <div className="text-right">
-              <p className="text-white/50 text-xs uppercase tracking-widest mb-1">Starting At</p>
-              <p className="text-white font-serif text-3xl">$895</p>
-            </div>
+            </Link>
           </div>
 
         </div>

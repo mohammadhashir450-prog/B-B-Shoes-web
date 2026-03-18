@@ -23,6 +23,25 @@ export interface IOrder extends Document {
   status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   paymentMethod: 'cod' | 'bank' | 'jazzcash' | 'easypaisa' | 'stripe' | 'paypal';
   paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded';
+  paymentDetails?: {
+    cod?: {
+      name?: string;
+      phone?: string;
+      address?: string;
+      city?: string;
+    };
+    jazzcash?: {
+      senderNumber?: string;
+      transactionId?: string;
+      receiverNumber?: string;
+      receiverName?: string;
+    };
+    bank?: {
+      bankName?: string;
+      senderAccountNumber?: string;
+      transactionId?: string;
+    };
+  };
   trackingNumber?: string;
   notes?: string;
   createdAt: Date;
@@ -127,6 +146,25 @@ const OrderSchema = new Schema<IOrder>(
       enum: ['pending', 'paid', 'failed', 'refunded'],
       default: 'pending',
     },
+    paymentDetails: {
+      cod: {
+        name: { type: String, trim: true },
+        phone: { type: String, trim: true },
+        address: { type: String, trim: true },
+        city: { type: String, trim: true },
+      },
+      jazzcash: {
+        senderNumber: { type: String, trim: true },
+        transactionId: { type: String, trim: true },
+        receiverNumber: { type: String, trim: true },
+        receiverName: { type: String, trim: true },
+      },
+      bank: {
+        bankName: { type: String, trim: true },
+        senderAccountNumber: { type: String, trim: true },
+        transactionId: { type: String, trim: true },
+      },
+    },
     trackingNumber: {
       type: String,
       trim: true,
@@ -150,7 +188,7 @@ OrderSchema.index({ createdAt: -1 });
 
 // In dev hot-reload, an older cached model may not include newly added fields.
 const existingOrderModel = mongoose.models.Order as mongoose.Model<IOrder> | undefined;
-if (existingOrderModel && !existingOrderModel.schema.path('user_id')) {
+if (existingOrderModel && (!existingOrderModel.schema.path('user_id') || !existingOrderModel.schema.path('paymentDetails'))) {
   mongoose.deleteModel('Order');
 }
 

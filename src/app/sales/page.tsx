@@ -8,48 +8,93 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { useProducts } from '@/context/ProductContext';
 
+type TimeLeft = {
+  days: number;
+  hours: number;
+  minutes: number;
+  seconds: number;
+}
+
+const zeroTime: TimeLeft = {
+  days: 0,
+  hours: 0,
+  minutes: 0,
+  seconds: 0,
+};
+
+const calculateTimeLeft = (target: Date): TimeLeft => {
+  const diff = target.getTime() - Date.now();
+
+  if (diff <= 0) {
+    return zeroTime;
+  }
+
+  return {
+    days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+    hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
+    minutes: Math.floor((diff / (1000 * 60)) % 60),
+    seconds: Math.floor((diff / 1000) % 60),
+  };
+};
+
 // Countdown Timer Component
 function CountdownTimer() {
-  const [timeLeft, setTimeLeft] = useState({
-    days: 2,
-    hours: 14,
-    minutes: 55,
-    seconds: 20
-  });
+  const [targetDate, setTargetDate] = useState<Date | null>(null);
+  const [timeLeft, setTimeLeft] = useState<TimeLeft>(zeroTime);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft(prev => {
-        let { days, hours, minutes, seconds } = prev;
-        
-        if (seconds > 0) {
-          seconds--;
-        } else {
-          seconds = 59;
-          if (minutes > 0) {
-            minutes--;
-          } else {
-            minutes = 59;
-            if (hours > 0) {
-              hours--;
-            } else {
-              hours = 23;
-              if (days > 0) {
-                days--;
-              }
-            }
+    const fetchSalesTimer = async () => {
+      try {
+        const response = await fetch('/api/settings/sales-timer', { cache: 'no-store' });
+        if (!response.ok) {
+          throw new Error('Failed to fetch sales timer');
+        }
+
+        const result = await response.json();
+        const salesEndsAt = result?.data?.salesEndsAt;
+
+        if (salesEndsAt) {
+          const parsed = new Date(salesEndsAt);
+          if (!Number.isNaN(parsed.getTime())) {
+            setTargetDate(parsed);
+            setTimeLeft(calculateTimeLeft(parsed));
+            return;
           }
         }
-        
-        return { days, hours, minutes, seconds };
-      });
+
+        // Default fallback timer if admin has not configured one yet.
+        const fallback = new Date(Date.now() + (2 * 24 + 14) * 60 * 60 * 1000 + 55 * 60 * 1000 + 20 * 1000);
+        setTargetDate(fallback);
+        setTimeLeft(calculateTimeLeft(fallback));
+      } catch {
+        const fallback = new Date(Date.now() + (2 * 24 + 14) * 60 * 60 * 1000 + 55 * 60 * 1000 + 20 * 1000);
+        setTargetDate(fallback);
+        setTimeLeft(calculateTimeLeft(fallback));
+      }
+    };
+
+    fetchSalesTimer();
+  }, []);
+
+  useEffect(() => {
+    if (!targetDate) return;
+
+    const timer = setInterval(() => {
+      setTimeLeft(calculateTimeLeft(targetDate));
     }, 1000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [targetDate]);
+
+  const isExpired =
+    timeLeft.days === 0 &&
+    timeLeft.hours === 0 &&
+    timeLeft.minutes === 0 &&
+    timeLeft.seconds === 0;
 
   return (
-    <div className="flex items-center justify-center gap-6">
+    <div>
+      <div className="flex items-center justify-center gap-6">
       <div className="text-center">
         <div className="bg-black/40 backdrop-blur-sm border border-white/10 rounded-xl px-6 py-4 min-w-[100px]">
           <div className="text-4xl font-bold mb-1">{String(timeLeft.days).padStart(2, '0')}</div>
@@ -74,6 +119,10 @@ function CountdownTimer() {
           <div className="text-[#D4AF37] text-xs tracking-wider uppercase">Seconds</div>
         </div>
       </div>
+      </div>
+      {isExpired ? (
+        <p className="text-red-300 text-sm tracking-[0.2em] uppercase text-center mt-6">Sale Window Closed</p>
+      ) : null}
     </div>
   );
 }
@@ -117,7 +166,7 @@ export default function SalesPage() {
       </div>
 
       {/* The Sale Products Section */}
-      <div className="max-w-[1400px] mx-auto px-6 py-20">
+      <div id="sale-products" className="max-w-[1400px] mx-auto px-6 py-20">
         <div className="flex items-center justify-between mb-12">
           <div>
             <p className="text-[#D4AF37] text-xs tracking-[0.3em] uppercase mb-2">CURATED SELECTION</p>
@@ -201,13 +250,13 @@ export default function SalesPage() {
       <div className="bg-[#0B101E] py-16">
         <div className="max-w-[1400px] mx-auto px-6 text-center">
           <Link 
-            href="/vip"
+            href="/collections"
             className="inline-flex items-center gap-3 bg-[#D4AF37] hover:bg-white text-black px-12 py-5 rounded-full font-bold text-lg tracking-wider transition-all group"
           >
             <span className="w-8 h-8 rounded-full bg-black flex items-center justify-center">
               <ArrowRight className="w-5 h-5 text-[#D4AF37] group-hover:translate-x-1 transition-transform" />
             </span>
-            ACCESS VIP SALE
+            VIEW ALL PRODUCTS
           </Link>
         </div>
       </div>

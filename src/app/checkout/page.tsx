@@ -267,6 +267,45 @@ export default function CheckoutPage() {
         price: item.price,
       }));
 
+      const paymentDetails =
+        selectedMethod === 'cod'
+          ? {
+              cod: {
+                name: codName,
+                phone: codPhone,
+                address: codAddress,
+                city: codCity,
+              },
+            }
+          : selectedMethod === 'jazzcash'
+            ? {
+                jazzcash: {
+                  senderNumber: jazzCashNumber,
+                  transactionId: jazzCashTransactionId,
+                  receiverNumber: '03XX-XXXXXXX',
+                  receiverName: 'B&B Shoes',
+                },
+                cod: {
+                  name: codName,
+                  phone: codPhone,
+                  address: codAddress,
+                  city: codCity,
+                },
+              }
+            : {
+                bank: {
+                  bankName: selectedBank,
+                  senderAccountNumber,
+                  transactionId: bankTransactionId,
+                },
+                cod: {
+                  name: codName,
+                  phone: codPhone,
+                  address: codAddress,
+                  city: codCity,
+                },
+              };
+
       const payload = {
         user_id: session.user.user_id,
         customerName: codName || session.user.name || 'Customer',
@@ -279,6 +318,7 @@ export default function CheckoutPage() {
         total: totalPrice,
         paymentMethod: selectedMethod,
         paymentStatus: selectedMethod === 'cod' ? 'pending' : 'paid',
+        paymentDetails,
       };
 
       const response = await fetch('/api/orders', {

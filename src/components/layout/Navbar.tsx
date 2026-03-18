@@ -40,7 +40,15 @@ const accountLinks = [
   { title: 'My Orders', href: '/my-orders' },
   { title: 'My Addresses', href: '/my-addresses' },
   { title: 'Payment Methods', href: '/checkout' },
-  { title: 'Contact Us', href: '/contact' }
+  { title: 'Contact Us', href: '/contact' },
+  {
+    title: 'For Transactions',
+    href: '/contact#for-transactions',
+    details: [
+      'JazzCash: 03068846624',
+      'Meezan Bank: 05100110600803',
+    ],
+  }
 ]
 
 // --- Animation Variants for the New Profile Dropdown ---
@@ -76,6 +84,7 @@ export default function Navbar() {
   // UI States
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isProfileOpen, setIsProfileOpen] = useState(false)
+  const [isTransactionsOpen, setIsTransactionsOpen] = useState(false)
   const [hoveredMenuLink, setHoveredMenuLink] = useState<string | null>(null)
   
   // Smart Scroll States
@@ -88,6 +97,7 @@ export default function Navbar() {
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen)
     setIsProfileOpen(false) 
+    if (isMenuOpen) setIsTransactionsOpen(false)
     document.body.style.overflow = !isMenuOpen ? 'hidden' : 'auto'
   }
 
@@ -388,13 +398,32 @@ export default function Navbar() {
                     <ul className="space-y-4">
                       {accountLinks.map((link) => (
                         <li key={link.title}>
-                          <Link 
-                            href={link.href} 
-                            onClick={toggleMenu}
-                            className="text-sm md:text-base text-white/60 hover:text-white transition-colors"
-                          >
-                            {link.title}
-                          </Link>
+                          {link.title === 'For Transactions' ? (
+                            <button
+                              type="button"
+                              onClick={() => setIsTransactionsOpen((prev) => !prev)}
+                              className="text-sm md:text-base text-white/60 hover:text-white transition-colors text-left"
+                            >
+                              {link.title}
+                            </button>
+                          ) : (
+                            <Link 
+                              href={link.href} 
+                              onClick={toggleMenu}
+                              className="text-sm md:text-base text-white/60 hover:text-white transition-colors"
+                            >
+                              {link.title}
+                            </Link>
+                          )}
+                          {link.title === 'For Transactions' && link.details && isTransactionsOpen ? (
+                            <div className="mt-2 space-y-1">
+                              {link.details?.map((detail) => (
+                                <p key={detail} className="text-[11px] md:text-xs text-white/40 tracking-wide">
+                                  {detail}
+                                </p>
+                              ))}
+                            </div>
+                          ) : null}
                         </li>
                       ))}
                     </ul>

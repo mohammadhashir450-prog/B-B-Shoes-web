@@ -39,6 +39,7 @@ interface ProductContextType {
   
   // Helper Functions
   getProductById: (id: string) => Product | undefined;
+  getAllProducts: () => Product[];
   getProductsByCategory: (category: string) => Product[];
   getProductsByBrand: (brand: string) => Product[];
   getSaleProducts: () => Product[];
@@ -129,6 +130,11 @@ export function ProductProvider({ children }: { children: ReactNode }) {
     return allProducts.find(p => p.id === id);
   };
 
+  // Helper: Get all products
+  const getAllProducts = (): Product[] => {
+    return allProducts;
+  };
+
   // Helper: Get products by category
   const getProductsByCategory = (category: string): Product[] => {
     if (category.toLowerCase() === 'all') return allProducts;
@@ -160,12 +166,21 @@ export function ProductProvider({ children }: { children: ReactNode }) {
 
   // Helper: Get sale products
   const getSaleProducts = (): Product[] => {
-    return allProducts.filter(p => p.isOnSale === true);
+    return allProducts
+      .filter((p) => p.isOnSale === true || (p.discount || 0) > 0 || ((p.originalPrice || 0) > p.price))
+      .sort((a, b) => (b.discount || 0) - (a.discount || 0));
   };
 
   // Helper: Get new arrivals
   const getNewArrivals = (): Product[] => {
-    return allProducts.filter(p => p.isNewArrival === true);
+    const tagged = allProducts.filter((p) => p.isNewArrival === true);
+
+    // Fallback to latest products if new-arrival tags are missing.
+    if (tagged.length > 0) {
+      return tagged;
+    }
+
+    return allProducts.slice(0, 12);
   };
 
   // Helper: Search products
@@ -191,6 +206,7 @@ export function ProductProvider({ children }: { children: ReactNode }) {
     loading,
     error,
     getProductById,
+    getAllProducts,
     getProductsByCategory,
     getProductsByBrand,
     getSaleProducts,

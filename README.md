@@ -156,15 +156,27 @@ NEXT_PUBLIC_API_URL=your_api_url
 
 ## 🚀 Deployment
 
-Deploy easily on Vercel:
+Deploy on Vercel with parity to local output:
+
+1. Use the same Node major version locally and on Vercel (`20.x`).
+2. Copy `.env.example` values into Vercel Project Settings -> Environment Variables.
+3. Set these production URLs exactly:
+```env
+NEXTAUTH_URL=https://your-vercel-domain.vercel.app
+NEXT_PUBLIC_APP_URL=https://your-vercel-domain.vercel.app
+NEXT_PUBLIC_API_URL=https://your-vercel-domain.vercel.app/api
+```
+4. Ensure Google OAuth redirect URI includes:
+```text
+https://your-vercel-domain.vercel.app/api/auth/callback/google
+```
+5. Build locally before push:
 ```bash
 npm run build
 ```
+6. Push to `main` and redeploy on Vercel.
 
-Or use the Vercel CLI:
-```bash
-vercel
-```
+This project is responsive; if local and Vercel env vars match, mobile/desktop UI should match as well.
 
 ## 📄 License
 

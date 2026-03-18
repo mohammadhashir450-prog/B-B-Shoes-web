@@ -51,7 +51,7 @@ export default function Products() {
   }
 
   return (
-    <section className="relative bg-[#0B101E] py-32 overflow-hidden">
+    <section className="relative bg-[#0B101E] py-20 md:py-24 overflow-hidden">
       
       {/* Cinematic Ambient Glow */}
       <div className="absolute top-0 left-0 w-[600px] h-[600px] bg-[#D4AF37]/5 rounded-full blur-[150px] pointer-events-none" />
@@ -59,7 +59,7 @@ export default function Products() {
       <div className="max-w-[1400px] mx-auto px-6 md:px-10 relative z-10">
         
         {/* Cinematic Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-8">
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 md:mb-12 gap-6">
           <motion.div 
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -108,7 +108,7 @@ export default function Products() {
               viewport={{ once: true, margin: "-50px" }}
               className="group relative bg-[#121A2F]/40 backdrop-blur-sm border border-white/5 rounded-3xl overflow-hidden hover:border-white/10 transition-all duration-500 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.7)]"
             >
-              <Link href={`/product/${product.id}`} className="block h-full flex flex-col">
+              <Link href={`/product/${product.id}`} className="h-full flex flex-col">
                 
                 {/* Image Section */}
                 <div className="relative aspect-[4/5] bg-[#0B101E] overflow-hidden">
