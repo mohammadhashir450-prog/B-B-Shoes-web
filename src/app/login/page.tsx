@@ -69,7 +69,8 @@ export default function LoginPage() {
     setIsLoading(true);
     setError('');
     try {
-      await signIn('google', { callbackUrl: '/' });
+      const callbackUrl = typeof window !== 'undefined' ? `${window.location.origin}/` : '/';
+      await signIn('google', { callbackUrl });
     } catch (error: any) {
       setError('Google sign-in failed. Please try again.');
       setIsLoading(false);

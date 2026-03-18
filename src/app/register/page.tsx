@@ -93,7 +93,8 @@ export default function RegisterPage() {
     setIsLoading(true);
     setError('');
     try {
-      await signIn('google', { callbackUrl: '/' });
+      const callbackUrl = typeof window !== 'undefined' ? `${window.location.origin}/` : '/';
+      await signIn('google', { callbackUrl });
     } catch (error: any) {
       setError('Google sign-up failed. Please try again.');
       setIsLoading(false);

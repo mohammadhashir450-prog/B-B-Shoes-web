@@ -147,28 +147,9 @@ export const authOptions: NextAuthOptions = {
       return true;
     },
     async redirect({ url, baseUrl }) {
-      // Handle Google OAuth callback redirect
-      console.log('🔄 Redirect callback:', { url, baseUrl });
-
-      // Always allow app-internal relative redirects. This avoids host mismatch issues
-      // when NEXTAUTH_URL is incorrect in production environments.
-      if (url.startsWith('/')) {
-        return url;
-      }
-
-      try {
-        const target = new URL(url);
-        const appBase = new URL(baseUrl);
-
-        // Keep same-origin absolute URLs.
-        if (target.origin === appBase.origin) {
-          return url;
-        }
-      } catch {
-        // Ignore malformed URL values and fall back to home.
-      }
-
-      // After OAuth (or any unknown external redirect), land users on home.
+      // Enforce a single deterministic post-auth destination.
+      // This prevents users from getting stuck on /login or /register after OAuth.
+      console.log('🔄 Redirect callback forced to home:', { url, baseUrl });
       return '/';
     },
     async jwt({ token, user, account }) {
