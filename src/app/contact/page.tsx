@@ -4,9 +4,10 @@ import { useState } from 'react'
 import Link from 'next/link'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
-import { ChevronRight, Mail, Phone, MapPin, Send, CreditCard } from 'lucide-react'
+import { ChevronDown, ChevronRight, Mail, Phone, MapPin, Send, CreditCard, ArrowRightLeft, Store, Truck, ReceiptText } from 'lucide-react'
 
 export default function ContactPage() {
+  const [isReturnPolicyOpen, setIsReturnPolicyOpen] = useState(true)
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -158,6 +159,54 @@ export default function ContactPage() {
                     <h3 className="text-white font-bold mb-2">For Transactions</h3>
                     <p className="text-gray-400 text-sm">JazzCash Account No# 03068846624</p>
                     <p className="text-gray-400 text-sm">Meezan Bank Account No# 05100110600803</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-lg border border-[#D4AF37]/25 bg-gradient-to-br from-[#1E2B44] via-[#1A2435] to-[#111A2D] p-6 shadow-[0_10px_30px_rgba(212,175,55,0.12)]">
+                <button
+                  type="button"
+                  onClick={() => setIsReturnPolicyOpen((prev) => !prev)}
+                  className="w-full flex items-center justify-between gap-4 text-left"
+                  aria-expanded={isReturnPolicyOpen}
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-full bg-[#D4AF37] text-[#0B101E] flex items-center justify-center flex-shrink-0">
+                      <ArrowRightLeft size={20} />
+                    </div>
+                    <div>
+                      <h3 className="text-white font-bold text-base md:text-lg">Return Policy & Terms</h3>
+                      <p className="text-gray-300 text-sm mt-1">Tap to view exchange process and conditions</p>
+                    </div>
+                  </div>
+                  <ChevronDown
+                    size={20}
+                    className={`text-[#D4AF37] transition-transform duration-300 ${isReturnPolicyOpen ? 'rotate-180' : ''}`}
+                  />
+                </button>
+
+                <div
+                  className={`grid transition-all duration-300 ease-out ${isReturnPolicyOpen ? 'grid-rows-[1fr] mt-5 opacity-100' : 'grid-rows-[0fr] mt-0 opacity-0'}`}
+                >
+                  <div className="overflow-hidden">
+                    <div className="space-y-3 border-t border-white/10 pt-4 text-sm text-gray-300">
+                      <p className="font-semibold text-[#FFE8A6]">Shoes are not eligible for return. Only exchange is available.</p>
+
+                      <div className="flex items-start gap-3">
+                        <Store size={17} className="text-[#D4AF37] mt-0.5 flex-shrink-0" />
+                        <p>If a customer wants an exchange, they may visit the company outlet directly.</p>
+                      </div>
+
+                      <div className="flex items-start gap-3">
+                        <Truck size={17} className="text-[#D4AF37] mt-0.5 flex-shrink-0" />
+                        <p>Alternatively, the customer can send the product to the outlet by courier after paying courier charges. Once received, the company will deliver a replacement based on the customer&apos;s requirement.</p>
+                      </div>
+
+                      <div className="flex items-start gap-3">
+                        <ReceiptText size={17} className="text-[#D4AF37] mt-0.5 flex-shrink-0" />
+                        <p>For shoe/product claims, visiting the outlet is strongly recommended with a proper purchase receipt and payment receipt.</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
