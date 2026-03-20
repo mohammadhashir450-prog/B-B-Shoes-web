@@ -14,7 +14,9 @@ export async function POST(req: NextRequest) {
   
   try {
     const body = await req.json();
-    const { email, otp, newPassword } = body;
+    const email = String(body?.email || '').trim().toLowerCase();
+    const otp = String(body?.otp || '').trim();
+    const newPassword = String(body?.newPassword || '').trim();
 
     // Validate inputs
     if (!email || !otp || !newPassword) {
@@ -38,7 +40,7 @@ export async function POST(req: NextRequest) {
 
       // Find and verify OTP
       const otpRecord = await OTP.findOne({
-        email: email.toLowerCase(),
+        email,
         purpose: 'password-reset',
         verified: false,
       }).sort({ createdAt: -1 });
@@ -82,7 +84,7 @@ export async function POST(req: NextRequest) {
       }
 
       // Find user
-      const user = await User.findOne({ email: email.toLowerCase() });
+      const user = await User.findOne({ email }).select('+password');
 
       if (!user) {
         return NextResponse.json(
@@ -115,7 +117,7 @@ export async function POST(req: NextRequest) {
       success: true,
       message: 'Password reset successfully! You can now login with your new password.',
       data: {
-        email: email.toLowerCase(),
+        email,
         usingFallback: usingPersistentStorage,
       },
     });

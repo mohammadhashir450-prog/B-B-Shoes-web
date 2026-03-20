@@ -5,6 +5,28 @@ import connectDB from "@/lib/mongodb"; // must import before User so bufferComma
 import User from "@/models/User";
 import bcrypt from "bcryptjs";
 
+function isBcryptHash(value: string): boolean {
+  return /^\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}$/.test(value);
+}
+
+async function verifyAndMigratePassword(user: any, incomingPassword: string): Promise<boolean> {
+  const storedPassword = String(user?.password || "");
+  if (!storedPassword) return false;
+
+  if (isBcryptHash(storedPassword)) {
+    return bcrypt.compare(incomingPassword, storedPassword);
+  }
+
+  // Legacy compatibility: if a plaintext password exists, validate once then migrate to bcrypt.
+  if (storedPassword === incomingPassword) {
+    user.password = await bcrypt.hash(incomingPassword, 10);
+    await user.save();
+    return true;
+  }
+
+  return false;
+}
+
 async function generateUniqueUserId(): Promise<string> {
   let nextId = `USR-${Date.now()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
   while (await User.findOne({ user_id: nextId }).select('_id')) {
@@ -49,7 +71,8 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Please provide email and password");
         }
 
-        const emailLower = credentials.email.toLowerCase();
+        const emailLower = credentials.email.trim().toLowerCase();
+        const password = credentials.password.trim();
 
         // ── Try MongoDB first ──────────────────────────────────────────────
         try {
@@ -67,7 +90,7 @@ export const authOptions: NextAuthOptions = {
             if (!user.password) {
               throw new Error("Please sign in with the provider you used to register");
             }
-            const isValid = await bcrypt.compare(credentials.password, user.password);
+            const isValid = await verifyAndMigratePassword(user, password);
             if (!isValid) throw new Error("Invalid email or password");
 
             console.log("✅ MongoDB login successful:", user.email);
@@ -147,10 +170,24 @@ export const authOptions: NextAuthOptions = {
       return true;
     },
     async redirect({ url, baseUrl }) {
-      // Enforce a single deterministic post-auth destination.
-      // This prevents users from getting stuck on /login or /register after OAuth.
-      console.log('🔄 Redirect callback forced to home:', { url, baseUrl });
-      return '/';
+      // Always return an absolute URL. Returning "/" can break credentials
+      // flow with redirect:false because NextAuth client parses URL() directly.
+      const fallbackBaseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+
+      let safeBaseUrl = fallbackBaseUrl;
+      try {
+        safeBaseUrl = new URL(baseUrl).origin;
+      } catch {
+        try {
+          safeBaseUrl = new URL(fallbackBaseUrl).origin;
+        } catch {
+          safeBaseUrl = "http://localhost:3000";
+        }
+      }
+
+      const forcedUrl = `${safeBaseUrl}/`;
+      console.log('🔄 Redirect callback forced to home:', { url, baseUrl, forcedUrl });
+      return forcedUrl;
     },
     async jwt({ token, user, account }) {
       if (user && user.email) {

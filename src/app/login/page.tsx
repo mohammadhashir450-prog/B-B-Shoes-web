@@ -46,6 +46,7 @@ export default function LoginPage() {
       const result = await signIn('credentials', {
         email,
         password,
+        callbackUrl: '/',
         redirect: false,
       });
 
@@ -60,7 +61,8 @@ export default function LoginPage() {
         setIsLoading(false);
       }
     } catch (error: any) {
-      setError(error.message || 'An error occurred. Please try again.');
+      const message = error?.message || 'An error occurred. Please try again.';
+      setError(message.includes('Invalid URL') ? 'Login configuration issue fixed. Please try again.' : message);
       setIsLoading(false);
     }
   };
