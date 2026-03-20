@@ -43,10 +43,11 @@ export default function LoginPage() {
     setError('');
     
     try {
+      const callbackUrl = typeof window !== 'undefined' ? `${window.location.origin}/` : 'http://localhost:3000/';
       const result = await signIn('credentials', {
         email,
         password,
-        callbackUrl: '/',
+        callbackUrl,
         redirect: false,
       });
 
