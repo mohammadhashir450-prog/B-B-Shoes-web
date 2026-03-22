@@ -57,7 +57,7 @@ export default function WomenPage() {
 
           {/* Style Filter */}
           <div className="flex items-center justify-center gap-3 mb-12 flex-wrap">
-            {['all', 'heels', 'flats', 'boots', 'wedges', 'loafers'].map((style) => (
+            {['all', 'heels', 'flats', 'boots', 'wedges', 'loafers', 'slippers'].map((style) => (
               <button
                 key={style}
                 onClick={() => setSelectedStyle(style)}

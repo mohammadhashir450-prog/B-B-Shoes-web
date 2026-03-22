@@ -630,6 +630,7 @@ export default function AdminPanel() {
                       <option value="Oxford" className="bg-[#0B101E]">Oxford</option>
                       <option value="Loafers" className="bg-[#0B101E]">Loafers</option>
                       <option value="Boots" className="bg-[#0B101E]">Boots</option>
+                      <option value="Slippers" className="bg-[#0B101E]">Slippers</option>
                     </select>
                   </div>
 

@@ -78,12 +78,13 @@ const ProductSchema = new Schema<IProduct>(
         'Oxford',
         'Loafers',
         'Boots',
+        'Slippers',
         'Sneakers',
       ],
     },
     subcategory: {
       type: String,
-      enum: ['Sneakers', 'Basketball', 'Formal', 'Running', 'Oxford', 'Loafers', 'Boots', ''],
+      enum: ['Sneakers', 'Basketball', 'Formal', 'Running', 'Oxford', 'Loafers', 'Boots', 'Slippers', ''],
       default: '',
     },
     brand: {

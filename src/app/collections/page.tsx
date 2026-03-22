@@ -19,6 +19,7 @@ const categories = [
   { key: 'running', name: 'Running Shoes', icon: '🏃' },
   { key: 'basketball', name: 'Basketball', icon: '🏀' },
   { key: 'boots', name: 'Boots', icon: '🥾' },
+  { key: 'slippers', name: 'Slippers', icon: '🩴' },
   { key: 'heritage', name: 'Heritage', icon: '⭐' },
   { key: 'men', name: "Men's Collection", icon: '👔' },
   { key: 'women', name: "Women's Collection", icon: '👗' },

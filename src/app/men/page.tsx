@@ -55,7 +55,7 @@ export default function MenPage() {
             <div className="flex items-center gap-3">
               <Filter size={20} className="text-[#D4AF37]" />
               <div className="flex gap-2 flex-wrap">
-                {['all', 'formal', 'casual', 'boots', 'loafers'].map((cat) => (
+                {['all', 'formal', 'casual', 'boots', 'loafers', 'slippers'].map((cat) => (
                   <button
                     key={cat}
                     onClick={() => setSelectedCategory(cat)}

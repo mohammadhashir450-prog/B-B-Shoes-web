@@ -125,6 +125,17 @@ export default function NewArrivals() {
                 >
                   <span className="text-sm">👟 Sneakers</span>
                 </button>
+
+                <button 
+                  onClick={() => setActiveCategory('slippers')}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded text-left transition-all ${
+                    activeCategory === 'slippers' 
+                      ? 'bg-[#D4AF37] text-[#0B101E]' 
+                      : 'bg-transparent text-white hover:bg-white/5'
+                  }`}
+                >
+                  <span className="text-sm">🩴 Slippers</span>
+                </button>
               </div>
 
               {/* Size Filter */}
