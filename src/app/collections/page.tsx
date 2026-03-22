@@ -26,7 +26,7 @@ const categories = [
 ]
 
 export default function CollectionsPage() {
-  const { getAllProducts, loading } = useProducts()
+  const { getAllProducts, getSaleProducts, getNewArrivals, getProductsByCategory, loading } = useProducts()
   const [activeCategory, setActiveCategory] = useState('all')
 
   const products = useMemo(() => {
@@ -34,26 +34,29 @@ export default function CollectionsPage() {
   }, [getAllProducts])
 
   const filteredProducts = useMemo(() => {
-    const normalize = (value: string | undefined) => (value || '').toLowerCase().trim()
-
     if (activeCategory === 'all') return products
 
     if (activeCategory === 'sales') {
-      return products.filter((p) => p.isOnSale === true || (p.discount || 0) > 0 || ((p.originalPrice || 0) > p.price))
+      return getSaleProducts()
     }
 
     if (activeCategory === 'new-arrivals') {
-      const tagged = products.filter((p) => p.isNewArrival === true)
-      return tagged.length > 0 ? tagged : products.slice(0, 12)
+      return getNewArrivals()
     }
 
-    return products.filter((p) => {
-      const category = normalize(p.category)
-      const subcategory = normalize(p.subcategory)
-      const target = normalize(activeCategory)
-      return category === target || subcategory === target
-    })
-  }, [products, activeCategory])
+    return getProductsByCategory(activeCategory)
+  }, [products, activeCategory, getSaleProducts, getNewArrivals, getProductsByCategory])
+
+  const handleCategoryTap = (categoryKey: string) => {
+    setActiveCategory(categoryKey)
+
+    setTimeout(() => {
+      const grid = document.getElementById('all-products-grid')
+      if (grid) {
+        grid.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }
+    }, 50)
+  }
 
   const activeCategoryLabel = useMemo(() => {
     return categories.find((c) => c.key === activeCategory)?.name || 'All Products'
@@ -89,7 +92,7 @@ export default function CollectionsPage() {
             {categories.map((category) => (
               <button
                 key={category.key}
-                onClick={() => setActiveCategory(category.key)}
+                onClick={() => handleCategoryTap(category.key)}
                 className={`rounded-lg p-8 text-center transition-all group border ${
                   activeCategory === category.key
                     ? 'bg-[#D4AF37] text-[#0B101E] border-[#D4AF37]'

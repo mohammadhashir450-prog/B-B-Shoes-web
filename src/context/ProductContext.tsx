@@ -59,6 +59,13 @@ export function ProductProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const normalizeCategory = (value?: string) =>
+    (value || '')
+      .toLowerCase()
+      .trim()
+      .replace(/['’]/g, '')
+      .replace(/\s+/g, '');
+
   // Fetch all products once
   const fetchProducts = async () => {
   try {
@@ -100,17 +107,17 @@ export function ProductProvider({ children }: { children: ReactNode }) {
     setAllProducts(products);
     
     // Filter Men products
-    const men = products.filter((p: Product) => 
-      p.category?.toLowerCase() === 'men' || 
-      p.category?.toLowerCase() === "men's"
-    );
+    const men = products.filter((p: Product) => {
+      const category = normalizeCategory(p.category);
+      return category === 'men' || category === 'mens';
+    });
     setMenProducts(men);
     
     // Filter Women products
-    const women = products.filter((p: Product) => 
-      p.category?.toLowerCase() === 'women' || 
-      p.category?.toLowerCase() === "women's"
-    );
+    const women = products.filter((p: Product) => {
+      const category = normalizeCategory(p.category);
+      return category === 'women' || category === 'womens';
+    });
     setWomenProducts(women);
     
   } catch (err) {
@@ -143,23 +150,18 @@ export function ProductProvider({ children }: { children: ReactNode }) {
 
   // Helper: Get products by category
   const getProductsByCategory = (category: string): Product[] => {
-    if (category.toLowerCase() === 'all') return allProducts;
-    if (category.toLowerCase() === 'men' || category.toLowerCase() === 'men\'s') return menProducts;
-    if (category.toLowerCase() === 'women' || category.toLowerCase() === 'women\'s') return womenProducts;
+    const searchCategory = normalizeCategory(category);
+
+    if (searchCategory === 'all') return allProducts;
+    if (searchCategory === 'men' || searchCategory === 'mens') return menProducts;
+    if (searchCategory === 'women' || searchCategory === 'womens') return womenProducts;
     
-    // Handle subcategories (Sneakers, Basketball, Formal, Running, etc.)
+    // Handle exact category/subcategory mapping for section pages and filters.
     return allProducts.filter(p => {
-      const productCategory = p.category?.toLowerCase() || '';
-      const searchCategory = category.toLowerCase();
+      const productCategory = normalizeCategory(p.category);
+      const productSubcategory = normalizeCategory((p as any).subcategory);
       
-      // Check if product has a subcategory field that matches
-      if ((p as any).subcategory) {
-        const subcategory = ((p as any).subcategory as string).toLowerCase();
-        if (subcategory === searchCategory) return true;
-      }
-      
-      // Also check main category
-      return productCategory.includes(searchCategory) || searchCategory.includes(productCategory);
+      return productSubcategory === searchCategory || productCategory === searchCategory;
     });
   };
 
