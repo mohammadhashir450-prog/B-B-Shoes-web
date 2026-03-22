@@ -15,11 +15,22 @@ export default function MenPage() {
   // Filter products based on selected category
   const filteredProducts = useMemo(() => {
     if (selectedCategory === 'all') return menProducts
-    
-    return menProducts.filter(product => 
-      product.name?.toLowerCase().includes(selectedCategory.toLowerCase()) ||
-      product.description?.toLowerCase().includes(selectedCategory.toLowerCase())
-    )
+
+    const target = selectedCategory.toLowerCase().trim()
+
+    return menProducts.filter((product) => {
+      const category = product.category?.toLowerCase().trim() || ''
+      const subcategory = product.subcategory?.toLowerCase().trim() || ''
+      const name = product.name?.toLowerCase() || ''
+      const description = product.description?.toLowerCase() || ''
+
+      return (
+        category === target ||
+        subcategory === target ||
+        name.includes(target) ||
+        description.includes(target)
+      )
+    })
   }, [menProducts, selectedCategory])
 
   return (

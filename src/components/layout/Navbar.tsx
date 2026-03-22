@@ -32,6 +32,7 @@ const subLinks = [
   { title: 'New Arrivals', href: '/new-arrivals' },
   { title: 'Sales Event', href: '/sales', highlight: true },
   { title: 'Sneakers', href: '/sneakers' },
+  { title: 'Slippers', href: '/slippers' },
   { title: 'Formal Shoes', href: '/formal' },
   { title: 'Running Shoes', href: '/running' }
 ]

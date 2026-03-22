@@ -9,18 +9,28 @@ import { ChevronRight, Star, Sparkles, Loader2 } from 'lucide-react'
 import { useProducts } from '@/context/ProductContext'
 
 export default function WomenPage() {
-  const [selectedCategory, setSelectedCategory] = useState('all')
   const [selectedStyle, setSelectedStyle] = useState('all')
   const { womenProducts, loading } = useProducts()
 
   // Filter products based on selected style
   const filteredProducts = useMemo(() => {
     if (selectedStyle === 'all') return womenProducts
-    
-    return womenProducts.filter(product => 
-      product.name?.toLowerCase().includes(selectedStyle.toLowerCase()) ||
-      product.description?.toLowerCase().includes(selectedStyle.toLowerCase())
-    )
+
+    const target = selectedStyle.toLowerCase().trim()
+
+    return womenProducts.filter((product) => {
+      const category = product.category?.toLowerCase().trim() || ''
+      const subcategory = product.subcategory?.toLowerCase().trim() || ''
+      const name = product.name?.toLowerCase() || ''
+      const description = product.description?.toLowerCase() || ''
+
+      return (
+        category === target ||
+        subcategory === target ||
+        name.includes(target) ||
+        description.includes(target)
+      )
+    })
   }, [womenProducts, selectedStyle])
 
   return (
