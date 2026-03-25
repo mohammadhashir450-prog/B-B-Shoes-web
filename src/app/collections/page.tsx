@@ -89,28 +89,28 @@ export default function CollectionsPage() {
           </div>
 
           {/* Category Filter Buttons */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
             {categories.map((category) => (
               <button
                 key={category.key}
                 onClick={() => handleCategoryTap(category.key)}
-                className={`rounded-lg p-8 text-center transition-all group border ${
+                className={`rounded-lg p-4 md:p-5 text-center transition-all group border min-h-[120px] md:min-h-[132px] ${
                   activeCategory === category.key
                     ? 'bg-[#D4AF37] text-[#0B101E] border-[#D4AF37]'
                     : 'bg-[#1A2435] hover:bg-[#243048] text-white border-white/5 hover:border-[#D4AF37]/30'
                 }`}
               >
-                <div className="text-5xl mb-4 group-hover:scale-110 transition-transform">
+                <div className="text-3xl md:text-4xl mb-2 md:mb-3 group-hover:scale-110 transition-transform">
                   {category.icon}
                 </div>
-                <h3 className="text-lg font-bold mb-2">
+                <h3 className="text-sm md:text-base font-bold mb-1 line-clamp-2 leading-snug">
                   {category.name}
                 </h3>
-                <div className={`flex items-center justify-center gap-2 text-sm font-semibold transition-opacity ${
+                <div className={`flex items-center justify-center gap-1.5 text-[11px] md:text-xs font-semibold transition-opacity ${
                   activeCategory === category.key ? 'text-[#0B101E]' : 'text-[#D4AF37] opacity-0 group-hover:opacity-100'
                 }`}>
                   <span>{activeCategory === category.key ? 'Active' : 'Explore'}</span>
-                  <ChevronRight size={14} />
+                  <ChevronRight size={12} />
                 </div>
               </button>
             ))}
