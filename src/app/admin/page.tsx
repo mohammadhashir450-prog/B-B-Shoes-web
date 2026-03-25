@@ -158,6 +158,33 @@ export default function AdminPanel() {
     endDate.setHours(23, 59, 59, 999);
 
     const dayCount = Math.max(1, Math.ceil((endDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000)) + 1);
+    const previousStart = new Date(startDate);
+    previousStart.setDate(startDate.getDate() - dayCount);
+    const previousEnd = new Date(startDate);
+    previousEnd.setMilliseconds(previousEnd.getMilliseconds() - 1);
+
+    const previousPeriodOrders = orders.filter((order) => {
+      const date = new Date(order.date);
+      if (Number.isNaN(date.getTime())) return false;
+      return date >= previousStart && date <= previousEnd;
+    });
+
+    const previousRevenue = previousPeriodOrders.reduce((sum, order) => sum + (Number(order.total) || 0), 0);
+    const previousUnitsSold = previousPeriodOrders.reduce((sum, order) => {
+      const qty = (order.items || []).reduce((itemSum: number, item: any) => itemSum + (Number(item.quantity) || 0), 0);
+      return sum + qty;
+    }, 0);
+    const previousOrdersCount = previousPeriodOrders.length;
+
+    const calculateGrowthPercent = (current: number, previous: number) => {
+      if (previous === 0) return current > 0 ? 100 : 0;
+      return ((current - previous) / previous) * 100;
+    };
+
+    const revenueGrowthPercent = calculateGrowthPercent(grossRevenue, previousRevenue);
+    const unitsGrowthPercent = calculateGrowthPercent(totalUnitsSold, previousUnitsSold);
+    const ordersGrowthPercent = calculateGrowthPercent(filteredAnalyticsOrders.length, previousOrdersCount);
+
     const safeDayCount = Math.min(dayCount, 62);
     const trendData = Array.from({ length: safeDayCount }, (_, idx) => {
       const pointDate = new Date(startDate);
@@ -220,8 +247,14 @@ export default function AdminPanel() {
       avgOrderValue,
       topProducts,
       rangeLabel,
+      previousRevenue,
+      previousUnitsSold,
+      previousOrdersCount,
+      revenueGrowthPercent,
+      unitsGrowthPercent,
+      ordersGrowthPercent,
     };
-  }, [filteredAnalyticsOrders, analyticsRange, customDateFrom, customDateTo]);
+  }, [filteredAnalyticsOrders, analyticsRange, customDateFrom, customDateTo, orders]);
   
   // Size and color management
   const [selectedSizes, setSelectedSizes] = useState<string[]>(['7', '8', '9', '10', '11']);
@@ -1455,6 +1488,45 @@ export default function AdminPanel() {
                   </div>
                 </div>
               )}
+
+              <div className="mt-5 bg-[#0B101E]/70 border border-white/10 rounded-xl p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-white text-sm font-bold">Quick Compare</p>
+                  <span className="text-[10px] tracking-[0.2em] uppercase text-white/50">Current vs Previous Range</span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="bg-white/5 border border-white/10 rounded-lg p-3">
+                    <p className="text-[10px] text-white/50 tracking-[0.2em] uppercase font-bold">Revenue Growth</p>
+                    <p className={`text-lg font-black mt-1 ${analytics.revenueGrowthPercent >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                      {analytics.revenueGrowthPercent >= 0 ? '+' : ''}{analytics.revenueGrowthPercent.toFixed(1)}%
+                    </p>
+                    <p className="text-xs text-white/50 mt-1">
+                      PKR {analytics.grossRevenue.toLocaleString()} vs PKR {analytics.previousRevenue.toLocaleString()}
+                    </p>
+                  </div>
+
+                  <div className="bg-white/5 border border-white/10 rounded-lg p-3">
+                    <p className="text-[10px] text-white/50 tracking-[0.2em] uppercase font-bold">Orders Growth</p>
+                    <p className={`text-lg font-black mt-1 ${analytics.ordersGrowthPercent >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                      {analytics.ordersGrowthPercent >= 0 ? '+' : ''}{analytics.ordersGrowthPercent.toFixed(1)}%
+                    </p>
+                    <p className="text-xs text-white/50 mt-1">
+                      {analytics.totalOrders} vs {analytics.previousOrdersCount} orders
+                    </p>
+                  </div>
+
+                  <div className="bg-white/5 border border-white/10 rounded-lg p-3">
+                    <p className="text-[10px] text-white/50 tracking-[0.2em] uppercase font-bold">Units Growth</p>
+                    <p className={`text-lg font-black mt-1 ${analytics.unitsGrowthPercent >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                      {analytics.unitsGrowthPercent >= 0 ? '+' : ''}{analytics.unitsGrowthPercent.toFixed(1)}%
+                    </p>
+                    <p className="text-xs text-white/50 mt-1">
+                      {analytics.totalUnitsSold} vs {analytics.previousUnitsSold} units
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
