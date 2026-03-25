@@ -20,6 +20,7 @@ const categories = [
   { key: 'basketball', name: 'Basketball', icon: '🏀' },
   { key: 'boots', name: 'Boots', icon: '🥾' },
   { key: 'slippers', name: 'Slippers', icon: '🩴' },
+  { key: 'peshawari-chappal', name: 'Peshawari Chappal', icon: '👞' },
   { key: 'kids', name: 'Kids Collection', icon: '👶' },
   { key: 'men', name: "Men's Collection", icon: '👔' },
   { key: 'women', name: "Women's Collection", icon: '👗' },

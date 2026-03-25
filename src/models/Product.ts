@@ -84,7 +84,7 @@ const ProductSchema = new Schema<IProduct>(
     },
     subcategory: {
       type: String,
-      enum: ['Sneakers', 'Basketball', 'Formal', 'Running', 'Oxford', 'Loafers', 'Boots', 'Slippers', ''],
+      enum: ['Sneakers', 'Basketball', 'Formal', 'Running', 'Oxford', 'Loafers', 'Boots', 'Slippers', 'Peshawari Chappal', ''],
       default: '',
     },
     brand: {

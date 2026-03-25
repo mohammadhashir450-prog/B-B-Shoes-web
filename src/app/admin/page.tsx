@@ -631,6 +631,7 @@ export default function AdminPanel() {
                       <option value="Loafers" className="bg-[#0B101E]">Loafers</option>
                       <option value="Boots" className="bg-[#0B101E]">Boots</option>
                       <option value="Slippers" className="bg-[#0B101E]">Slippers</option>
+                      <option value="Peshawari Chappal" className="bg-[#0B101E]">Peshawari Chappal</option>
                     </select>
                   </div>
 
