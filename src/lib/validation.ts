@@ -64,11 +64,15 @@ export function validateProduct(product: any): {
 } {
   const errors: string[] = [];
 
+  const price = Number(product.price);
+  const originalPrice = Number(product.originalPrice);
+  const discount = Number(product.discount);
+
   if (!product.name || product.name.trim() === '') {
     errors.push('Product name is required');
   }
 
-  if (!product.price || !isValidPrice(product.price)) {
+  if (!price || !isValidPrice(price)) {
     errors.push('Valid product price is required');
   }
 
@@ -86,6 +90,26 @@ export function validateProduct(product: any): {
 
   if (!product.colors || !Array.isArray(product.colors) || product.colors.length === 0) {
     errors.push('At least one color is required');
+  }
+
+  if (product.discount !== undefined && product.discount !== null && product.discount !== '') {
+    if (!Number.isFinite(discount) || discount < 0 || discount > 99) {
+      errors.push('Discount must be between 0 and 99');
+    }
+  }
+
+  if (product.isOnSale) {
+    if (!Number.isFinite(discount) || discount < 1 || discount > 99) {
+      errors.push('Sale discount must be between 1 and 99');
+    }
+
+    if (!Number.isFinite(originalPrice) || originalPrice <= 0) {
+      errors.push('Original price is required for sale products');
+    }
+
+    if (Number.isFinite(originalPrice) && Number.isFinite(price) && originalPrice <= price) {
+      errors.push('Sale price must be less than original price');
+    }
   }
 
   return {

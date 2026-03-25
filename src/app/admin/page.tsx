@@ -549,6 +549,7 @@ export default function AdminPanel() {
   };
 
   const currentProduct = editingProduct || editingSaleProduct || editingNewArrival || newProduct;
+  const isSaleWorkflow = activeTab === 'sales' || showAddSaleForm || Boolean(editingSaleProduct);
 
   return (
     <div className="min-h-screen bg-[#0B101E] text-white selection:bg-[#D4AF37]/30 selection:text-white relative overflow-x-hidden">
@@ -768,6 +769,64 @@ export default function AdminPanel() {
                       required
                     />
                   </div>
+
+                  {isSaleWorkflow && (
+                    <>
+                      <div className="space-y-2">
+                        <label className="block text-white/50 text-[10px] tracking-[0.2em] uppercase font-bold">Original Price (PKR) *</label>
+                        <input
+                          type="number"
+                          min="1"
+                          placeholder="15999"
+                          value={currentProduct.originalPrice || ''}
+                          onChange={e => {
+                            const val = Number(e.target.value);
+                            if(editingProduct) setEditingProduct({...editingProduct, originalPrice: val});
+                            else if(editingSaleProduct) setEditingSaleProduct({...editingSaleProduct, originalPrice: val});
+                            else if(editingNewArrival) setEditingNewArrival({...editingNewArrival, originalPrice: val});
+                            else setNewProduct({...newProduct, originalPrice: val});
+                          }}
+                          className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#D4AF37]/50 focus:bg-white/10 transition-all"
+                          required
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="block text-white/50 text-[10px] tracking-[0.2em] uppercase font-bold">Discount (%) *</label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="99"
+                          placeholder="25"
+                          value={currentProduct.discount || ''}
+                          onChange={e => {
+                            const val = Number(e.target.value);
+                            const clamped = Number.isFinite(val) ? Math.min(99, Math.max(1, val)) : 1;
+                            const original = Number(currentProduct.originalPrice) || 0;
+                            const salePrice = original > 0 ? Math.max(1, Math.round(original * (100 - clamped) / 100)) : currentProduct.price;
+
+                            if(editingProduct) setEditingProduct({...editingProduct, discount: clamped, price: salePrice});
+                            else if(editingSaleProduct) setEditingSaleProduct({...editingSaleProduct, discount: clamped, price: salePrice});
+                            else if(editingNewArrival) setEditingNewArrival({...editingNewArrival, discount: clamped, price: salePrice});
+                            else setNewProduct({...newProduct, discount: clamped, price: salePrice});
+                          }}
+                          className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#D4AF37]/50 focus:bg-white/10 transition-all"
+                          required
+                        />
+                        <p className="text-[10px] text-white/40 tracking-wide uppercase">Allowed range: 1-99%</p>
+                      </div>
+
+                      <div className="md:col-span-2 bg-[#0B101E] border border-[#D4AF37]/20 rounded-xl p-4">
+                        <p className="text-[10px] text-white/50 uppercase tracking-[0.2em] mb-2 font-bold">Discount Preview</p>
+                        <div className="flex items-center gap-3 text-sm">
+                          <span className="text-white/70 line-through">PKR {(Number(currentProduct.originalPrice) || 0).toLocaleString()}</span>
+                          <ChevronRight size={14} className="text-[#D4AF37]" />
+                          <span className="text-[#D4AF37] font-black">PKR {(Number(currentProduct.price) || 0).toLocaleString()}</span>
+                          <span className="text-emerald-400 font-bold">({Number(currentProduct.discount) || 0}% OFF)</span>
+                        </div>
+                      </div>
+                    </>
+                  )}
 
                   {/* Category */}
                   <div className="space-y-2">
@@ -990,14 +1049,47 @@ export default function AdminPanel() {
                         console.error('Invalid image:', currentProduct.image, typeof currentProduct.image);
                         return;
                       }
+
+                      const saleActive = activeTab === 'sales' || showAddSaleForm || Boolean(editingSaleProduct);
+                      if (saleActive) {
+                        const discount = Number(currentProduct.discount);
+                        const originalPrice = Number(currentProduct.originalPrice);
+
+                        if (!Number.isFinite(discount) || discount < 1 || discount > 99) {
+                          alert('❌ Discount must be between 1 and 99%');
+                          return;
+                        }
+
+                        if (!Number.isFinite(originalPrice) || originalPrice <= 0) {
+                          alert('❌ Original price is required for sale products');
+                          return;
+                        }
+
+                        const calculatedPrice = Math.max(1, Math.round(originalPrice * (100 - discount) / 100));
+                        if (calculatedPrice >= originalPrice) {
+                          alert('❌ Discounted price must be lower than original price');
+                          return;
+                        }
+
+                        if(editingProduct) setEditingProduct({...editingProduct, price: calculatedPrice, discount, originalPrice});
+                        else if(editingSaleProduct) setEditingSaleProduct({...editingSaleProduct, price: calculatedPrice, discount, originalPrice});
+                        else if(editingNewArrival) setEditingNewArrival({...editingNewArrival, price: calculatedPrice, discount, originalPrice});
+                        else setNewProduct({...newProduct, price: calculatedPrice, discount, originalPrice});
+                      }
+
                       const body = {
                         ...currentProduct, 
                         brand: 'B&B', 
                         sizes: selectedSizes, 
                         colors: selectedColors, 
-                        isOnSale: activeTab === 'sales' || showAddSaleForm, 
+                        isOnSale: saleActive,
                         isNewArrival: activeTab === 'newarrivals' || showAddNewArrivalForm,
-                        inStock: currentProduct.inStock !== undefined ? currentProduct.inStock : true
+                        inStock: currentProduct.inStock !== undefined ? currentProduct.inStock : true,
+                        discount: saleActive ? Number(currentProduct.discount) : 0,
+                        originalPrice: saleActive ? Number(currentProduct.originalPrice) : 0,
+                        price: saleActive
+                          ? Math.max(1, Math.round((Number(currentProduct.originalPrice) || 0) * (100 - (Number(currentProduct.discount) || 0)) / 100))
+                          : Number(currentProduct.price)
                       };
                       const method = (editingProduct || editingSaleProduct || editingNewArrival) ? 'PUT' : 'POST';
                       const url = method === 'PUT' ? `/api/products/${currentProduct.id}` : '/api/products';
