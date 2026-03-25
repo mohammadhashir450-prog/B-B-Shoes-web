@@ -307,9 +307,14 @@ export default function NewArrivals() {
                             </span>
                           </div>
                           
-                          <p className="text-2xl font-bold text-[#D4AF37] mb-4">
-                            PKR {product.price.toLocaleString()}
-                          </p>
+                          <div className="mb-4">
+                            <p className="text-2xl font-bold text-[#D4AF37]">
+                              PKR {product.price.toLocaleString()}
+                            </p>
+                            {product.originalPrice && product.originalPrice > product.price ? (
+                              <p className="text-xs text-gray-500 line-through">PKR {product.originalPrice.toLocaleString()}</p>
+                            ) : null}
+                          </div>
                           
                           <div className="w-full bg-[#0B101E] text-white py-3 rounded text-xs font-bold tracking-[0.15em] uppercase text-center">
                             VIEW DETAILS →

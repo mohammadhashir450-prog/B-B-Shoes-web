@@ -269,9 +269,14 @@ export default function FormalPage() {
                         <h3 className="text-white font-bold text-lg mb-1 group-hover:text-[#D4AF37] transition-colors">
                           {product.name}
                         </h3>
-                        <p className="text-[#D4AF37] font-bold text-xl mb-3">
-                          PKR {product.price.toLocaleString()}
-                        </p>
+                        <div className="mb-3">
+                          <p className="text-[#D4AF37] font-bold text-xl">
+                            PKR {product.price.toLocaleString()}
+                          </p>
+                          {product.originalPrice && product.originalPrice > product.price ? (
+                            <p className="text-gray-400 text-xs line-through">PKR {product.originalPrice.toLocaleString()}</p>
+                          ) : null}
+                        </div>
                         
                         {/* Wishlist Icon (for smaller cards) */}
                         {index !== 0 && (

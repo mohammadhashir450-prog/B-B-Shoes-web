@@ -1178,7 +1178,14 @@ export default function AdminPanel() {
                     
                     <div className="p-6 border-t border-white/5">
                       <h3 className="font-serif font-bold text-lg text-white mb-1 truncate">{p.name}</h3>
-                      <p className="text-sm font-medium text-white/70 mb-5">PKR {p.price.toLocaleString()}</p>
+                      {p.originalPrice && p.originalPrice > p.price ? (
+                        <div className="mb-5">
+                          <p className="text-base font-bold text-[#D4AF37]">PKR {p.price.toLocaleString()}</p>
+                          <p className="text-xs text-white/40 line-through">PKR {p.originalPrice.toLocaleString()}</p>
+                        </div>
+                      ) : (
+                        <p className="text-sm font-medium text-white/70 mb-5">PKR {p.price.toLocaleString()}</p>
+                      )}
                       <div className="flex gap-2">
                         <button 
                           onClick={() => {
@@ -1300,7 +1307,14 @@ export default function AdminPanel() {
                     
                     <div className="p-6 border-t border-white/5">
                       <h3 className="font-serif font-bold text-lg text-white mb-1 truncate">{p.name}</h3>
-                      <p className="text-sm font-medium text-red-400 mb-5">PKR {p.price.toLocaleString()}</p>
+                      {p.originalPrice && p.originalPrice > p.price ? (
+                        <div className="mb-5">
+                          <p className="text-base font-bold text-red-400">PKR {p.price.toLocaleString()}</p>
+                          <p className="text-xs text-white/40 line-through">PKR {p.originalPrice.toLocaleString()}</p>
+                        </div>
+                      ) : (
+                        <p className="text-sm font-medium text-red-400 mb-5">PKR {p.price.toLocaleString()}</p>
+                      )}
                       <div className="flex gap-2">
                         <button 
                           onClick={() => {
@@ -1381,7 +1395,14 @@ export default function AdminPanel() {
                     
                     <div className="p-6 border-t border-white/5">
                       <h3 className="font-serif font-bold text-lg text-white mb-1 truncate">{p.name}</h3>
-                      <p className="text-sm font-medium text-blue-300 mb-5">PKR {p.price.toLocaleString()}</p>
+                      {p.originalPrice && p.originalPrice > p.price ? (
+                        <div className="mb-5">
+                          <p className="text-base font-bold text-blue-300">PKR {p.price.toLocaleString()}</p>
+                          <p className="text-xs text-white/40 line-through">PKR {p.originalPrice.toLocaleString()}</p>
+                        </div>
+                      ) : (
+                        <p className="text-sm font-medium text-blue-300 mb-5">PKR {p.price.toLocaleString()}</p>
+                      )}
                       <div className="flex gap-2">
                         <button 
                           onClick={() => {

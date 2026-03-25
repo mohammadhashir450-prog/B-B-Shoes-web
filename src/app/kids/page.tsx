@@ -91,7 +91,12 @@ export default function KidsPage() {
                         <h3 className="text-gray-900 font-bold text-lg mb-2">{product.name}</h3>
                         <p className="text-gray-600 text-sm mb-4 line-clamp-2">{product.description}</p>
                         <div className="flex items-center justify-between">
-                          <p className="text-[#D4AF37] font-bold text-lg">PKR {product.price.toLocaleString()}</p>
+                          <div>
+                            <p className="text-[#D4AF37] font-bold text-lg">PKR {product.price.toLocaleString()}</p>
+                            {product.originalPrice && product.originalPrice > product.price ? (
+                              <p className="text-gray-500 text-xs line-through mt-1">PKR {product.originalPrice.toLocaleString()}</p>
+                            ) : null}
+                          </div>
                           {product.isOnSale && (
                             <span className="bg-red-600 text-white px-3 py-1 rounded text-xs font-bold">Sale</span>
                           )}

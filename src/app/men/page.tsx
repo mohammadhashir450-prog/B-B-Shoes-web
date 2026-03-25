@@ -182,9 +182,14 @@ export default function MenPage() {
                     </div>
 
                     <div className="flex items-center justify-between">
-                      <p className="text-3xl font-bold text-[#D4AF37]">
-                        PKR {product.price.toLocaleString()}
-                      </p>
+                      <div>
+                        <p className="text-3xl font-bold text-[#D4AF37]">
+                          PKR {product.price.toLocaleString()}
+                        </p>
+                        {product.originalPrice && product.originalPrice > product.price ? (
+                          <p className="text-xs text-gray-400 line-through">PKR {product.originalPrice.toLocaleString()}</p>
+                        ) : null}
+                      </div>
                       <div className="text-xs text-gray-400 uppercase tracking-wider">
                         View Details →
                       </div>

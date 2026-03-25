@@ -178,9 +178,14 @@ export default function Products() {
                   </div>
                   
                   <div className="flex items-end justify-between mt-6">
-                    <p className="text-lg font-medium text-white/90">
-                      PKR {product.price.toLocaleString()}
-                    </p>
+                    <div>
+                      <p className="text-lg font-bold text-[#D4AF37]">
+                        PKR {product.price.toLocaleString()}
+                      </p>
+                      {product.originalPrice && product.originalPrice > product.price ? (
+                        <p className="text-xs text-white/40 line-through">PKR {product.originalPrice.toLocaleString()}</p>
+                      ) : null}
+                    </div>
                     
                     {/* Arrow Interaction */}
                     <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white group-hover:bg-[#D4AF37] group-hover:text-[#0B101E] group-hover:border-[#D4AF37] transition-all duration-500">

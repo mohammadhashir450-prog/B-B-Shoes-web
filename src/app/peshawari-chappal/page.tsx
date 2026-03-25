@@ -78,6 +78,9 @@ export default function PeshawariChappalPage() {
                       <h2 className="text-white text-lg font-bold mb-2 line-clamp-1">{product.name}</h2>
                       <p className="text-gray-400 text-sm mb-3 line-clamp-2">{product.description || 'Authentic Peshawari Chappal.'}</p>
                       <p className="text-[#D4AF37] text-xl font-bold">PKR {product.price.toLocaleString()}</p>
+                      {product.originalPrice && product.originalPrice > product.price ? (
+                        <p className="text-gray-500 text-xs line-through mt-1">PKR {product.originalPrice.toLocaleString()}</p>
+                      ) : null}
                     </div>
                   </article>
                 </Link>

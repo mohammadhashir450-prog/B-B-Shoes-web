@@ -115,6 +115,8 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
   }
 
   const formattedPrice = `PKR ${product.price.toLocaleString()}`;
+  const hasDiscountPricing = Boolean(product.originalPrice && product.originalPrice > product.price);
+  const formattedOriginalPrice = hasDiscountPricing ? `PKR ${Number(product.originalPrice).toLocaleString()}` : '';
 
   return (
     <div className="min-h-screen bg-[#0B101E] text-white">
@@ -188,8 +190,11 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
               </div>
 
               {/* Price */}
-              <div className="flex items-center gap-4 mb-6">
-                <span className="text-3xl font-bold">{formattedPrice}</span>
+              <div className="flex items-end gap-4 mb-6">
+                <span className="text-3xl font-bold text-[#D4AF37]">{formattedPrice}</span>
+                {hasDiscountPricing ? (
+                  <span className="text-lg text-gray-400 line-through">{formattedOriginalPrice}</span>
+                ) : null}
               </div>
 
               {/* Description */}
@@ -347,7 +352,12 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
             </div>
           </div>
           <div className="flex items-center gap-6">
-            <span className="text-xl font-bold hidden md:block">{formattedPrice}</span>
+            <div className="hidden md:block text-right">
+              <span className="text-xl font-bold text-[#D4AF37] block">{formattedPrice}</span>
+              {hasDiscountPricing ? (
+                <span className="text-xs text-gray-400 line-through block">{formattedOriginalPrice}</span>
+              ) : null}
+            </div>
             <button 
               onClick={handleAddToCart}
               disabled={!selectedSize || !product.inStock}
