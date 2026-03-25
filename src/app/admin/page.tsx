@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Package, ShoppingCart, Users, Plus, Edit2, Trash2, X, Save, Camera, Upload, Tag, Lock, Eye, EyeOff, TrendingUp, Sparkles, Crown, Check, ArrowRight, ChevronRight, Clock3 } from 'lucide-react';
+import { Package, ShoppingCart, Users, Plus, Edit2, Trash2, X, Save, Camera, Upload, Tag, Lock, Eye, EyeOff, TrendingUp, Sparkles, Crown, Check, ArrowRight, ChevronRight, Clock3, BarChart3, Wallet, PackageCheck } from 'lucide-react';
 import { CldUploadWidget } from 'next-cloudinary';
 import { useProducts, Product } from '@/context/ProductContext';
 
@@ -75,6 +75,84 @@ export default function AdminPanel() {
   const newArrivals = useMemo(() => {
     return getNewArrivals();
   }, [getNewArrivals]);
+
+  const analytics = useMemo(() => {
+    const grossRevenue = orders.reduce((sum, order) => sum + (Number(order.total) || 0), 0);
+    const deliveredOrders = orders.filter((order) => String(order.status).toLowerCase() === 'delivered');
+    const deliveredRevenue = deliveredOrders.reduce((sum, order) => sum + (Number(order.total) || 0), 0);
+    const totalUnitsSold = orders.reduce((sum, order) => {
+      const qty = (order.items || []).reduce((itemSum: number, item: any) => itemSum + (Number(item.quantity) || 0), 0);
+      return sum + qty;
+    }, 0);
+
+    const statusCount = orders.reduce<Record<string, number>>((acc, order) => {
+      const key = String(order.status || 'pending').toLowerCase();
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    }, {});
+
+    const monthFormatter = new Intl.DateTimeFormat('en-US', { month: 'short' });
+    const monthlyRevenue = Array.from({ length: 6 }, (_, idx) => {
+      const date = new Date();
+      date.setMonth(date.getMonth() - (5 - idx));
+      return {
+        key: `${date.getFullYear()}-${date.getMonth()}`,
+        label: monthFormatter.format(date),
+        revenue: 0,
+      };
+    });
+
+    const monthIndex = monthlyRevenue.reduce<Record<string, number>>((acc, month, idx) => {
+      acc[month.key] = idx;
+      return acc;
+    }, {});
+
+    orders.forEach((order) => {
+      const orderDate = new Date(order.date);
+      if (Number.isNaN(orderDate.getTime())) return;
+
+      const key = `${orderDate.getFullYear()}-${orderDate.getMonth()}`;
+      const idx = monthIndex[key];
+      if (idx !== undefined) {
+        monthlyRevenue[idx].revenue += Number(order.total) || 0;
+      }
+    });
+
+    const productSalesMap = new Map<string, { units: number; revenue: number }>();
+    orders.forEach((order) => {
+      (order.items || []).forEach((item: any) => {
+        const name = String(item.productName || item.name || 'Unknown Product');
+        const units = Number(item.quantity) || 0;
+        const revenue = (Number(item.price) || 0) * units;
+        const existing = productSalesMap.get(name) || { units: 0, revenue: 0 };
+        existing.units += units;
+        existing.revenue += revenue;
+        productSalesMap.set(name, existing);
+      });
+    });
+
+    const topProducts = Array.from(productSalesMap.entries())
+      .map(([name, metrics]) => ({ name, ...metrics }))
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 5);
+
+    const chartMax = Math.max(...monthlyRevenue.map((month) => month.revenue), 1);
+    const avgOrderValue = orders.length > 0 ? grossRevenue / orders.length : 0;
+
+    return {
+      grossRevenue,
+      deliveredRevenue,
+      totalUnitsSold,
+      totalOrders: orders.length,
+      deliveredOrders: deliveredOrders.length,
+      pendingOrders: statusCount.pending || 0,
+      processingOrders: statusCount.processing || 0,
+      monthlyRevenue,
+      chartMax,
+      avgOrderValue,
+      topProducts,
+    };
+  }, [orders]);
   
   // Size and color management
   const [selectedSizes, setSelectedSizes] = useState<string[]>(['7', '8', '9', '10', '11']);
@@ -406,7 +484,8 @@ export default function AdminPanel() {
             { key: 'products', label: 'Portfolio', icon: Package },
             { key: 'sales', label: 'Sales Event', icon: Tag },
             { key: 'newarrivals', label: 'New Drops', icon: Sparkles },
-            { key: 'orders', label: 'Concierge (Orders)', icon: ShoppingCart }
+            { key: 'orders', label: 'Concierge (Orders)', icon: ShoppingCart },
+            { key: 'analytics', label: 'Analytics', icon: BarChart3 }
           ].map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.key;
@@ -1243,6 +1322,124 @@ export default function AdminPanel() {
                 </div>
               ))
             )}
+          </motion.div>
+        )}
+
+        {/* --- ANALYTICS TAB --- */}
+        {activeTab === 'analytics' && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }} className="space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+              <div className="bg-[#121A2F]/70 backdrop-blur-xl border border-white/10 rounded-2xl p-5">
+                <p className="text-[10px] text-white/50 tracking-[0.2em] uppercase font-bold mb-2">Total Revenue</p>
+                <p className="text-2xl font-black text-white">PKR {analytics.grossRevenue.toLocaleString()}</p>
+                <div className="mt-3 flex items-center gap-2 text-[#D4AF37] text-xs">
+                  <Wallet size={14} />
+                  <span>All order totals</span>
+                </div>
+              </div>
+
+              <div className="bg-[#121A2F]/70 backdrop-blur-xl border border-white/10 rounded-2xl p-5">
+                <p className="text-[10px] text-white/50 tracking-[0.2em] uppercase font-bold mb-2">Delivered Revenue</p>
+                <p className="text-2xl font-black text-white">PKR {analytics.deliveredRevenue.toLocaleString()}</p>
+                <div className="mt-3 flex items-center gap-2 text-emerald-400 text-xs">
+                  <Check size={14} />
+                  <span>Completed deliveries</span>
+                </div>
+              </div>
+
+              <div className="bg-[#121A2F]/70 backdrop-blur-xl border border-white/10 rounded-2xl p-5">
+                <p className="text-[10px] text-white/50 tracking-[0.2em] uppercase font-bold mb-2">Units Sold</p>
+                <p className="text-2xl font-black text-white">{analytics.totalUnitsSold.toLocaleString()}</p>
+                <div className="mt-3 flex items-center gap-2 text-sky-400 text-xs">
+                  <PackageCheck size={14} />
+                  <span>Total item quantity</span>
+                </div>
+              </div>
+
+              <div className="bg-[#121A2F]/70 backdrop-blur-xl border border-white/10 rounded-2xl p-5">
+                <p className="text-[10px] text-white/50 tracking-[0.2em] uppercase font-bold mb-2">Average Order Value</p>
+                <p className="text-2xl font-black text-white">PKR {Math.round(analytics.avgOrderValue).toLocaleString()}</p>
+                <div className="mt-3 flex items-center gap-2 text-violet-300 text-xs">
+                  <TrendingUp size={14} />
+                  <span>{analytics.totalOrders} total orders</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+              <div className="xl:col-span-2 bg-[#121A2F]/60 backdrop-blur-xl rounded-3xl border border-white/10 p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h3 className="text-white text-lg font-bold">Revenue Trend (Last 6 Months)</h3>
+                    <p className="text-white/50 text-xs mt-1">Monthly sales amount visualized in chart form</p>
+                  </div>
+                  <span className="text-[10px] uppercase tracking-[0.2em] text-[#D4AF37] font-bold">PKR Scale</span>
+                </div>
+
+                <div className="h-64 grid grid-cols-6 gap-3 items-end">
+                  {analytics.monthlyRevenue.map((month) => {
+                    const ratio = Math.max(6, (month.revenue / analytics.chartMax) * 100);
+
+                    return (
+                      <div key={month.key} className="h-full flex flex-col justify-end gap-2">
+                        <div className="h-52 bg-[#0B101E] border border-white/5 rounded-xl p-2 flex items-end">
+                          <div
+                            className="w-full bg-gradient-to-t from-[#D4AF37] to-[#F4CE5C] rounded-md shadow-[0_0_18px_rgba(212,175,55,0.35)]"
+                            style={{ height: `${ratio}%` }}
+                            title={`PKR ${month.revenue.toLocaleString()}`}
+                          />
+                        </div>
+                        <p className="text-center text-[10px] text-white/60 uppercase tracking-wider">{month.label}</p>
+                        <p className="text-center text-[10px] text-white font-bold">{month.revenue > 0 ? `${Math.round(month.revenue / 1000)}K` : '0'}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <div className="bg-[#121A2F]/60 backdrop-blur-xl rounded-3xl border border-white/10 p-6">
+                  <h3 className="text-white font-bold mb-4">Order Pipeline</h3>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-amber-400">Pending</span>
+                      <span className="text-white font-bold">{analytics.pendingOrders}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-blue-400">Processing</span>
+                      <span className="text-white font-bold">{analytics.processingOrders}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-emerald-400">Delivered</span>
+                      <span className="text-white font-bold">{analytics.deliveredOrders}</span>
+                    </div>
+                    <div className="border-t border-white/10 pt-3 mt-3 flex items-center justify-between text-sm">
+                      <span className="text-white/70">Total Orders</span>
+                      <span className="text-white font-black">{analytics.totalOrders}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-[#121A2F]/60 backdrop-blur-xl rounded-3xl border border-white/10 p-6">
+                  <h3 className="text-white font-bold mb-4">Top Selling Products</h3>
+                  {analytics.topProducts.length === 0 ? (
+                    <p className="text-white/50 text-sm">No product-level sales data yet.</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {analytics.topProducts.map((product) => (
+                        <div key={product.name} className="bg-[#0B101E]/80 border border-white/5 rounded-xl p-3">
+                          <p className="text-sm text-white font-semibold truncate">{product.name}</p>
+                          <div className="mt-2 flex items-center justify-between text-xs text-white/60">
+                            <span>{product.units} units</span>
+                            <span className="text-[#D4AF37] font-bold">PKR {Math.round(product.revenue).toLocaleString()}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
           </motion.div>
         )}
       </div>
