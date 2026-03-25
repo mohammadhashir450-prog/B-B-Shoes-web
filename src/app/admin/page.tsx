@@ -76,50 +76,118 @@ export default function AdminPanel() {
     return getNewArrivals();
   }, [getNewArrivals]);
 
+  const [analyticsRange, setAnalyticsRange] = useState<'7d' | '30d' | 'custom'>('30d');
+  const [customDateFrom, setCustomDateFrom] = useState('');
+  const [customDateTo, setCustomDateTo] = useState('');
+
+  const filteredAnalyticsOrders = useMemo(() => {
+    const now = new Date();
+
+    if (analyticsRange === 'custom') {
+      if (!customDateFrom || !customDateTo) return [];
+
+      const from = new Date(customDateFrom);
+      const to = new Date(customDateTo);
+      from.setHours(0, 0, 0, 0);
+      to.setHours(23, 59, 59, 999);
+
+      if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime()) || from > to) {
+        return [];
+      }
+
+      return orders.filter((order) => {
+        const date = new Date(order.date);
+        if (Number.isNaN(date.getTime())) return false;
+        return date >= from && date <= to;
+      });
+    }
+
+    const from = new Date(now);
+    from.setHours(0, 0, 0, 0);
+    from.setDate(from.getDate() - (analyticsRange === '7d' ? 6 : 29));
+
+    return orders.filter((order) => {
+      const date = new Date(order.date);
+      if (Number.isNaN(date.getTime())) return false;
+      return date >= from && date <= now;
+    });
+  }, [orders, analyticsRange, customDateFrom, customDateTo]);
+
   const analytics = useMemo(() => {
-    const grossRevenue = orders.reduce((sum, order) => sum + (Number(order.total) || 0), 0);
-    const deliveredOrders = orders.filter((order) => String(order.status).toLowerCase() === 'delivered');
+    const grossRevenue = filteredAnalyticsOrders.reduce((sum, order) => sum + (Number(order.total) || 0), 0);
+    const deliveredOrders = filteredAnalyticsOrders.filter((order) => String(order.status).toLowerCase() === 'delivered');
     const deliveredRevenue = deliveredOrders.reduce((sum, order) => sum + (Number(order.total) || 0), 0);
-    const totalUnitsSold = orders.reduce((sum, order) => {
+    const totalUnitsSold = filteredAnalyticsOrders.reduce((sum, order) => {
       const qty = (order.items || []).reduce((itemSum: number, item: any) => itemSum + (Number(item.quantity) || 0), 0);
       return sum + qty;
     }, 0);
 
-    const statusCount = orders.reduce<Record<string, number>>((acc, order) => {
+    const statusCount = filteredAnalyticsOrders.reduce<Record<string, number>>((acc, order) => {
       const key = String(order.status || 'pending').toLowerCase();
       acc[key] = (acc[key] || 0) + 1;
       return acc;
     }, {});
 
-    const monthFormatter = new Intl.DateTimeFormat('en-US', { month: 'short' });
-    const monthlyRevenue = Array.from({ length: 6 }, (_, idx) => {
-      const date = new Date();
-      date.setMonth(date.getMonth() - (5 - idx));
+    const dayFormatter = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' });
+    const startDate = new Date();
+    const endDate = new Date();
+    let rangeLabel = 'Last 30 Days';
+
+    if (analyticsRange === '7d') {
+      startDate.setDate(endDate.getDate() - 6);
+      rangeLabel = 'Last 7 Days';
+    } else if (analyticsRange === '30d') {
+      startDate.setDate(endDate.getDate() - 29);
+      rangeLabel = 'Last 30 Days';
+    } else {
+      if (customDateFrom && customDateTo) {
+        const from = new Date(customDateFrom);
+        const to = new Date(customDateTo);
+        from.setHours(0, 0, 0, 0);
+        to.setHours(23, 59, 59, 999);
+
+        if (!Number.isNaN(from.getTime()) && !Number.isNaN(to.getTime()) && from <= to) {
+          startDate.setTime(from.getTime());
+          endDate.setTime(to.getTime());
+          rangeLabel = `${dayFormatter.format(from)} - ${dayFormatter.format(to)}`;
+        }
+      }
+    }
+
+    startDate.setHours(0, 0, 0, 0);
+    endDate.setHours(23, 59, 59, 999);
+
+    const dayCount = Math.max(1, Math.ceil((endDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000)) + 1);
+    const safeDayCount = Math.min(dayCount, 62);
+    const trendData = Array.from({ length: safeDayCount }, (_, idx) => {
+      const pointDate = new Date(startDate);
+      pointDate.setDate(startDate.getDate() + idx);
+      const key = pointDate.toISOString().slice(0, 10);
+
       return {
-        key: `${date.getFullYear()}-${date.getMonth()}`,
-        label: monthFormatter.format(date),
+        key,
+        label: dayFormatter.format(pointDate),
         revenue: 0,
       };
     });
 
-    const monthIndex = monthlyRevenue.reduce<Record<string, number>>((acc, month, idx) => {
-      acc[month.key] = idx;
+    const trendIndex = trendData.reduce<Record<string, number>>((acc, point, idx) => {
+      acc[point.key] = idx;
       return acc;
     }, {});
 
-    orders.forEach((order) => {
+    filteredAnalyticsOrders.forEach((order) => {
       const orderDate = new Date(order.date);
       if (Number.isNaN(orderDate.getTime())) return;
-
-      const key = `${orderDate.getFullYear()}-${orderDate.getMonth()}`;
-      const idx = monthIndex[key];
+      const key = orderDate.toISOString().slice(0, 10);
+      const idx = trendIndex[key];
       if (idx !== undefined) {
-        monthlyRevenue[idx].revenue += Number(order.total) || 0;
+        trendData[idx].revenue += Number(order.total) || 0;
       }
     });
 
     const productSalesMap = new Map<string, { units: number; revenue: number }>();
-    orders.forEach((order) => {
+    filteredAnalyticsOrders.forEach((order) => {
       (order.items || []).forEach((item: any) => {
         const name = String(item.productName || item.name || 'Unknown Product');
         const units = Number(item.quantity) || 0;
@@ -136,23 +204,24 @@ export default function AdminPanel() {
       .sort((a, b) => b.revenue - a.revenue)
       .slice(0, 5);
 
-    const chartMax = Math.max(...monthlyRevenue.map((month) => month.revenue), 1);
-    const avgOrderValue = orders.length > 0 ? grossRevenue / orders.length : 0;
+    const chartMax = Math.max(...trendData.map((point) => point.revenue), 1);
+    const avgOrderValue = filteredAnalyticsOrders.length > 0 ? grossRevenue / filteredAnalyticsOrders.length : 0;
 
     return {
       grossRevenue,
       deliveredRevenue,
       totalUnitsSold,
-      totalOrders: orders.length,
+      totalOrders: filteredAnalyticsOrders.length,
       deliveredOrders: deliveredOrders.length,
       pendingOrders: statusCount.pending || 0,
       processingOrders: statusCount.processing || 0,
-      monthlyRevenue,
+      trendData,
       chartMax,
       avgOrderValue,
       topProducts,
+      rangeLabel,
     };
-  }, [orders]);
+  }, [filteredAnalyticsOrders, analyticsRange, customDateFrom, customDateTo]);
   
   // Size and color management
   const [selectedSizes, setSelectedSizes] = useState<string[]>(['7', '8', '9', '10', '11']);
@@ -1328,6 +1397,66 @@ export default function AdminPanel() {
         {/* --- ANALYTICS TAB --- */}
         {activeTab === 'analytics' && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }} className="space-y-8">
+            <div className="bg-[#121A2F]/60 backdrop-blur-xl border border-white/10 rounded-2xl p-5">
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                <div>
+                  <h3 className="text-white font-bold">Analytics Date Range</h3>
+                  <p className="text-white/50 text-xs mt-1">Filter metrics by 7 days, 30 days, or custom period.</p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  {(['7d', '30d', 'custom'] as const).map((range) => (
+                    <button
+                      key={range}
+                      type="button"
+                      onClick={() => {
+                        setAnalyticsRange(range);
+                        if (range === 'custom' && (!customDateFrom || !customDateTo)) {
+                          const today = new Date();
+                          const from = new Date(today);
+                          from.setDate(today.getDate() - 29);
+                          const toValue = today.toISOString().slice(0, 10);
+                          const fromValue = from.toISOString().slice(0, 10);
+                          setCustomDateFrom(fromValue);
+                          setCustomDateTo(toValue);
+                        }
+                      }}
+                      className={`px-4 py-2 rounded-lg text-[10px] tracking-[0.2em] uppercase font-bold transition-all border ${
+                        analyticsRange === range
+                          ? 'bg-[#D4AF37] text-[#0B101E] border-[#D4AF37]'
+                          : 'bg-white/5 text-white/70 border-white/10 hover:bg-white/10'
+                      }`}
+                    >
+                      {range}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {analyticsRange === 'custom' && (
+                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[10px] text-white/50 uppercase tracking-[0.2em] font-bold mb-1">From</label>
+                    <input
+                      type="date"
+                      value={customDateFrom}
+                      onChange={(e) => setCustomDateFrom(e.target.value)}
+                      className="w-full bg-[#0B101E] border border-white/10 rounded-xl px-4 py-3 text-sm text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] text-white/50 uppercase tracking-[0.2em] font-bold mb-1">To</label>
+                    <input
+                      type="date"
+                      value={customDateTo}
+                      onChange={(e) => setCustomDateTo(e.target.value)}
+                      className="w-full bg-[#0B101E] border border-white/10 rounded-xl px-4 py-3 text-sm text-white"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
               <div className="bg-[#121A2F]/70 backdrop-blur-xl border border-white/10 rounded-2xl p-5">
                 <p className="text-[10px] text-white/50 tracking-[0.2em] uppercase font-bold mb-2">Total Revenue</p>
@@ -1370,30 +1499,32 @@ export default function AdminPanel() {
               <div className="xl:col-span-2 bg-[#121A2F]/60 backdrop-blur-xl rounded-3xl border border-white/10 p-6">
                 <div className="flex items-center justify-between mb-6">
                   <div>
-                    <h3 className="text-white text-lg font-bold">Revenue Trend (Last 6 Months)</h3>
-                    <p className="text-white/50 text-xs mt-1">Monthly sales amount visualized in chart form</p>
+                    <h3 className="text-white text-lg font-bold">Revenue Trend ({analytics.rangeLabel})</h3>
+                    <p className="text-white/50 text-xs mt-1">Filtered sales amount visualized in chart form</p>
                   </div>
-                  <span className="text-[10px] uppercase tracking-[0.2em] text-[#D4AF37] font-bold">PKR Scale</span>
+                  <span className="text-[10px] uppercase tracking-[0.2em] text-[#D4AF37] font-bold">{analytics.totalOrders} Orders</span>
                 </div>
 
-                <div className="h-64 grid grid-cols-6 gap-3 items-end">
-                  {analytics.monthlyRevenue.map((month) => {
-                    const ratio = Math.max(6, (month.revenue / analytics.chartMax) * 100);
+                <div className="h-72 overflow-x-auto [scrollbar-width:thin]">
+                  <div className="h-full flex items-end gap-3 min-w-max pr-2">
+                    {analytics.trendData.map((point) => {
+                      const ratio = Math.max(6, (point.revenue / analytics.chartMax) * 100);
 
-                    return (
-                      <div key={month.key} className="h-full flex flex-col justify-end gap-2">
-                        <div className="h-52 bg-[#0B101E] border border-white/5 rounded-xl p-2 flex items-end">
-                          <div
-                            className="w-full bg-gradient-to-t from-[#D4AF37] to-[#F4CE5C] rounded-md shadow-[0_0_18px_rgba(212,175,55,0.35)]"
-                            style={{ height: `${ratio}%` }}
-                            title={`PKR ${month.revenue.toLocaleString()}`}
-                          />
+                      return (
+                        <div key={point.key} className="h-full w-[48px] flex flex-col justify-end gap-2">
+                          <div className="h-56 bg-[#0B101E] border border-white/5 rounded-xl p-2 flex items-end">
+                            <div
+                              className="w-full bg-gradient-to-t from-[#D4AF37] to-[#F4CE5C] rounded-md shadow-[0_0_18px_rgba(212,175,55,0.35)]"
+                              style={{ height: `${ratio}%` }}
+                              title={`PKR ${point.revenue.toLocaleString()}`}
+                            />
+                          </div>
+                          <p className="text-center text-[9px] text-white/60 uppercase tracking-wider whitespace-nowrap">{point.label}</p>
+                          <p className="text-center text-[9px] text-white font-bold">{point.revenue > 0 ? `${Math.round(point.revenue / 1000)}K` : '0'}</p>
                         </div>
-                        <p className="text-center text-[10px] text-white/60 uppercase tracking-wider">{month.label}</p>
-                        <p className="text-center text-[10px] text-white font-bold">{month.revenue > 0 ? `${Math.round(month.revenue / 1000)}K` : '0'}</p>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
 
@@ -1423,7 +1554,7 @@ export default function AdminPanel() {
                 <div className="bg-[#121A2F]/60 backdrop-blur-xl rounded-3xl border border-white/10 p-6">
                   <h3 className="text-white font-bold mb-4">Top Selling Products</h3>
                   {analytics.topProducts.length === 0 ? (
-                    <p className="text-white/50 text-sm">No product-level sales data yet.</p>
+                    <p className="text-white/50 text-sm">No product-level sales data in selected range.</p>
                   ) : (
                     <div className="space-y-3">
                       {analytics.topProducts.map((product) => (
