@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
@@ -9,6 +9,7 @@ import { useProducts } from '@/context/ProductContext'
 
 export default function Products() {
   const { allProducts, loading } = useProducts()
+  const sliderRef = useRef<HTMLDivElement>(null)
 
   // Get first 4 regular products (not on sale, not new arrivals)
   const regularProducts = useMemo(() => {
@@ -16,6 +17,16 @@ export default function Products() {
       .filter((p) => !p.isOnSale && !p.isNewArrival)
       .slice(0, 4)
   }, [allProducts])
+
+  const scrollSlider = (direction: 'left' | 'right') => {
+    if (!sliderRef.current) return
+
+    const cardWidth = 360
+    sliderRef.current.scrollBy({
+      left: direction === 'left' ? -cardWidth : cardWidth,
+      behavior: 'smooth',
+    })
+  }
 
   // Premium Loading State
   if (loading) {
@@ -88,17 +99,28 @@ export default function Products() {
             transition={{ duration: 0.8, ease: "easeOut" }}
             className="flex gap-4"
           >
-            <button className="w-12 h-12 rounded-full backdrop-blur-md border border-white/20 bg-white/5 flex items-center justify-center text-white hover:border-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#0B101E] transition-all duration-300">
+            <button
+              onClick={() => scrollSlider('left')}
+              className="w-12 h-12 rounded-full backdrop-blur-md border border-white/20 bg-white/5 flex items-center justify-center text-white hover:border-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#0B101E] transition-all duration-300"
+              aria-label="Scroll products left"
+            >
               <ChevronLeft size={18} strokeWidth={1.5} />
             </button>
-            <button className="w-12 h-12 rounded-full backdrop-blur-md border border-white/20 bg-white/5 flex items-center justify-center text-white hover:border-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#0B101E] transition-all duration-300">
+            <button
+              onClick={() => scrollSlider('right')}
+              className="w-12 h-12 rounded-full backdrop-blur-md border border-white/20 bg-white/5 flex items-center justify-center text-white hover:border-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#0B101E] transition-all duration-300"
+              aria-label="Scroll products right"
+            >
               <ChevronRight size={18} strokeWidth={1.5} />
             </button>
           </motion.div>
         </div>
 
-        {/* Premium Glassmorphism Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+        {/* Premium Glassmorphism Slider */}
+        <div
+          ref={sliderRef}
+          className="flex gap-6 lg:gap-8 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
           {regularProducts.map((product, index) => (
             <motion.div
               key={product.id}
@@ -106,18 +128,18 @@ export default function Products() {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
               viewport={{ once: true, margin: "-50px" }}
-              className="group relative bg-[#121A2F]/40 backdrop-blur-sm border border-white/5 rounded-3xl overflow-hidden hover:border-white/10 transition-all duration-500 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.7)]"
+              className="group relative shrink-0 w-[280px] sm:w-[310px] lg:w-[340px] snap-start bg-[#121A2F]/40 backdrop-blur-sm border border-white/5 rounded-3xl overflow-hidden hover:border-white/10 transition-all duration-500 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.7)]"
             >
               <Link href={`/product/${product.id}`} className="h-full flex flex-col">
                 
                 {/* Image Section */}
-                <div className="relative aspect-[4/5] bg-[#0B101E] overflow-hidden">
+                <div className="relative h-[220px] sm:h-[240px] lg:h-[260px] bg-[#0B101E] overflow-hidden p-3">
                   <Image
                     src={product.image || '/images/placeholder.jpg'}
                     alt={product.name}
                     fill
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                    className="object-cover group-hover:scale-110 group-hover:-rotate-1 transition-transform duration-[1.5s] ease-out opacity-90 group-hover:opacity-100"
+                    sizes="(max-width: 768px) 80vw, (max-width: 1200px) 45vw, 340px"
+                    className="object-contain p-3 group-hover:scale-105 transition-transform duration-700 ease-out opacity-95 group-hover:opacity-100"
                     unoptimized={product.image?.includes('cloudinary')}
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
