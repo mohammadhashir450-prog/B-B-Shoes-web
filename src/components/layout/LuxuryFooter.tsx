@@ -44,8 +44,8 @@ export default function LuxuryFooter() {
             </h3>
             <ul className="space-y-3">
               <li>
-                <Link href="/heritage" className="text-white/50 hover:text-white transition-colors text-sm">
-                  The Heritage Series
+                <Link href="/kids" className="text-white/50 hover:text-white transition-colors text-sm">
+                  The Kids Collection
                 </Link>
               </li>
               <li>

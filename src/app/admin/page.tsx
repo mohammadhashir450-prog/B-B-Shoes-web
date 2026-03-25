@@ -604,7 +604,7 @@ export default function AdminPanel() {
                     >
                       <option value="Men" className="bg-[#0B101E] text-white py-2">Men</option>
                       <option value="Women" className="bg-[#0B101E] text-white py-2">Women</option>
-                      <option value="Heritage" className="bg-[#0B101E] text-white py-2">Heritage</option>
+                      <option value="Kids" className="bg-[#0B101E] text-white py-2">Kids</option>
                     </select>
                   </div>
 
@@ -759,6 +759,35 @@ export default function AdminPanel() {
                       ))}
                     </div>
                   </div>
+                </div>
+
+                {/* Size-wise Inventory Management */}
+                <div className="p-6 bg-white/5 rounded-2xl border border-white/5 mb-10">
+                  <label className="flex items-center gap-2 text-white text-sm font-bold mb-6">
+                    <Package size={16} className="text-[#D4AF37]" /> Size-wise Inventory
+                  </label>
+                  <div className="space-y-3 max-h-[300px] overflow-y-auto">
+                    {selectedSizes.length === 0 ? (
+                      <p className="text-white/40 text-sm text-center py-8">Add sizes above to manage inventory</p>
+                    ) : (
+                      selectedSizes.map(size => (
+                        <div key={size} className="flex items-center gap-4 p-4 bg-[#0B101E] rounded-xl border border-white/5">
+                          <div className="w-16 px-3 py-2 bg-[#D4AF37]/10 border border-[#D4AF37]/30 rounded-lg text-[#D4AF37] font-bold text-center">
+                            Size {size}
+                          </div>
+                          <input 
+                            type="number" 
+                            placeholder="Qty in stock" 
+                            defaultValue={0}
+                            min="0"
+                            className="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-[#D4AF37]/50" 
+                          />
+                          <span className="text-white/40 text-xs uppercase tracking-wide font-bold">units</span>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                  <p className="text-[10px] text-white/30 tracking-widest uppercase mt-4">Leave as 0 to mark out of stock</p>
                 </div>
 
                 {/* Final Actions */}

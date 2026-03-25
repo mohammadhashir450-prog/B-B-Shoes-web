@@ -25,7 +25,7 @@ const mainLinks = [
   { title: 'Collections', href: '/collections' },
   { title: 'Men', href: '/men' },
   { title: 'Women', href: '/women' },
-  { title: 'Heritage', href: '/heritage' }
+  { title: 'Kids', href: '/kids' }
 ]
 
 const subLinks = [

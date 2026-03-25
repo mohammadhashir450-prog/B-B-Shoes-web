@@ -133,7 +133,7 @@ export function ProductProvider({ children }: { children: ReactNode }) {
   }
 };
 
-  // Fetch products on mount
+  // Filter products on mount
   useEffect(() => {
     fetchProducts();
   }, []);

@@ -82,7 +82,7 @@ export default function HeroSection() {
             <div className="flex items-center gap-3">
               <Award className="w-4 h-4 text-[#D4AF37]" />
               <p className="text-[#D4AF37] text-[10px] tracking-[0.25em] uppercase font-bold">
-                The 2024 Collection
+                Trendy Collection
               </p>
             </div>
             <p className="text-white/80 text-sm max-w-[280px] leading-relaxed font-light">

@@ -68,7 +68,7 @@ const ProductSchema = new Schema<IProduct>(
       enum: [
         'Men',
         'Women',
-        'Heritage',
+        'Kids',
         'Running',
         'Basketball',
         'Training',

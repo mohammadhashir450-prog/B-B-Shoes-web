@@ -32,8 +32,8 @@ export default function LuxuryNavbar() {
               Women
               <span className="absolute -bottom-1.5 left-0 right-0 h-0.5 bg-[#f4cf3e] transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
             </Link>
-            <Link href="/heritage" className="relative text-white text-[11px] font-bold tracking-[0.2em] hover:text-[#f4cf3e] transition-colors uppercase group">
-              Heritage
+            <Link href="/kids" className="relative text-white text-[11px] font-bold tracking-[0.2em] hover:text-[#f4cf3e] transition-colors uppercase group">
+              Kids
               <span className="absolute -bottom-1.5 left-0 right-0 h-0.5 bg-[#f4cf3e] transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
             </Link>
           </div>
