@@ -66,6 +66,11 @@ body {
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 255, 255, 255;
   --background-end-rgb: 255, 255, 255;
+  --brand-navy: #0f2747;
+  --brand-navy-soft: #4a607d;
+  --brand-gold: #c79a2b;
+  --surface: #ffffff;
+  --surface-alt: #f4f7fb;
 }
 
 * {
@@ -90,13 +95,54 @@ body {
     rgb(var(--background-start-rgb));
 }
 
-/* Global white page surface (UI-only): force dark base section wrappers to white. */
+/* Global premium light-mode surface overrides (UI only). */
 main[class*="bg-[#0B101E]"],
+main[class*="bg-[#1A2435]"],
 section[class*="bg-[#0B101E]"],
+section[class*="bg-[#1A2435]"],
+section[class*="bg-[#121A2F]"],
 footer[class*="bg-[#0B101E]"],
-div[class*="min-h-screen"][class*="bg-[#0B101E]"] {
-  background-color: #ffffff !important;
+div[class*="min-h-screen"][class*="bg-[#0B101E]"],
+div[class*="bg-[#0F1825]"],
+div[class*="bg-[#121A2F]"],
+div[class*="bg-[#1A2435]"] {
+  background-color: var(--surface) !important;
   background-image: none !important;
+}
+
+[class*="bg-white/5"],
+[class*="bg-white/10"],
+[class*="bg-white/20"] {
+  background-color: var(--surface-alt) !important;
+}
+
+[class*="border-white"],
+[class*="border-[#D4AF37]/20"],
+[class*="border-[#D4AF37]/30"] {
+  border-color: rgba(15, 39, 71, 0.16) !important;
+}
+
+.text-white,
+.text-white\/90,
+.text-white\/80,
+.text-white\/70,
+.text-white\/60,
+.text-white\/50,
+.text-white\/40,
+.text-white\/30,
+.text-white\/20 {
+  color: var(--brand-navy) !important;
+}
+
+.text-gray-400,
+.text-gray-500,
+.text-gray-600 {
+  color: var(--brand-navy-soft) !important;
+}
+
+.text-\[\#D4AF37\],
+.text-\[\#F4CE5C\] {
+  color: var(--brand-gold) !important;
 }
 
 a {
