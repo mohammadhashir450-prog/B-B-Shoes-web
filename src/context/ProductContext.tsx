@@ -56,6 +56,8 @@ export function ProductProvider({ children }: { children: ReactNode }) {
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [menProducts, setMenProducts] = useState<Product[]>([]);
   const [womenProducts, setWomenProducts] = useState<Product[]>([]);
+  const [salesEndsAt, setSalesEndsAt] = useState<string | null>(null);
+  const [nowTick, setNowTick] = useState<number>(Date.now());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -85,6 +87,17 @@ export function ProductProvider({ children }: { children: ReactNode }) {
     
     // Parse the JSON
     const responseData = await response.json();
+
+    // Keep sales timer in sync with admin panel settings.
+    try {
+      const timerResponse = await fetch('/api/settings/sales-timer', { cache: 'no-store' });
+      if (timerResponse.ok) {
+        const timerData = await timerResponse.json();
+        setSalesEndsAt(timerData?.data?.salesEndsAt || null);
+      }
+    } catch (timerError) {
+      console.warn('⚠️ Sales timer fetch skipped:', timerError);
+    }
     
     // Extract products
     const products = responseData.data?.products || []; 
@@ -138,6 +151,15 @@ export function ProductProvider({ children }: { children: ReactNode }) {
     fetchProducts();
   }, []);
 
+  // Re-check time periodically so sales vanish right after timer expiry.
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setNowTick(Date.now());
+    }, 30000);
+
+    return () => clearInterval(timer);
+  }, []);
+
   // Helper: Get product by ID
   const getProductById = (id: string): Product | undefined => {
     return allProducts.find(p => p.id === id);
@@ -174,6 +196,13 @@ export function ProductProvider({ children }: { children: ReactNode }) {
 
   // Helper: Get sale products
   const getSaleProducts = (): Product[] => {
+    if (salesEndsAt) {
+      const endDate = new Date(salesEndsAt);
+      if (!Number.isNaN(endDate.getTime()) && nowTick > endDate.getTime()) {
+        return [];
+      }
+    }
+
     return allProducts
       .filter((p) => p.isOnSale === true || (p.discount || 0) > 0 || ((p.originalPrice || 0) > p.price))
       .sort((a, b) => (b.discount || 0) - (a.discount || 0));

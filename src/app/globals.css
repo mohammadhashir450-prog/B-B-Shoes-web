@@ -90,6 +90,12 @@ body {
     rgb(var(--background-start-rgb));
 }
 
+/* Global white page surface (UI-only): keeps logic untouched while shifting app background tone. */
+main[class*="bg-\\[\\#0B101E\\]"],
+div[class*="min-h-screen"][class*="bg-\\[\\#0B101E\\]"] {
+  background-color: #ffffff !important;
+}
+
 a {
   color: inherit;
   text-decoration: none;
