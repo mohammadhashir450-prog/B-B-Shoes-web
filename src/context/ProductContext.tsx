@@ -68,6 +68,18 @@ export function ProductProvider({ children }: { children: ReactNode }) {
       .replace(/['’]/g, '')
       .replace(/\s+/g, '');
 
+  const fetchSalesTimer = async () => {
+    try {
+      const timerResponse = await fetch('/api/settings/sales-timer', { cache: 'no-store' });
+      if (timerResponse.ok) {
+        const timerData = await timerResponse.json();
+        setSalesEndsAt(timerData?.data?.salesEndsAt || null);
+      }
+    } catch (timerError) {
+      console.warn('⚠️ Sales timer fetch skipped:', timerError);
+    }
+  };
+
   // Fetch all products once
   const fetchProducts = async () => {
   try {
@@ -89,15 +101,7 @@ export function ProductProvider({ children }: { children: ReactNode }) {
     const responseData = await response.json();
 
     // Keep sales timer in sync with admin panel settings.
-    try {
-      const timerResponse = await fetch('/api/settings/sales-timer', { cache: 'no-store' });
-      if (timerResponse.ok) {
-        const timerData = await timerResponse.json();
-        setSalesEndsAt(timerData?.data?.salesEndsAt || null);
-      }
-    } catch (timerError) {
-      console.warn('⚠️ Sales timer fetch skipped:', timerError);
-    }
+    await fetchSalesTimer();
     
     // Extract products
     const products = responseData.data?.products || []; 
@@ -158,6 +162,15 @@ export function ProductProvider({ children }: { children: ReactNode }) {
     }, 30000);
 
     return () => clearInterval(timer);
+  }, []);
+
+  // Poll timer settings so admin timer changes reflect for users without hard refresh.
+  useEffect(() => {
+    const timerPoll = setInterval(() => {
+      fetchSalesTimer();
+    }, 30000);
+
+    return () => clearInterval(timerPoll);
   }, []);
 
   // Helper: Get product by ID
