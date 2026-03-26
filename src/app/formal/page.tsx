@@ -2,9 +2,9 @@
 
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
+import HoverSwapImage from '@/components/common/HoverSwapImage'
 import { ChevronRight, Star, Loader2, Award, Shield, Sparkles, ArrowRight, Heart, ShoppingBag } from 'lucide-react'
 import { useProducts } from '@/context/ProductContext'
 import { useCart } from '@/context/CartContext'
@@ -194,17 +194,12 @@ export default function FormalPage() {
                       
                       {/* Product Image */}
                       <div className={`relative ${index === 0 ? 'aspect-[3/4]' : 'aspect-square'} overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100`}>
-                        <Image
-                          src={product.image || '/images/placeholder.jpg'}
+                        <HoverSwapImage
+                          primaryImage={product.image}
+                          secondaryImage={product.secondaryImage}
                           alt={product.name}
-                          fill
                           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                          className="object-cover group-hover:scale-110 transition-transform duration-700"
-                          unoptimized={product.image?.includes('cloudinary')}
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.src = '/images/placeholder.jpg';
-                          }}
+                          fitClassName="object-cover group-hover:scale-110 transition-transform duration-700"
                         />
                         
                         {/* Badges */}

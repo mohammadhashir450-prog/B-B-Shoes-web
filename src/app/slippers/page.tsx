@@ -2,9 +2,9 @@
 
 import { useMemo } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
+import HoverSwapImage from '@/components/common/HoverSwapImage'
 import { ChevronRight, Loader2 } from 'lucide-react'
 import { useProducts } from '@/context/ProductContext'
 
@@ -62,13 +62,12 @@ export default function SlippersPage() {
                 <Link href={`/product/${product.id}`} key={product.id} className="group">
                   <article className="bg-gradient-to-b from-white to-gray-100 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300">
                     <div className="relative aspect-[4/5] overflow-hidden">
-                      <Image
-                        src={product.image || '/images/placeholder.jpg'}
+                      <HoverSwapImage
+                        primaryImage={product.image}
+                        secondaryImage={product.secondaryImage}
                         alt={product.name}
-                        fill
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        className="object-cover group-hover:scale-105 transition-transform duration-500"
-                        unoptimized={product.image?.includes('cloudinary')}
+                        fitClassName="object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                     </div>
                     <div className="p-5 bg-[#111827]">

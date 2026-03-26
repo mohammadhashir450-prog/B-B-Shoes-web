@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { ArrowRight, ShoppingBag, Loader2 } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import HoverSwapImage from '@/components/common/HoverSwapImage';
 import { useProducts } from '@/context/ProductContext';
 
 type TimeLeft = {
@@ -213,17 +213,12 @@ export default function SalesPage() {
                       <span className="text-xs font-bold">-{product.discount}%</span>
                     </div>
                   )}
-                  <Image 
-                    src={product.image || '/images/placeholder.jpg'} 
+                  <HoverSwapImage
+                    primaryImage={product.image}
+                    secondaryImage={product.secondaryImage}
                     alt={product.name}
-                    fill
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    className="object-cover group-hover:scale-105 transition-transform duration-500"
-                    unoptimized={product.image?.includes('cloudinary')}
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src = '/images/placeholder.jpg';
-                    }}
+                    fitClassName="object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                   <div className="absolute top-4 right-4 z-10 bg-black/60 backdrop-blur-sm border border-[#D4AF37] text-[#D4AF37] px-3 py-1 rounded-full">
                     <span className="text-xs font-bold tracking-wider">SALE</span>

@@ -1,11 +1,11 @@
 'use client'
 
 import { useMemo, useRef } from 'react'
-import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Heart, ChevronLeft, ChevronRight, ShoppingBag, Sparkles, ArrowUpRight } from 'lucide-react'
 import { useProducts } from '@/context/ProductContext'
+import HoverSwapImage from '@/components/common/HoverSwapImage'
 
 export default function Products() {
   const { allProducts, loading } = useProducts()
@@ -134,17 +134,12 @@ export default function Products() {
                 
                 {/* Image Section */}
                 <div className="relative h-[220px] sm:h-[240px] lg:h-[260px] bg-[#0B101E] overflow-hidden p-3">
-                  <Image
-                    src={product.image || '/images/placeholder.jpg'}
+                  <HoverSwapImage
+                    primaryImage={product.image}
+                    secondaryImage={product.secondaryImage}
                     alt={product.name}
-                    fill
                     sizes="(max-width: 768px) 80vw, (max-width: 1200px) 45vw, 340px"
-                    className="object-contain p-3 group-hover:scale-105 transition-transform duration-700 ease-out opacity-95 group-hover:opacity-100"
-                    unoptimized={product.image?.includes('cloudinary')}
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src = '/images/placeholder.jpg';
-                    }}
+                    fitClassName="object-contain p-3 group-hover:scale-105 transition-transform duration-700 ease-out opacity-95 group-hover:opacity-100"
                   />
                   
                   {/* Subtle Image Overlay */}

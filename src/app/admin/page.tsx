@@ -267,6 +267,8 @@ export default function AdminPanel() {
   const [timerMessage, setTimerMessage] = useState('');
   const [imageUploadError, setImageUploadError] = useState('');
   const [imageUploadStatus, setImageUploadStatus] = useState('');
+  const [secondaryImageUploadError, setSecondaryImageUploadError] = useState('');
+  const [secondaryImageUploadStatus, setSecondaryImageUploadStatus] = useState('');
   
   const [newProduct, setNewProduct] = useState<Product>({
     id: '',
@@ -275,6 +277,7 @@ export default function AdminPanel() {
     originalPrice: 0,
     discount: 0,
     image: '',
+    secondaryImage: '',
     sizeColorImages: [],
     category: 'Men',
     subcategory: '',
@@ -537,6 +540,8 @@ export default function AdminPanel() {
         setSelectedColors(['Black']);
         setImageUploadError('');
         setImageUploadStatus('');
+        setSecondaryImageUploadError('');
+        setSecondaryImageUploadStatus('');
       } else {
         alert('✗ Failed to save changes: ' + (responseData?.message || 'Unknown error'));
       }
@@ -646,88 +651,174 @@ export default function AdminPanel() {
                 
                 {/* Image Upload Section */}
                 <div className="mb-10 p-8 bg-white/5 rounded-2xl border border-white/5">
-                  <label className="block text-white/50 text-[10px] tracking-[0.2em] uppercase font-bold mb-4">Master Visual</label>
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-8">
-                    <div className="w-48 h-48 bg-[#0B101E] rounded-2xl border-2 border-dashed border-white/20 flex items-center justify-center overflow-hidden relative shadow-lg group">
-                      {currentProduct.image ? (
-                        <Image 
-                          src={currentProduct.image} 
-                          alt="preview" 
-                          fill 
-                          className="object-cover opacity-90 group-hover:opacity-100 transition-opacity" 
-                          unoptimized={currentProduct.image.includes('cloudinary')}
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.style.display = 'none';
-                          }}
-                        />
-                      ) : (
-                        <Camera size={32} className="text-white/20" />
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <CldUploadWidget 
-                        uploadPreset="bb_web"
-                        options={{
-                          cloudName: 'dt2ikjlfc',
-                          sources: ['local', 'url', 'camera'],
-                          multiple: false,
-                          maxFiles: 1,
-                          maxFileSize: 5000000,
-                          clientAllowedFormats: ['png', 'jpg', 'jpeg', 'webp'],
-                          folder: 'bb_shoes'
-                        }}
-                        onSuccess={(result: any) => {
-                          try {
-                            const url = result?.info?.secure_url;
-                            if (!url) {
-                              console.error('🔴 No URL from Cloudinary:', result);
-                              setImageUploadError('Image upload failed: No URL returned');
-                              return;
-                            }
-                            console.log('✅ Image uploaded:', url.substring(0, 50) + '...');
-                            setImageUploadError('');
-                            setImageUploadStatus('✓ Image uploaded');
-                            setTimeout(() => setImageUploadStatus(''), 3000);
-                            
-                            if (editingProduct) setEditingProduct({...editingProduct, image: url});
-                            else if (editingSaleProduct) setEditingSaleProduct({...editingSaleProduct, image: url});
-                            else if (editingNewArrival) setEditingNewArrival({...editingNewArrival, image: url});
-                            else setNewProduct({...newProduct, image: url});
-                          } catch (err) {
-                            console.error('🔴 Upload result error:', err);
-                            setImageUploadError('Failed to process upload');
-                          }
-                        }}
-                        onError={(error: any) => {
-                          console.error('🔴 Upload error:', error);
-                          setImageUploadError('Upload failed: ' + (error?.message || 'Unknown error'));
-                        }}
-                      >
-                        {({ open }) => (
-                          <button 
-                            type="button"
-                            onClick={() => open()} 
-                            className="bg-white/10 border border-white/20 text-white px-8 py-4 rounded-xl font-bold tracking-wide flex items-center gap-3 hover:bg-white/20 transition-all text-sm"
-                          >
-                            <Upload size={18} /> 
-                            Upload via Cloudinary
-                          </button>
+                  <label className="block text-white/50 text-[10px] tracking-[0.2em] uppercase font-bold mb-4">Product Visuals</label>
+                  <div className="grid lg:grid-cols-2 gap-8">
+                    <div>
+                      <p className="text-white/70 text-xs font-bold tracking-[0.18em] uppercase mb-3">Primary Image</p>
+                      <div className="w-full h-48 bg-[#0B101E] rounded-2xl border-2 border-dashed border-white/20 flex items-center justify-center overflow-hidden relative shadow-lg group">
+                        {currentProduct.image ? (
+                          <Image 
+                            src={currentProduct.image}
+                            alt="Primary preview"
+                            fill
+                            className="object-cover opacity-90 group-hover:opacity-100 transition-opacity"
+                            unoptimized={currentProduct.image.includes('cloudinary')}
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                            }}
+                          />
+                        ) : (
+                          <Camera size={32} className="text-white/20" />
                         )}
-                      </CldUploadWidget>
-                      <p className="text-[10px] tracking-wide text-white/30 uppercase mt-4">Req: 800x800px, PNG/WEBP/JPG (Transparent BG preferred)</p>
-                      {imageUploadError && (
-                        <div className="mt-3 p-2 bg-red-500/10 border border-red-500/30 rounded text-xs text-red-400">
-                          🔴 {imageUploadError}
-                        </div>
-                      )}
-                      {imageUploadStatus && (
-                        <div className="mt-3 p-2 bg-green-500/10 border border-green-500/30 rounded text-xs text-green-400">
-                          {imageUploadStatus}
-                        </div>
-                      )}
+                      </div>
+
+                      <div className="mt-4">
+                        <CldUploadWidget
+                          uploadPreset="bb_web"
+                          options={{
+                            cloudName: 'dt2ikjlfc',
+                            sources: ['local', 'url', 'camera'],
+                            multiple: false,
+                            maxFiles: 1,
+                            maxFileSize: 5000000,
+                            clientAllowedFormats: ['png', 'jpg', 'jpeg', 'webp'],
+                            folder: 'bb_shoes'
+                          }}
+                          onSuccess={(result: any) => {
+                            try {
+                              const url = result?.info?.secure_url;
+                              if (!url) {
+                                setImageUploadError('Image upload failed: No URL returned');
+                                return;
+                              }
+
+                              setImageUploadError('');
+                              setImageUploadStatus('✓ Primary image uploaded');
+                              setTimeout(() => setImageUploadStatus(''), 3000);
+
+                              if (editingProduct) setEditingProduct({ ...editingProduct, image: url });
+                              else if (editingSaleProduct) setEditingSaleProduct({ ...editingSaleProduct, image: url });
+                              else if (editingNewArrival) setEditingNewArrival({ ...editingNewArrival, image: url });
+                              else setNewProduct({ ...newProduct, image: url });
+                            } catch {
+                              setImageUploadError('Failed to process upload');
+                            }
+                          }}
+                          onError={(error: any) => {
+                            setImageUploadError('Upload failed: ' + (error?.message || 'Unknown error'));
+                          }}
+                        >
+                          {({ open }) => (
+                            <button
+                              type="button"
+                              onClick={() => open()}
+                              className="w-full bg-white/10 border border-white/20 text-white px-6 py-3 rounded-xl font-bold tracking-wide flex items-center justify-center gap-3 hover:bg-white/20 transition-all text-sm"
+                            >
+                              <Upload size={18} />
+                              Upload Primary
+                            </button>
+                          )}
+                        </CldUploadWidget>
+
+                        {imageUploadError && (
+                          <div className="mt-3 p-2 bg-red-500/10 border border-red-500/30 rounded text-xs text-red-400">
+                            🔴 {imageUploadError}
+                          </div>
+                        )}
+                        {imageUploadStatus && (
+                          <div className="mt-3 p-2 bg-green-500/10 border border-green-500/30 rounded text-xs text-green-400">
+                            {imageUploadStatus}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="text-white/70 text-xs font-bold tracking-[0.18em] uppercase mb-3">Hover Image (Desktop)</p>
+                      <div className="w-full h-48 bg-[#0B101E] rounded-2xl border-2 border-dashed border-white/20 flex items-center justify-center overflow-hidden relative shadow-lg group">
+                        {currentProduct.secondaryImage ? (
+                          <Image
+                            src={currentProduct.secondaryImage}
+                            alt="Secondary preview"
+                            fill
+                            className="object-cover opacity-90 group-hover:opacity-100 transition-opacity"
+                            unoptimized={currentProduct.secondaryImage.includes('cloudinary')}
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                            }}
+                          />
+                        ) : (
+                          <div className="text-center px-4">
+                            <Camera size={28} className="text-white/20 mx-auto mb-2" />
+                            <p className="text-white/30 text-xs">Optional second image for hover swap</p>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="mt-4">
+                        <CldUploadWidget
+                          uploadPreset="bb_web"
+                          options={{
+                            cloudName: 'dt2ikjlfc',
+                            sources: ['local', 'url', 'camera'],
+                            multiple: false,
+                            maxFiles: 1,
+                            maxFileSize: 5000000,
+                            clientAllowedFormats: ['png', 'jpg', 'jpeg', 'webp'],
+                            folder: 'bb_shoes'
+                          }}
+                          onSuccess={(result: any) => {
+                            try {
+                              const url = result?.info?.secure_url;
+                              if (!url) {
+                                setSecondaryImageUploadError('Secondary upload failed: No URL returned');
+                                return;
+                              }
+
+                              setSecondaryImageUploadError('');
+                              setSecondaryImageUploadStatus('✓ Secondary image uploaded');
+                              setTimeout(() => setSecondaryImageUploadStatus(''), 3000);
+
+                              if (editingProduct) setEditingProduct({ ...editingProduct, secondaryImage: url });
+                              else if (editingSaleProduct) setEditingSaleProduct({ ...editingSaleProduct, secondaryImage: url });
+                              else if (editingNewArrival) setEditingNewArrival({ ...editingNewArrival, secondaryImage: url });
+                              else setNewProduct({ ...newProduct, secondaryImage: url });
+                            } catch {
+                              setSecondaryImageUploadError('Failed to process secondary upload');
+                            }
+                          }}
+                          onError={(error: any) => {
+                            setSecondaryImageUploadError('Upload failed: ' + (error?.message || 'Unknown error'));
+                          }}
+                        >
+                          {({ open }) => (
+                            <button
+                              type="button"
+                              onClick={() => open()}
+                              className="w-full bg-white/10 border border-white/20 text-white px-6 py-3 rounded-xl font-bold tracking-wide flex items-center justify-center gap-3 hover:bg-white/20 transition-all text-sm"
+                            >
+                              <Upload size={18} />
+                              Upload Hover Image
+                            </button>
+                          )}
+                        </CldUploadWidget>
+
+                        {secondaryImageUploadError && (
+                          <div className="mt-3 p-2 bg-red-500/10 border border-red-500/30 rounded text-xs text-red-400">
+                            🔴 {secondaryImageUploadError}
+                          </div>
+                        )}
+                        {secondaryImageUploadStatus && (
+                          <div className="mt-3 p-2 bg-green-500/10 border border-green-500/30 rounded text-xs text-green-400">
+                            {secondaryImageUploadStatus}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
+                  <p className="text-[10px] tracking-wide text-white/30 uppercase mt-5">Recommended: 800x800px PNG/WEBP/JPG for smooth hover transitions</p>
                 </div>
 
                 {/* Form Fields Grid */}
@@ -1126,7 +1217,7 @@ export default function AdminPanel() {
               onClick={() => {
                 setShowAddForm(true);
                 setNewProduct({
-                  id: '', name: '', price: 0, originalPrice: 0, discount: 0, image: '', sizeColorImages: [],
+                  id: '', name: '', price: 0, originalPrice: 0, discount: 0, image: '', secondaryImage: '', sizeColorImages: [],
                   category: 'Men', subcategory: '', brand: 'B&B', sizes: [], colors: [], description: '',
                   rating: 4.5, reviews: 0, inStock: true, isOnSale: false, isNewArrival: false
                 });
@@ -1261,7 +1352,7 @@ export default function AdminPanel() {
               onClick={() => {
                 setShowAddSaleForm(true);
                 setNewProduct({
-                  id: '', name: '', price: 0, originalPrice: 0, discount: 0, image: '', sizeColorImages: [],
+                  id: '', name: '', price: 0, originalPrice: 0, discount: 0, image: '', secondaryImage: '', sizeColorImages: [],
                   category: 'Men', subcategory: '', brand: 'B&B', sizes: [], colors: [], description: '',
                   rating: 4.5, reviews: 0, inStock: true, isOnSale: true, isNewArrival: false
                 });
@@ -1349,7 +1440,7 @@ export default function AdminPanel() {
               onClick={() => {
                 setShowAddNewArrivalForm(true);
                 setNewProduct({
-                  id: '', name: '', price: 0, originalPrice: 0, discount: 0, image: '', sizeColorImages: [],
+                  id: '', name: '', price: 0, originalPrice: 0, discount: 0, image: '', secondaryImage: '', sizeColorImages: [],
                   category: 'Men', subcategory: '', brand: 'B&B', sizes: [], colors: [], description: '',
                   rating: 4.5, reviews: 0, inStock: true, isOnSale: false, isNewArrival: true
                 });

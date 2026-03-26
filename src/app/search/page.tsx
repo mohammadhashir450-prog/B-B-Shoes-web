@@ -1,12 +1,12 @@
 'use client'
 
 import { Suspense, useEffect, useMemo, useState } from 'react'
-import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Search, ArrowRight } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
+import HoverSwapImage from '@/components/common/HoverSwapImage'
 import { useProducts } from '@/context/ProductContext'
 
 function SearchPageContent() {
@@ -104,12 +104,11 @@ function SearchPageContent() {
                   className="group bg-[#121A2F]/70 border border-white/10 rounded-2xl overflow-hidden hover:border-[#D4AF37]/40 transition-colors"
                 >
                   <div className="relative aspect-[4/5] bg-[#0F1628]">
-                    <Image
-                      src={product.image || '/images/placeholder.jpg'}
+                    <HoverSwapImage
+                      primaryImage={product.image}
+                      secondaryImage={product.secondaryImage}
                       alt={product.name}
-                      fill
-                      className="object-cover"
-                      unoptimized={product.image?.includes('cloudinary')}
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     />
                   </div>
                   <div className="p-4">

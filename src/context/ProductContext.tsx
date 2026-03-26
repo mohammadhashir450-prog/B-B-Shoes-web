@@ -10,6 +10,7 @@ export interface Product {
   originalPrice?: number;
   discount?: number;
   image: string;
+  secondaryImage?: string;
   sizeColorImages?: any[];
   category: string;
   subcategory?: string;

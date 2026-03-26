@@ -61,6 +61,7 @@ export const GET = asyncHandler(async (req: NextRequest) => {
     originalPrice: product.originalPrice,
     discount: product.discount,
     image: product.image,
+    secondaryImage: (product as any).secondaryImage,
     sizeColorImages: product.sizeColorImages,
     category: product.category,
     subcategory: (product as any).subcategory,

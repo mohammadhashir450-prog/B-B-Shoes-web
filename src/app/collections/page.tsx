@@ -2,10 +2,10 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
+import HoverSwapImage from '@/components/common/HoverSwapImage'
 import { ChevronRight, Grid, Loader2, ShoppingBag } from 'lucide-react'
 import { useProducts } from '@/context/ProductContext'
 
@@ -145,13 +145,12 @@ export default function CollectionsPage() {
                           NEW
                         </div>
                       ) : null}
-                      <Image
-                        src={product.image || '/images/placeholder.jpg'}
+                      <HoverSwapImage
+                        primaryImage={product.image}
+                        secondaryImage={product.secondaryImage}
                         alt={product.name}
-                        fill
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        className="object-cover group-hover:scale-105 transition-transform duration-500"
-                        unoptimized={product.image?.includes('cloudinary')}
+                        fitClassName="object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                     </div>
 

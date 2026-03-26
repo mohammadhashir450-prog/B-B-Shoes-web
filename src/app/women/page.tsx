@@ -2,9 +2,9 @@
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
+import HoverSwapImage from '@/components/common/HoverSwapImage'
 import { ChevronRight, Star, Sparkles, Loader2 } from 'lucide-react'
 import { useProducts } from '@/context/ProductContext'
 
@@ -111,17 +111,12 @@ export default function WomenPage() {
                 >
                   <div className="bg-gradient-to-br from-[#1A2435] to-[#0F1825] rounded-2xl overflow-hidden border border-white/5 hover:border-[#D4AF37]/50 transition-all duration-500 hover:shadow-2xl hover:shadow-[#D4AF37]/10">
                     <div className="relative aspect-square bg-black/20 overflow-hidden">
-                      <Image
-                        src={product.image || '/images/placeholder.jpg'}
+                      <HoverSwapImage
+                        primaryImage={product.image}
+                        secondaryImage={product.secondaryImage}
                         alt={product.name}
-                        fill
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        className="object-cover group-hover:scale-110 transition-transform duration-700"
-                        unoptimized={product.image?.includes('cloudinary')}
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.src = '/images/placeholder.jpg';
-                        }}
+                        fitClassName="object-cover group-hover:scale-110 transition-transform duration-700"
                       />
                       {product.isNewArrival && (
                         <div className="absolute top-4 right-4">

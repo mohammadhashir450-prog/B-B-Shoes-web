@@ -7,6 +7,7 @@ export interface IProduct extends Document {
   originalPrice?: number;
   discount?: number;
   image: string;
+  secondaryImage?: string;
   sizeColorImages?: Array<{
     size: number;
     color: string;
@@ -54,6 +55,10 @@ const ProductSchema = new Schema<IProduct>(
     image: {
       type: String,
       required: [true, 'Product image is required'],
+    },
+    secondaryImage: {
+      type: String,
+      default: '',
     },
     sizeColorImages: [
       {
