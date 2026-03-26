@@ -89,32 +89,28 @@ export default function CollectionsPage() {
           </div>
 
           {/* Category Filter Buttons */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2.5 md:gap-3.5">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
             {categories.map((category) => (
               <button
                 key={category.key}
                 onClick={() => handleCategoryTap(category.key)}
-                className={`rounded-[2rem] p-3.5 md:p-4 text-center transition-all duration-300 group border min-h-[104px] md:min-h-[112px] shadow-[0_8px_25px_-18px_rgba(0,0,0,0.8)] ${
+                className={`rounded-lg p-4 md:p-5 text-center transition-all group border min-h-[120px] md:min-h-[132px] ${
                   activeCategory === category.key
                     ? 'bg-[#D4AF37] text-[#0B101E] border-[#D4AF37]'
-                    : 'bg-[#1A2435] hover:bg-[#202E47] text-white border-white/10 hover:border-[#D4AF37]/35'
+                    : 'bg-[#1A2435] hover:bg-[#243048] text-white border-white/5 hover:border-[#D4AF37]/30'
                 }`}
               >
-                <div className={`w-11 h-11 md:w-12 md:h-12 mx-auto mb-2.5 rounded-full flex items-center justify-center text-2xl md:text-[28px] transition-transform duration-300 ${
-                  activeCategory === category.key
-                    ? 'bg-[#0B101E]/10'
-                    : 'bg-white/5 group-hover:bg-[#D4AF37]/10 group-hover:scale-105'
-                }`}>
-                  <span>{category.icon}</span>
+                <div className="text-3xl md:text-4xl mb-2 md:mb-3 group-hover:scale-110 transition-transform">
+                  {category.icon}
                 </div>
-                <h3 className="text-[15px] md:text-base font-bold mb-0.5 line-clamp-2 leading-tight">
+                <h3 className="text-sm md:text-base font-bold mb-1 line-clamp-2 leading-snug">
                   {category.name}
                 </h3>
-                <div className={`flex items-center justify-center gap-1 text-[10px] md:text-[11px] font-semibold transition-opacity ${
+                <div className={`flex items-center justify-center gap-1.5 text-[11px] md:text-xs font-semibold transition-opacity ${
                   activeCategory === category.key ? 'text-[#0B101E]' : 'text-[#D4AF37] opacity-0 group-hover:opacity-100'
                 }`}>
                   <span>{activeCategory === category.key ? 'Active' : 'Explore'}</span>
-                  <ChevronRight size={11} />
+                  <ChevronRight size={12} />
                 </div>
               </button>
             ))}

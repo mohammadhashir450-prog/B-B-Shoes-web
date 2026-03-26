@@ -159,15 +159,15 @@ export default function Navbar() {
         animate={{ y: isVisible ? 0 : -100 }}
         transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
         className={`fixed left-0 right-0 z-[100] flex justify-center transition-all duration-500 ease-out ${
-          isAtTop ? 'top-0 px-6 py-4 md:px-10' : 'top-4 px-4'
+          isAtTop ? 'top-0 px-6 py-6 md:px-10' : 'top-4 px-4'
         }`}
       >
         <div 
           // REMOVED `overflow-hidden` here so the profile dropdown isn't clipped
           className={`flex items-center justify-between transition-all duration-500 relative ${
             isAtTop 
-              ? 'w-full max-w-[1400px] bg-black/95 backdrop-blur-xl border border-white/10 shadow-[0_20px_45px_-15px_rgba(0,0,0,0.75)] rounded-full px-6 md:px-8 py-3'
-              : 'w-full max-w-5xl bg-black/95 backdrop-blur-xl border border-white/10 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.6)] rounded-full px-6 md:px-8 py-3'
+              ? 'w-full max-w-[1400px] bg-transparent border-transparent' 
+              : 'w-full max-w-5xl bg-[#0B101E]/80 backdrop-blur-xl border border-white/10 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)] rounded-full px-6 md:px-8 py-3'
           }`}
         >
           {/* Left: Hamburger */}
