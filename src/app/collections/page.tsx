@@ -1,9 +1,9 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import { ChevronRight, Grid, Loader2, ShoppingBag } from 'lucide-react'
@@ -27,14 +27,27 @@ const categories = [
 
 export default function CollectionsPage() {
   const router = useRouter()
-  const searchParams = useSearchParams()
   const { getAllProducts, getSaleProducts, getNewArrivals, getProductsByCategory, loading } = useProducts()
+  const [requestedCategory, setRequestedCategory] = useState('all')
+
+  useEffect(() => {
+    const updateCategoryFromUrl = () => {
+      const params = new URLSearchParams(window.location.search)
+      setRequestedCategory(params.get('category') || 'all')
+    }
+
+    updateCategoryFromUrl()
+    window.addEventListener('popstate', updateCategoryFromUrl)
+
+    return () => {
+      window.removeEventListener('popstate', updateCategoryFromUrl)
+    }
+  }, [])
 
   const activeCategory = useMemo(() => {
-    const requestedCategory = searchParams.get('category') || 'all'
     const isValid = categories.some((category) => category.key === requestedCategory)
     return isValid ? requestedCategory : 'all'
-  }, [searchParams])
+  }, [requestedCategory])
 
   const products = useMemo(() => {
     return getAllProducts()
