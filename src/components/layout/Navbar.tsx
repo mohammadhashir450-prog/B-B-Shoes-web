@@ -37,6 +37,22 @@ const subLinks = [
   { title: 'Running Shoes', href: '/running' }
 ]
 
+const collectionFilterLinks = [
+  { title: 'All Products', href: '/collections' },
+  { title: 'New Arrivals', href: '/collections?category=new-arrivals' },
+  { title: 'Sales & Discounts', href: '/collections?category=sales' },
+  { title: 'Sneakers', href: '/collections?category=sneakers' },
+  { title: 'Loafers', href: '/collections?category=loafers' },
+  { title: 'Formal Shoes', href: '/collections?category=formal' },
+  { title: 'Running Shoes', href: '/collections?category=running' },
+  { title: 'Boots', href: '/collections?category=boots' },
+  { title: 'Slippers', href: '/collections?category=slippers' },
+  { title: 'Peshawari Chappal', href: '/collections?category=peshawari-chappal' },
+  { title: 'Kids Collection', href: '/collections?category=kids' },
+  { title: "Men's Collection", href: '/collections?category=men' },
+  { title: "Women's Collection", href: '/collections?category=women' }
+]
+
 const accountLinks = [
   { title: 'My Orders', href: '/my-orders' },
   { title: 'My Addresses', href: '/my-addresses' },
@@ -84,6 +100,7 @@ export default function Navbar() {
   
   // UI States
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isCollectionMenuOpen, setIsCollectionMenuOpen] = useState(false)
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [isTransactionsOpen, setIsTransactionsOpen] = useState(false)
   const [hoveredMenuLink, setHoveredMenuLink] = useState<string | null>(null)
@@ -94,12 +111,19 @@ export default function Navbar() {
   const lastScrollY = useRef(0)
   
   const profileRef = useRef<HTMLDivElement>(null)
+  const collectionMenuRef = useRef<HTMLDivElement>(null)
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen)
+    setIsCollectionMenuOpen(false)
     setIsProfileOpen(false) 
     if (isMenuOpen) setIsTransactionsOpen(false)
     document.body.style.overflow = !isMenuOpen ? 'hidden' : 'auto'
+  }
+
+  const toggleCollectionMenu = () => {
+    setIsCollectionMenuOpen((prev) => !prev)
+    setIsProfileOpen(false)
   }
 
   const toggleProfile = () => setIsProfileOpen(!isProfileOpen)
@@ -131,6 +155,9 @@ export default function Navbar() {
       if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
         setIsProfileOpen(false)
       }
+      if (collectionMenuRef.current && !collectionMenuRef.current.contains(event.target as Node)) {
+        setIsCollectionMenuOpen(false)
+      }
     }
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
@@ -143,6 +170,7 @@ export default function Navbar() {
 
   const handleSearchClick = () => {
     setIsMenuOpen(false)
+    setIsCollectionMenuOpen(false)
     setIsProfileOpen(false)
     document.body.style.overflow = 'auto'
     router.push('/search')
@@ -197,6 +225,46 @@ export default function Navbar() {
 
           {/* Right: Actions */}
           <div className="flex items-center gap-5 md:gap-6">
+            <div className="relative" ref={collectionMenuRef}>
+              <button
+                type="button"
+                onClick={toggleCollectionMenu}
+                className={`group flex items-center gap-2 transition-colors hover:scale-110 transform duration-300 ${isCollectionMenuOpen ? 'text-[#D4AF37]' : 'text-white hover:text-[#D4AF37]'}`}
+                aria-label="Collections"
+              >
+                <div className="relative flex flex-col items-center justify-center w-5 h-5">
+                  <span className={`absolute h-[1.5px] w-4 bg-current transform transition-all duration-300 ${isCollectionMenuOpen ? 'rotate-45' : '-translate-y-1.5'}`} />
+                  <span className={`absolute h-[1.5px] bg-current transform transition-all duration-300 ${isCollectionMenuOpen ? 'w-0 opacity-0' : 'w-4'}`} />
+                  <span className={`absolute h-[1.5px] w-4 bg-current transform transition-all duration-300 ${isCollectionMenuOpen ? '-rotate-45' : 'translate-y-1.5'}`} />
+                </div>
+                <span className="hidden md:block text-[10px] uppercase tracking-[0.2em] font-bold">Sections</span>
+              </button>
+
+              <AnimatePresence>
+                {isCollectionMenuOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 8, scale: 0.98 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute right-0 top-[calc(100%+14px)] w-[260px] max-h-[65vh] overflow-y-auto bg-[#0B101E]/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-[0_25px_60px_-20px_rgba(0,0,0,0.8)] p-2 z-[120]"
+                  >
+                    {collectionFilterLinks.map((item) => (
+                      <Link
+                        key={item.title}
+                        href={item.href}
+                        onClick={() => setIsCollectionMenuOpen(false)}
+                        className="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm text-white/80 hover:text-white hover:bg-white/5 transition-colors"
+                      >
+                        <span>{item.title}</span>
+                        <ChevronRight size={14} className="text-white/35" />
+                      </Link>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
             <button
               type="button"
               onClick={handleSearchClick}

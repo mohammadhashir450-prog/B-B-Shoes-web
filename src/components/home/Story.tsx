@@ -2,7 +2,6 @@
 
 import Image from 'next/image'
 import { motion } from 'framer-motion'
-import { ArrowRight } from 'lucide-react'
 
 export default function Story() {
   return (
@@ -42,13 +41,13 @@ export default function Story() {
             className="space-y-6"
           >
             <h2 className="text-4xl font-bold text-white">
-              A Century of <span className="text-[#D4AF37]">Quiet Luxury</span>
+              Why <span className="text-[#D4AF37]">B&B Shoes</span>
             </h2>
 
             <p className="text-gray-400 text-base leading-relaxed">
-              For four generations, the Bianchi & Berluti families have preserved
-              the art of Italian shoemaking. Every pair of shoes undergoes 180 individual
-              man-hours shaping the finest hides—all just to meet our exacting standards.
+              B&B Shoes offers premium quality footwear with comfort, durable materials,
+              and clean modern styling. Each pair is selected for reliable everyday wear
+              while keeping a classy luxury finish.
             </p>
 
             <div className="space-y-3 pt-4">
@@ -72,10 +71,6 @@ export default function Story() {
               </div>
             </div>
 
-            <button className="flex items-center gap-3 px-6 py-3 border-2 border-[#D4AF37] text-[#D4AF37] text-xs font-bold tracking-[0.15em] uppercase hover:bg-[#D4AF37] hover:text-[#0B101E] transition-all group mt-6">
-              OUR HERITAGE STORY
-              <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-            </button>
           </motion.div>
         </div>
       </div>

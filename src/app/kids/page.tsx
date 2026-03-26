@@ -68,7 +68,7 @@ export default function KidsPage() {
                 </Link>
               </div>
             ) : (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {products.map((product) => (
                   <Link href={`/product/${product.id}`} key={product.id} className="group">
                     <article className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl hover:shadow-[#D4AF37]/20 transition-all duration-300">

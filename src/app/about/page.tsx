@@ -38,21 +38,19 @@ export default function AboutPage() {
                 <Award size={28} className="text-[#0B101E]" />
               </div>
               <div>
-                <h2 className="text-white text-2xl font-bold">Our Heritage</h2>
+                <h2 className="text-white text-2xl font-bold">A Century of Quiet Luxury</h2>
                 <p className="text-[#D4AF37] text-sm">Since 2023</p>
               </div>
             </div>
             
             <p className="text-gray-300 leading-relaxed mb-4">
-              For nearly a century, B&B Shoes has been at the forefront of luxury footwear craftsmanship. 
-              Founded in Milano, our dedication to perfection has made us the choice of discerning 
-              customers worldwide.
+              B&B Shoes is a premium footwear store focused on quality, comfort, and long-lasting style.
+              We carefully select materials and pay attention to finishing so every pair looks elegant and feels reliable in daily wear.
             </p>
             
             <p className="text-gray-300 leading-relaxed">
-              Every pair of B&B Shoes undergoes 180 individual man-hours of meticulous craftsmanship. 
-              From hand-selecting the finest Italian leather to the final polish, we maintain standards 
-              that have defined luxury for generations.
+              From classic formal shoes to modern everyday designs, our goal is simple:
+              give customers trusted quality at a premium standard with clean design and strong build.
             </p>
           </div>
 

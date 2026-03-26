@@ -76,6 +76,8 @@ export default function CheckoutPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
   const { items, totalPrice, clearCart } = useCart();
+  const deliveryFee = totalPrice >= 4000 ? 0 : totalPrice > 0 ? 250 : 0;
+  const orderTotal = totalPrice + deliveryFee;
   const [selectedMethod, setSelectedMethod] = useState<string>('cod');
   const [showSuccess, setShowSuccess] = useState(false);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
@@ -314,8 +316,8 @@ export default function CheckoutPage() {
         customerAddress: `${codAddress}${codCity ? `, ${codCity}` : ''}`,
         items: normalizedItems,
         subtotal: totalPrice,
-        shippingFee: 0,
-        total: totalPrice,
+        shippingFee: deliveryFee,
+        total: orderTotal,
         paymentMethod: selectedMethod,
         paymentStatus: selectedMethod === 'cod' ? 'pending' : 'paid',
         paymentDetails,
@@ -795,12 +797,15 @@ export default function CheckoutPage() {
                   </div>
                   <div className="flex items-center justify-between text-gray-300">
                     <span>Delivery</span>
-                    <span className="font-semibold text-[#D4AF37]">FREE</span>
+                    <span className="font-semibold text-[#D4AF37]">
+                      {deliveryFee === 0 ? 'FREE' : `PKR ${deliveryFee.toLocaleString()}`}
+                    </span>
                   </div>
+                  <p className="text-xs text-gray-400">Free delivery on orders above PKR 4,000</p>
                   <div className="border-t border-white/10 pt-4">
                     <div className="flex items-center justify-between text-xl font-bold">
                       <span>Total</span>
-                      <span className="text-[#D4AF37]">PKR {totalPrice.toLocaleString()}</span>
+                      <span className="text-[#D4AF37]">PKR {orderTotal.toLocaleString()}</span>
                     </div>
                   </div>
                 </div>

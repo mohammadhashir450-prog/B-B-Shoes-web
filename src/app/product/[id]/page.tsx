@@ -306,9 +306,9 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                   </button>
                   {expandedSection === 'shipping' && (
                     <div className="p-4 pt-0 space-y-2 text-sm text-gray-300">
-                      <p>• Free shipping on all orders</p>
+                      <p>• Free shipping on orders above PKR 4,000</p>
                       <p>• Delivery within 3-5 business days</p>
-                      <p>• Easy returns within 30 days</p>
+                      <p>• Easy returns within 7 days</p>
                       <p>• 100% secure checkout</p>
                     </div>
                   )}

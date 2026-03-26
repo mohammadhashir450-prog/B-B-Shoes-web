@@ -116,7 +116,7 @@ export default function MenPage() {
 
           {/* Products Grid */}
           {!loading && filteredProducts.length > 0 && (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
               {filteredProducts.map((product) => (
                 <Link
                   key={product.id}

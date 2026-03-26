@@ -137,15 +137,29 @@ export default function ContactPage() {
                 </div>
               </div>
 
-              <div className="bg-[#1A2435] rounded-lg p-6 border border-white/5">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-[#D4AF37] rounded-full flex items-center justify-center flex-shrink-0">
+              <div className="relative overflow-hidden rounded-2xl border border-[#D4AF37]/30 bg-gradient-to-br from-[#1E2B44] via-[#1A2435] to-[#111A2D] p-6 shadow-[0_16px_40px_-12px_rgba(212,175,55,0.2)]">
+                <div className="absolute -right-8 -top-10 w-28 h-28 rounded-full bg-[#D4AF37]/10 blur-2xl pointer-events-none" />
+
+                <div className="relative flex items-start gap-4">
+                  <div className="w-12 h-12 bg-[#D4AF37] rounded-full flex items-center justify-center flex-shrink-0 shadow-[0_0_20px_rgba(212,175,55,0.35)]">
                     <MapPin size={20} className="text-[#0B101E]" />
                   </div>
-                  <div>
-                    <h3 className="text-white font-bold mb-2">Visit Us</h3>
-                    <p className="text-gray-400 text-sm">Khanewal Rd, opposite to Chase up 2,</p>
-                    <p className="text-gray-400 text-sm">Rasheed Abad Khushal Colony, Multan, 60000.</p>
+
+                  <div className="flex-1">
+                    <p className="text-[#D4AF37] text-[10px] uppercase tracking-[0.22em] font-bold mb-2">Flagship Outlet</p>
+                    <h3 className="text-white font-bold text-lg mb-2">Visit Us</h3>
+                    <p className="text-gray-200/90 text-sm leading-relaxed">
+                      Khanewal Rd, opposite to Chase up 2 Rasheed Abad Khushal Colony, Multan, 60000.
+                    </p>
+
+                    <div className="mt-4 flex flex-wrap items-center gap-2">
+                      <span className="px-3 py-1 rounded-full bg-white/10 border border-white/10 text-[11px] text-white/80">
+                        Multan
+                      </span>
+                      <span className="px-3 py-1 rounded-full bg-[#D4AF37]/15 border border-[#D4AF37]/30 text-[11px] text-[#FFE7A3]">
+                        Since 2023
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -190,7 +204,7 @@ export default function ContactPage() {
                 >
                   <div className="overflow-hidden">
                     <div className="space-y-3 border-t border-white/10 pt-4 text-sm text-gray-300">
-                      <p className="font-semibold text-[#FFE8A6]">Shoes are not eligible for return. Only exchange is available.</p>
+                      <p className="font-semibold text-[#FFE8A6]">Returns and exchanges are accepted within 7 days with valid purchase proof.</p>
 
                       <div className="flex items-start gap-3">
                         <Store size={17} className="text-[#D4AF37] mt-0.5 flex-shrink-0" />

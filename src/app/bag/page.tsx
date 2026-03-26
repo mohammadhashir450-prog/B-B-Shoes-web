@@ -44,7 +44,7 @@ export default function BagPage() {
   if (!session?.user) return null;
 
   const formattedTotal = `PKR ${totalPrice.toLocaleString()}`;
-  const deliveryFee = totalPrice > 0 ? 0 : 0; // Free delivery
+  const deliveryFee = totalPrice >= 4000 ? 0 : totalPrice > 0 ? 250 : 0;
   const finalTotal = totalPrice + deliveryFee;
 
   return (
@@ -159,7 +159,9 @@ export default function BagPage() {
                     </div>
                     <div className="flex items-center justify-between text-gray-300">
                       <span>Delivery</span>
-                      <span className="font-semibold text-[#D4AF37]">FREE</span>
+                      <span className="font-semibold text-[#D4AF37]">
+                        {deliveryFee === 0 ? 'FREE' : `PKR ${deliveryFee.toLocaleString()}`}
+                      </span>
                     </div>
                     <div className="border-t border-white/10 pt-4">
                       <div className="flex items-center justify-between text-xl font-bold">
@@ -188,11 +190,11 @@ export default function BagPage() {
                   <div className="mt-8 space-y-3 text-sm">
                     <div className="flex items-center gap-2 text-gray-400">
                       <div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]"></div>
-                      <span>Free delivery on all orders</span>
+                      <span>Free delivery on orders above PKR 4,000</span>
                     </div>
                     <div className="flex items-center gap-2 text-gray-400">
                       <div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]"></div>
-                      <span>30-day return policy</span>
+                      <span>7-day return policy</span>
                     </div>
                     <div className="flex items-center gap-2 text-gray-400">
                       <div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]"></div>

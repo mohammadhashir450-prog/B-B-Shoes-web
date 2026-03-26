@@ -256,7 +256,7 @@ export default function NewArrivals() {
                 </div>
               ) : (
                 <>
-                  <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6 mb-12">
+                  <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-12">
                     {filteredProducts.map((product) => (
                       <Link 
                         href={`/product/${product.id}`}

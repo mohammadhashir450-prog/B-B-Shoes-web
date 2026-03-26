@@ -1149,7 +1149,7 @@ export default function AdminPanel() {
                 <p className="text-white/50 font-medium text-sm">Vault is empty. Initiate asset registration.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {products.map(p => (
                   <div key={p.id} className="bg-[#121A2F]/60 backdrop-blur-md rounded-3xl border border-white/5 overflow-hidden group hover:border-white/20 transition-all">
                     <div className="relative aspect-square bg-[#0B101E] p-6">
@@ -1284,7 +1284,7 @@ export default function AdminPanel() {
                 <p className="text-white/50 font-medium text-sm">No active sales events.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {salesProducts.map(p => (
                   <div key={p.id} className="bg-[#121A2F]/60 backdrop-blur-md rounded-3xl border border-red-500/10 overflow-hidden group hover:border-red-500/30 transition-all shadow-[0_0_20px_rgba(239,68,68,0.05)]">
                     <div className="relative aspect-square bg-[#0B101E] p-6">
@@ -1372,7 +1372,7 @@ export default function AdminPanel() {
                 <p className="text-white/50 font-medium text-sm">No new arrivals currently active.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {newArrivals.map(p => (
                   <div key={p.id} className="bg-[#121A2F]/60 backdrop-blur-md rounded-3xl border border-blue-400/10 overflow-hidden group hover:border-blue-400/30 transition-all shadow-[0_0_20px_rgba(96,165,250,0.05)]">
                     <div className="relative aspect-square bg-[#0B101E] p-6">

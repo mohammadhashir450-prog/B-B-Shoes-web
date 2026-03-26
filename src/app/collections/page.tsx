@@ -1,34 +1,40 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import { ChevronRight, Grid, Loader2, ShoppingBag } from 'lucide-react'
 import { useProducts } from '@/context/ProductContext'
 
 const categories = [
-  { key: 'all', name: 'All Products', icon: '🧩' },
-  { key: 'new-arrivals', name: 'New Arrivals', icon: '✨' },
-  { key: 'sales', name: 'Sales & Discounts', icon: '🏷️' },
-  { key: 'sneakers', name: 'Sneakers', icon: '👟' },
-  { key: 'loafers', name: 'Loafers', icon: '🥿' },
-  { key: 'oxford', name: 'Oxford', icon: '👞' },
-  { key: 'formal', name: 'Formal Shoes', icon: '🎩' },
-  { key: 'running', name: 'Running Shoes', icon: '🏃' },
-  { key: 'basketball', name: 'Basketball', icon: '🏀' },
-  { key: 'boots', name: 'Boots', icon: '🥾' },
-  { key: 'slippers', name: 'Slippers', icon: '🩴' },
-  { key: 'peshawari-chappal', name: 'Peshawari Chappal', icon: '👞' },
-  { key: 'kids', name: 'Kids Collection', icon: '👶' },
-  { key: 'men', name: "Men's Collection", icon: '👔' },
-  { key: 'women', name: "Women's Collection", icon: '👗' },
+  { key: 'all', name: 'All Products' },
+  { key: 'new-arrivals', name: 'New Arrivals' },
+  { key: 'sales', name: 'Sales & Discounts' },
+  { key: 'sneakers', name: 'Sneakers' },
+  { key: 'loafers', name: 'Loafers' },
+  { key: 'formal', name: 'Formal Shoes' },
+  { key: 'running', name: 'Running Shoes' },
+  { key: 'boots', name: 'Boots' },
+  { key: 'slippers', name: 'Slippers' },
+  { key: 'peshawari-chappal', name: 'Peshawari Chappal' },
+  { key: 'kids', name: 'Kids Collection' },
+  { key: 'men', name: "Men's Collection" },
+  { key: 'women', name: "Women's Collection" },
 ]
 
 export default function CollectionsPage() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
   const { getAllProducts, getSaleProducts, getNewArrivals, getProductsByCategory, loading } = useProducts()
-  const [activeCategory, setActiveCategory] = useState('all')
+
+  const activeCategory = useMemo(() => {
+    const requestedCategory = searchParams.get('category') || 'all'
+    const isValid = categories.some((category) => category.key === requestedCategory)
+    return isValid ? requestedCategory : 'all'
+  }, [searchParams])
 
   const products = useMemo(() => {
     return getAllProducts()
@@ -47,17 +53,6 @@ export default function CollectionsPage() {
 
     return getProductsByCategory(activeCategory)
   }, [products, activeCategory, getSaleProducts, getNewArrivals, getProductsByCategory])
-
-  const handleCategoryTap = (categoryKey: string) => {
-    setActiveCategory(categoryKey)
-
-    setTimeout(() => {
-      const grid = document.getElementById('all-products-grid')
-      if (grid) {
-        grid.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      }
-    }, 50)
-  }
 
   const activeCategoryLabel = useMemo(() => {
     return categories.find((c) => c.key === activeCategory)?.name || 'All Products'
@@ -88,36 +83,8 @@ export default function CollectionsPage() {
             </p>
           </div>
 
-          {/* Category Filter Buttons */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
-            {categories.map((category) => (
-              <button
-                key={category.key}
-                onClick={() => handleCategoryTap(category.key)}
-                className={`rounded-lg p-4 md:p-5 text-center transition-all group border min-h-[120px] md:min-h-[132px] ${
-                  activeCategory === category.key
-                    ? 'bg-[#D4AF37] text-[#0B101E] border-[#D4AF37]'
-                    : 'bg-[#1A2435] hover:bg-[#243048] text-white border-white/5 hover:border-[#D4AF37]/30'
-                }`}
-              >
-                <div className="text-3xl md:text-4xl mb-2 md:mb-3 group-hover:scale-110 transition-transform">
-                  {category.icon}
-                </div>
-                <h3 className="text-sm md:text-base font-bold mb-1 line-clamp-2 leading-snug">
-                  {category.name}
-                </h3>
-                <div className={`flex items-center justify-center gap-1.5 text-[11px] md:text-xs font-semibold transition-opacity ${
-                  activeCategory === category.key ? 'text-[#0B101E]' : 'text-[#D4AF37] opacity-0 group-hover:opacity-100'
-                }`}>
-                  <span>{activeCategory === category.key ? 'Active' : 'Explore'}</span>
-                  <ChevronRight size={12} />
-                </div>
-              </button>
-            ))}
-          </div>
-
           {/* All Products Grid */}
-          <div id="all-products-grid" className="mt-14">
+          <div id="all-products-grid" className="mt-6">
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-3">
                 <Grid className="w-5 h-5 text-[#D4AF37]" />
@@ -140,14 +107,14 @@ export default function CollectionsPage() {
                 <h3 className="text-2xl font-bold text-white mb-4">No Products Found</h3>
                 <p className="text-gray-400 mb-8">Try another category filter or add matching products from admin panel.</p>
                 <button
-                  onClick={() => setActiveCategory('all')}
+                  onClick={() => router.push('/collections')}
                   className="inline-block bg-[#D4AF37] hover:bg-[#F4CE5C] text-[#0B101E] font-bold py-3 px-8 rounded-full transition-all"
                 >
                   Show All Products
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {filteredProducts.map((product) => (
                   <Link
                     key={product.id}
