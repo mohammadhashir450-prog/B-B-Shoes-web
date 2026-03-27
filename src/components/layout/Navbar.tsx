@@ -25,7 +25,8 @@ const mainLinks = [
   { title: 'Collections', href: '/collections' },
   { title: 'Men', href: '/men' },
   { title: 'Women', href: '/women' },
-  { title: 'Kids', href: '/kids' }
+  { title: 'Kids', href: '/kids' },
+  { title: 'Accessories', href: '/accessories' }
 ]
 
 const subLinks = [
@@ -51,6 +52,53 @@ const collectionFilterLinks = [
   { title: 'Kids Collection', href: '/collections?category=kids' },
   { title: "Men's Collection", href: '/collections?category=men' },
   { title: "Women's Collection", href: '/collections?category=women' }
+]
+
+const sectionMenuGroups = [
+  {
+    title: 'Men',
+    items: [
+      { title: "Men's Collection", href: '/collections?category=men' },
+      { title: 'Sneakers', href: '/collections?category=sneakers' },
+      { title: 'Formal Shoes', href: '/collections?category=formal' },
+      { title: 'Running Shoes', href: '/collections?category=running' },
+      { title: 'Loafers', href: '/collections?category=loafers' },
+      { title: 'Boots', href: '/collections?category=boots' },
+      { title: 'Sandals', href: '/collections?category=sandals' },
+    ],
+  },
+  {
+    title: 'Women',
+    items: [
+      { title: "Women's Collection", href: '/collections?category=women' },
+      { title: 'Ladies Sandals', href: '/collections?category=ladiessandals' },
+      { title: 'Ladies Slippers', href: '/collections?category=ladiesslippers' },
+      { title: 'Ladies Court Shoes', href: '/collections?category=ladiescourtshoes' },
+      { title: 'Ladies Mucs', href: '/collections?category=ladiesmucs' },
+      { title: 'Sneakers', href: '/collections?category=sneakers' },
+      { title: 'Joggers', href: '/collections?category=joggers' },
+    ],
+  },
+  {
+    title: 'Kids',
+    items: [
+      { title: 'Kids Collection', href: '/collections?category=kids' },
+      { title: 'Slippers', href: '/collections?category=slippers' },
+      { title: 'Sandals', href: '/collections?category=sandals' },
+      { title: 'Joggers', href: '/collections?category=joggers' },
+      { title: 'Loafers', href: '/collections?category=loafers' },
+      { title: 'Peshawari Chappal', href: '/collections?category=peshawari-chappal' },
+    ],
+  },
+  {
+    title: 'Accessories',
+    items: [
+      { title: 'Accessories Collection', href: '/accessories' },
+      { title: 'Socks', href: '/collections?category=socks' },
+      { title: 'Polish', href: '/collections?category=polish' },
+      { title: 'Brushes', href: '/collections?category=brushes' },
+    ],
+  },
 ]
 
 const accountLinks = [
@@ -103,6 +151,7 @@ export default function Navbar() {
   const [isCollectionMenuOpen, setIsCollectionMenuOpen] = useState(false)
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [isTransactionsOpen, setIsTransactionsOpen] = useState(false)
+  const [openSectionGroup, setOpenSectionGroup] = useState<string | null>('Men')
   const [hoveredMenuLink, setHoveredMenuLink] = useState<string | null>(null)
   
   // Smart Scroll States
@@ -249,17 +298,62 @@ export default function Navbar() {
                     transition={{ duration: 0.2 }}
                     className="absolute right-0 top-[calc(100%+14px)] w-[260px] max-h-[65vh] overflow-y-auto bg-[#0B101E]/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-[0_25px_60px_-20px_rgba(0,0,0,0.8)] p-2 z-[120]"
                   >
-                    {collectionFilterLinks.map((item) => (
-                      <Link
-                        key={item.title}
-                        href={item.href}
-                        onClick={() => setIsCollectionMenuOpen(false)}
-                        className="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm text-white/80 hover:text-white hover:bg-white/5 transition-colors"
-                      >
-                        <span>{item.title}</span>
-                        <ChevronRight size={14} className="text-white/35" />
-                      </Link>
-                    ))}
+                    <div className="mb-1 px-1">
+                      {collectionFilterLinks.slice(0, 3).map((item) => (
+                        <Link
+                          key={item.title}
+                          href={item.href}
+                          onClick={() => setIsCollectionMenuOpen(false)}
+                          className="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm text-white/80 hover:text-white hover:bg-white/5 transition-colors"
+                        >
+                          <span>{item.title}</span>
+                          <ChevronRight size={14} className="text-white/35" />
+                        </Link>
+                      ))}
+                    </div>
+
+                    <div className="my-2 border-t border-white/10" />
+
+                    <div className="space-y-1">
+                      {sectionMenuGroups.map((group) => {
+                        const isOpen = openSectionGroup === group.title
+
+                        return (
+                          <div key={group.title} className="rounded-xl border border-white/10 bg-white/[0.02] overflow-hidden">
+                            <button
+                              type="button"
+                              onClick={() => setOpenSectionGroup((prev) => (prev === group.title ? null : group.title))}
+                              className="w-full flex items-center justify-between px-3 py-2.5 text-left"
+                              aria-expanded={isOpen}
+                            >
+                              <span className="text-xs uppercase tracking-[0.18em] text-[#D4AF37] font-bold">{group.title}</span>
+                              <ChevronRight
+                                size={14}
+                                className={`text-white/60 transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`}
+                              />
+                            </button>
+
+                            <div className={`grid transition-all duration-200 ease-out ${isOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}>
+                              <div className="overflow-hidden">
+                                <div className="pb-2 px-1 space-y-0.5">
+                                  {group.items.map((item) => (
+                                    <Link
+                                      key={item.title}
+                                      href={item.href}
+                                      onClick={() => setIsCollectionMenuOpen(false)}
+                                      className="flex items-center justify-between px-3 py-2 rounded-lg text-sm text-white/80 hover:text-white hover:bg-white/5 transition-colors"
+                                    >
+                                      <span>{item.title}</span>
+                                      <ChevronRight size={13} className="text-white/35" />
+                                    </Link>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>

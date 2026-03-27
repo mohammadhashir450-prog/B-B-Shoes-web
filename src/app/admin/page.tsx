@@ -936,6 +936,7 @@ export default function AdminPanel() {
                       <option value="Men" className="bg-[#0B101E] text-white py-2">Men</option>
                       <option value="Women" className="bg-[#0B101E] text-white py-2">Women</option>
                       <option value="Kids" className="bg-[#0B101E] text-white py-2">Kids</option>
+                      <option value="Accessories" className="bg-[#0B101E] text-white py-2">Accessories</option>
                     </select>
                   </div>
 
@@ -961,7 +962,16 @@ export default function AdminPanel() {
                       <option value="Oxford" className="bg-[#0B101E]">Oxford</option>
                       <option value="Loafers" className="bg-[#0B101E]">Loafers</option>
                       <option value="Boots" className="bg-[#0B101E]">Boots</option>
+                      <option value="Sandals" className="bg-[#0B101E]">Sandals</option>
                       <option value="Slippers" className="bg-[#0B101E]">Slippers</option>
+                      <option value="Joggers" className="bg-[#0B101E]">Joggers</option>
+                      <option value="Ladies Sandals" className="bg-[#0B101E]">Ladies Sandals</option>
+                      <option value="Ladies Slippers" className="bg-[#0B101E]">Ladies Slippers</option>
+                      <option value="Ladies Court Shoes" className="bg-[#0B101E]">Ladies Court Shoes</option>
+                      <option value="Ladies Mucs" className="bg-[#0B101E]">Ladies Mucs</option>
+                      <option value="Socks" className="bg-[#0B101E]">Socks</option>
+                      <option value="Polish" className="bg-[#0B101E]">Polish</option>
+                      <option value="Brushes" className="bg-[#0B101E]">Brushes</option>
                       <option value="Peshawari Chappal" className="bg-[#0B101E]">Peshawari Chappal</option>
                     </select>
                   </div>

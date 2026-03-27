@@ -1,19 +1,55 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import HoverSwapImage from '@/components/common/HoverSwapImage'
-import { ChevronRight, Loader2 } from 'lucide-react'
+import { ChevronRight, Loader2, Filter } from 'lucide-react'
 import { useProducts } from '@/context/ProductContext'
 
+const kidsFilterOptions = [
+  { value: 'all', label: 'All' },
+  { value: 'slippers', label: 'Slippers' },
+  { value: 'sandals', label: 'Sandals' },
+  { value: 'joggers', label: 'Joggers' },
+  { value: 'loafers', label: 'Loafers' },
+  { value: 'peshawarichappal', label: 'Peshawari Chappal' },
+]
+
+const normalizeText = (value?: string) =>
+  (value || '')
+    .toLowerCase()
+    .trim()
+    .replace(/[\s'’]+/g, '')
+
 export default function KidsPage() {
+  const [selectedStyle, setSelectedStyle] = useState('all')
   const { getProductsByCategory, loading } = useProducts()
   
   const products = useMemo(() => {
     return getProductsByCategory('Kids')
   }, [getProductsByCategory])
+
+  const filteredProducts = useMemo(() => {
+    if (selectedStyle === 'all') return products
+
+    const target = normalizeText(selectedStyle)
+
+    return products.filter((product) => {
+      const category = normalizeText(product.category)
+      const subcategory = normalizeText(product.subcategory)
+      const name = normalizeText(product.name)
+      const description = normalizeText(product.description)
+
+      return (
+        category === target ||
+        subcategory === target ||
+        name.includes(target) ||
+        description.includes(target)
+      )
+    })
+  }, [products, selectedStyle])
 
   return (
     <>
@@ -50,16 +86,37 @@ export default function KidsPage() {
             <h2 className="text-3xl font-bold text-white mb-12 text-center">
               Featured <span className="text-[#D4AF37]">Styles</span>
             </h2>
+
+            <div className="flex items-center justify-center gap-2 flex-wrap mb-10">
+              <span className="inline-flex items-center gap-2 text-[#D4AF37] text-xs uppercase tracking-[0.2em] font-bold mr-2">
+                <Filter size={14} />
+                Filter
+              </span>
+              {kidsFilterOptions.map((style) => (
+                <button
+                  key={style.value}
+                  onClick={() => setSelectedStyle(style.value)}
+                  className={`px-4 py-2 rounded-full text-[11px] font-bold uppercase tracking-wider transition-all ${
+                    selectedStyle === style.value
+                      ? 'bg-[#D4AF37] text-[#0B101E]'
+                      : 'bg-[#1A2435] text-white hover:bg-[#243048] border border-white/10'
+                  }`}
+                >
+                  {style.label}
+                </button>
+              ))}
+            </div>
+
             {loading ? (
               <div className="flex flex-col items-center justify-center py-20">
                 <Loader2 className="w-12 h-12 text-[#D4AF37] animate-spin mb-4" />
                 <p className="text-gray-400 text-sm">Loading kids collection...</p>
               </div>
-            ) : products.length === 0 ? (
+            ) : filteredProducts.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 bg-gradient-to-br from-[#1A2435] to-[#0F1825] rounded-3xl border border-white/10">
                 <div className="text-6xl mb-4">👟</div>
-                <h3 className="text-2xl font-bold text-white mb-2">No Kids Products Yet</h3>
-                <p className="text-gray-400 mb-6">Check back soon for our kids collection</p>
+                <h3 className="text-2xl font-bold text-white mb-2">No Matching Kids Products</h3>
+                <p className="text-gray-400 mb-6">Try another style filter or add products from admin panel.</p>
                 <Link 
                   href="/"
                   className="px-8 py-3 bg-gradient-to-r from-[#D4AF37] to-[#F4CE5C] text-[#0B101E] rounded-full font-bold text-sm uppercase tracking-wider hover:shadow-lg hover:shadow-[#D4AF37]/50 transition-all duration-300"
@@ -69,7 +126,7 @@ export default function KidsPage() {
               </div>
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {products.map((product) => (
+                {filteredProducts.map((product) => (
                   <Link href={`/product/${product.id}`} key={product.id} className="group">
                     <article className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl hover:shadow-[#D4AF37]/20 transition-all duration-300">
                       <div className="relative aspect-square bg-gray-100 overflow-hidden">

@@ -23,6 +23,15 @@ const categories = [
   { key: 'kids', name: 'Kids Collection' },
   { key: 'men', name: "Men's Collection" },
   { key: 'women', name: "Women's Collection" },
+  { key: 'sandals', name: 'Sandals' },
+  { key: 'joggers', name: 'Joggers' },
+  { key: 'ladiessandals', name: 'Ladies Sandals' },
+  { key: 'ladiesslippers', name: 'Ladies Slippers' },
+  { key: 'ladiescourtshoes', name: 'Ladies Court Shoes' },
+  { key: 'ladiesmucs', name: 'Ladies Mucs' },
+  { key: 'socks', name: 'Socks' },
+  { key: 'polish', name: 'Polish' },
+  { key: 'brushes', name: 'Brushes' },
 ]
 
 export default function CollectionsPage() {

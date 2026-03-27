@@ -8,6 +8,22 @@ import HoverSwapImage from '@/components/common/HoverSwapImage'
 import { ChevronRight, Star, Sparkles, Loader2 } from 'lucide-react'
 import { useProducts } from '@/context/ProductContext'
 
+const womenFilterOptions = [
+  { value: 'all', label: 'All' },
+  { value: 'ladiessandals', label: 'Ladies Sandals' },
+  { value: 'ladiesslippers', label: 'Ladies Slippers' },
+  { value: 'ladiescourtshoes', label: 'Ladies Court Shoes' },
+  { value: 'ladiesmucs', label: 'Ladies Mucs' },
+  { value: 'sneakers', label: 'Sneakers' },
+  { value: 'joggers', label: 'Joggers' },
+]
+
+const normalizeText = (value?: string) =>
+  (value || '')
+    .toLowerCase()
+    .trim()
+    .replace(/[\s'’]+/g, '')
+
 export default function WomenPage() {
   const [selectedStyle, setSelectedStyle] = useState('all')
   const { womenProducts, loading } = useProducts()
@@ -16,13 +32,13 @@ export default function WomenPage() {
   const filteredProducts = useMemo(() => {
     if (selectedStyle === 'all') return womenProducts
 
-    const target = selectedStyle.toLowerCase().trim()
+    const target = normalizeText(selectedStyle)
 
     return womenProducts.filter((product) => {
-      const category = product.category?.toLowerCase().trim() || ''
-      const subcategory = product.subcategory?.toLowerCase().trim() || ''
-      const name = product.name?.toLowerCase() || ''
-      const description = product.description?.toLowerCase() || ''
+      const category = normalizeText(product.category)
+      const subcategory = normalizeText(product.subcategory)
+      const name = normalizeText(product.name)
+      const description = normalizeText(product.description)
 
       return (
         category === target ||
@@ -67,17 +83,17 @@ export default function WomenPage() {
 
           {/* Style Filter */}
           <div className="flex items-center justify-center gap-3 mb-12 flex-wrap">
-            {['all', 'heels', 'flats', 'boots', 'wedges', 'loafers', 'slippers'].map((style) => (
+            {womenFilterOptions.map((style) => (
               <button
-                key={style}
-                onClick={() => setSelectedStyle(style)}
+                key={style.value}
+                onClick={() => setSelectedStyle(style.value)}
                 className={`px-6 py-3 rounded-full text-xs font-bold uppercase tracking-wider transition-all ${
-                  selectedStyle === style
+                  selectedStyle === style.value
                     ? 'bg-[#D4AF37] text-[#0B101E] shadow-lg shadow-[#D4AF37]/20'
                     : 'bg-[#1A2435] text-white hover:bg-[#243048] border border-white/10'
                 }`}
               >
-                {style}
+                {style.label}
               </button>
             ))}
           </div>

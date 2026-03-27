@@ -8,6 +8,24 @@ import HoverSwapImage from '@/components/common/HoverSwapImage'
 import { ChevronRight, Star, Filter, Loader2 } from 'lucide-react'
 import { useProducts } from '@/context/ProductContext'
 
+const menFilterOptions = [
+  { value: 'all', label: 'All' },
+  { value: 'formal', label: 'Formal' },
+  { value: 'sneakers', label: 'Sneakers' },
+  { value: 'running', label: 'Running' },
+  { value: 'loafers', label: 'Loafers' },
+  { value: 'boots', label: 'Boots' },
+  { value: 'sandals', label: 'Sandals' },
+  { value: 'slippers', label: 'Slippers' },
+  { value: 'joggers', label: 'Joggers' },
+]
+
+const normalizeText = (value?: string) =>
+  (value || '')
+    .toLowerCase()
+    .trim()
+    .replace(/[\s'’]+/g, '')
+
 export default function MenPage() {
   const [selectedCategory, setSelectedCategory] = useState('all')
   const { menProducts, loading } = useProducts()
@@ -16,13 +34,13 @@ export default function MenPage() {
   const filteredProducts = useMemo(() => {
     if (selectedCategory === 'all') return menProducts
 
-    const target = selectedCategory.toLowerCase().trim()
+    const target = normalizeText(selectedCategory)
 
     return menProducts.filter((product) => {
-      const category = product.category?.toLowerCase().trim() || ''
-      const subcategory = product.subcategory?.toLowerCase().trim() || ''
-      const name = product.name?.toLowerCase() || ''
-      const description = product.description?.toLowerCase() || ''
+      const category = normalizeText(product.category)
+      const subcategory = normalizeText(product.subcategory)
+      const name = normalizeText(product.name)
+      const description = normalizeText(product.description)
 
       return (
         category === target ||
@@ -66,17 +84,17 @@ export default function MenPage() {
             <div className="flex items-center gap-3">
               <Filter size={20} className="text-[#D4AF37]" />
               <div className="flex gap-2 flex-wrap">
-                {['all', 'formal', 'casual', 'boots', 'loafers', 'slippers'].map((cat) => (
+                {menFilterOptions.map((cat) => (
                   <button
-                    key={cat}
-                    onClick={() => setSelectedCategory(cat)}
+                    key={cat.value}
+                    onClick={() => setSelectedCategory(cat.value)}
                     className={`px-4 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all ${
-                      selectedCategory === cat
+                      selectedCategory === cat.value
                         ? 'bg-[#D4AF37] text-[#0B101E]'
                         : 'bg-[#1A2435] text-white hover:bg-[#243048]'
                     }`}
                   >
-                    {cat}
+                    {cat.label}
                   </button>
                 ))}
               </div>
