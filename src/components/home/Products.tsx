@@ -128,12 +128,12 @@ export default function Products() {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
               viewport={{ once: true, margin: "-50px" }}
-              className="group relative shrink-0 w-[280px] sm:w-[310px] lg:w-[340px] snap-start bg-white/95 backdrop-blur-sm border border-[#E3D7C2] rounded-3xl overflow-hidden hover:border-[#D4AF37]/40 transition-all duration-500 hover:shadow-[0_20px_40px_-15px_rgba(24,32,43,0.24)]"
+              className="group relative shrink-0 w-[280px] sm:w-[310px] lg:w-[340px] snap-start bg-[#F9F8F6] backdrop-blur-sm border border-[#E3D7C2] rounded-3xl overflow-hidden hover:border-[#D4AF37]/40 transition-all duration-500 hover:shadow-[0_20px_40px_-15px_rgba(24,32,43,0.24)]"
             >
               <Link href={`/product/${product.id}`} className="h-full flex flex-col">
                 
                 {/* Image Section */}
-                <div className="relative h-[220px] sm:h-[240px] lg:h-[260px] bg-white overflow-hidden p-3">
+                <div className="relative h-[220px] sm:h-[240px] lg:h-[260px] bg-[#FAF9F7] overflow-hidden p-3">
                   <HoverSwapImage
                     primaryImage={product.image}
                     secondaryImage={product.secondaryImage}
@@ -143,7 +143,7 @@ export default function Products() {
                   />
                   
                   {/* Subtle Image Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#F4F4F4] via-transparent to-transparent opacity-0 group-hover:opacity-90 transition-opacity duration-500" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#E8E6E2] via-transparent to-transparent opacity-0 group-hover:opacity-90 transition-opacity duration-500" />
                   
                   {/* Artisan Badge */}
                   <div className="absolute top-5 left-5 z-20">
@@ -155,14 +155,14 @@ export default function Products() {
                   {/* Wishlist Button (Stop propagation to avoid triggering link) */}
                   <button 
                     onClick={(e) => e.preventDefault()}
-                    className="absolute top-5 right-5 w-10 h-10 bg-white/85 backdrop-blur-md border border-[#E0D4BF] rounded-full flex items-center justify-center text-[#4F5A69] hover:text-red-500 hover:bg-white hover:border-red-300 transition-all duration-300 z-20"
+                    className="absolute top-5 right-5 w-10 h-10 bg-[#F9F8F6]/85 backdrop-blur-md border border-[#E0D4BF] rounded-full flex items-center justify-center text-[#4F5A69] hover:text-red-500 hover:bg-[#F9F8F6] hover:border-red-300 transition-all duration-300 z-20"
                   >
                     <Heart size={16} strokeWidth={2} />
                   </button>
                 </div>
 
                 {/* Product Info Section */}
-                <div className="p-6 md:p-8 flex flex-col flex-grow justify-between border-t border-[#E8E8E8] relative z-20 bg-gradient-to-b from-transparent to-white">
+                <div className="p-6 md:p-8 flex flex-col flex-grow justify-between border-t border-[#E8E8E8] relative z-20 bg-gradient-to-b from-transparent to-[#F9F8F6]">
                   <div>
                     <p className="text-[#D4AF37] text-[9px] tracking-[0.25em] uppercase mb-3 font-bold">
                       {product.brand || 'B&B EXCLUSIVE'}
@@ -183,7 +183,7 @@ export default function Products() {
                     </div>
                     
                     {/* Arrow Interaction */}
-                    <div className="w-10 h-10 rounded-full bg-white border border-[#E4D8C3] flex items-center justify-center text-[#253041] group-hover:bg-[#D4AF37] group-hover:text-[#18202B] group-hover:border-[#D4AF37] transition-all duration-500">
+                    <div className="w-10 h-10 rounded-full bg-[#F9F8F6] border border-[#E4D8C3] flex items-center justify-center text-[#253041] group-hover:bg-[#D4AF37] group-hover:text-[#18202B] group-hover:border-[#D4AF37] transition-all duration-500">
                       <ArrowUpRight size={18} className="transform group-hover:rotate-45 transition-transform duration-500" />
                     </div>
                   </div>
