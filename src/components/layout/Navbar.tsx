@@ -342,7 +342,7 @@ export default function Navbar() {
           className={`flex items-center justify-between transition-all duration-500 relative ${
             isAtTop 
               ? 'w-full max-w-[1400px] bg-transparent border-transparent' 
-              : 'w-full max-w-5xl bg-white/90 backdrop-blur-xl border border-[#E3D8C4] shadow-[0_20px_40px_-15px_rgba(24,32,43,0.22)] rounded-full px-6 md:px-8 py-3'
+              : 'w-full max-w-5xl bg-[#06080F] backdrop-blur-xl border border-[#1a1a1a] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)] rounded-full px-6 md:px-8 py-3'
           }`}
         >
           {/* Left: Hamburger */}
@@ -402,22 +402,22 @@ export default function Navbar() {
                           key={item.title}
                           href={item.href}
                           onClick={() => setIsCollectionMenuOpen(false)}
-                          className="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm text-white/80 hover:text-white hover:bg-white/5 transition-colors"
+                          className="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold text-[#18202B] hover:text-[#0B101E] hover:bg-[#F6F1E7] transition-colors"
                         >
                           <span>{item.title}</span>
-                          <ChevronRight size={14} className="text-white/35" />
+                          <ChevronRight size={14} className="text-[#8C97A8]" />
                         </Link>
                       ))}
                     </div>
 
-                    <div className="my-2 border-t border-white/10" />
+                    <div className="my-2 border-t border-[#E7E0CF]" />
 
                     <div className="space-y-1">
                       {sectionMenuGroups.map((group) => {
                         const isOpen = openSectionGroup === group.title
 
                         return (
-                          <div key={group.title} className="rounded-xl border border-white/10 bg-white/[0.02] overflow-hidden">
+                          <div key={group.title} className="rounded-xl border border-[#E7E0CF] bg-[#FCFAF6] overflow-hidden">
                             <button
                               type="button"
                               onClick={() => setOpenSectionGroup((prev) => (prev === group.title ? null : group.title))}
@@ -427,7 +427,7 @@ export default function Navbar() {
                               <span className="text-xs uppercase tracking-[0.18em] text-[#D4AF37] font-bold">{group.title}</span>
                               <ChevronRight
                                 size={14}
-                                className={`text-white/60 transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`}
+                                className={`text-[#8C97A8] transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`}
                               />
                             </button>
 
@@ -439,10 +439,10 @@ export default function Navbar() {
                                       key={item.title}
                                       href={item.href}
                                       onClick={() => setIsCollectionMenuOpen(false)}
-                                      className="flex items-center justify-between px-3 py-2 rounded-lg text-sm text-white/80 hover:text-white hover:bg-white/5 transition-colors"
+                                      className="flex items-center justify-between px-3 py-2 rounded-lg text-sm text-[#3A4556] hover:text-[#0B101E] hover:bg-[#F6F1E7] transition-colors"
                                     >
                                       <span>{item.title}</span>
-                                      <ChevronRight size={13} className="text-white/35" />
+                                      <ChevronRight size={13} className="text-[#8C97A8]" />
                                     </Link>
                                   ))}
                                 </div>
