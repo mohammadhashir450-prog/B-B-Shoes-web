@@ -31,7 +31,7 @@ export default function Products() {
   // Premium Loading State
   if (loading) {
     return (
-      <section className="relative bg-[#0B101E] py-32 overflow-hidden min-h-[50vh] flex items-center justify-center">
+      <section className="relative bg-white py-32 overflow-hidden min-h-[50vh] flex items-center justify-center">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-[#D4AF37]/10 blur-[100px] rounded-full pointer-events-none" />
         <div className="relative z-10 flex flex-col items-center space-y-6">
           <div className="w-12 h-12 border-2 border-[#D4AF37]/20 border-t-[#D4AF37] rounded-full animate-spin" />
@@ -46,14 +46,14 @@ export default function Products() {
   // Premium Empty State
   if (regularProducts.length === 0 && !loading) {
     return (
-      <section className="relative bg-[#0B101E] py-32 overflow-hidden min-h-[50vh] flex items-center justify-center">
+      <section className="relative bg-white py-32 overflow-hidden min-h-[50vh] flex items-center justify-center">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-white/5 blur-[120px] rounded-full pointer-events-none" />
         <div className="relative z-10 text-center max-w-lg mx-auto px-6">
           <div className="w-24 h-24 mx-auto bg-white/5 border border-white/10 backdrop-blur-md rounded-full flex items-center justify-center mb-8 shadow-2xl">
-            <ShoppingBag className="w-10 h-10 text-white/40" strokeWidth={1} />
+            <ShoppingBag className="w-10 h-10 text-[#4F5A69]" strokeWidth={1} />
           </div>
-          <h3 className="text-3xl md:text-4xl font-serif font-bold text-white mb-4">The Vault is Empty</h3>
-          <p className="text-white/50 text-sm leading-relaxed font-light">
+          <h3 className="text-3xl md:text-4xl font-serif font-bold text-[#18202B] mb-4">The Vault is Empty</h3>
+          <p className="text-[#4F5A69] text-sm leading-relaxed font-light">
             Our artisans are currently crafting new pieces. Please return shortly to view the latest exclusive additions to this collection.
           </p>
         </div>
@@ -62,7 +62,7 @@ export default function Products() {
   }
 
   return (
-    <section className="relative bg-[#0B101E] py-20 md:py-24 overflow-hidden">
+    <section className="relative bg-white py-20 md:py-24 overflow-hidden">
       
       {/* Cinematic Ambient Glow */}
       <div className="absolute top-0 left-0 w-[600px] h-[600px] bg-[#D4AF37]/5 rounded-full blur-[150px] pointer-events-none" />
@@ -83,10 +83,10 @@ export default function Products() {
                 <Sparkles size={12} /> Exclusives
               </p>
             </div>
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-serif font-black text-white leading-tight mb-4">
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-serif font-black text-[#18202B] leading-tight mb-4">
               The Gold Edition
             </h2>
-            <p className="text-white/50 text-sm max-w-[300px] leading-relaxed font-light">
+            <p className="text-[#4F5A69] text-sm max-w-[300px] leading-relaxed font-light">
               Exclusive releases meticulously crafted by our luxury artisans.
             </p>
           </motion.div>
@@ -101,14 +101,14 @@ export default function Products() {
           >
             <button
               onClick={() => scrollSlider('left')}
-              className="w-12 h-12 rounded-full backdrop-blur-md border border-white/20 bg-white/5 flex items-center justify-center text-white hover:border-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#0B101E] transition-all duration-300"
+              className="w-12 h-12 rounded-full backdrop-blur-md border border-[#DCCFB6] bg-white/90 flex items-center justify-center text-[#253041] hover:border-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#18202B] transition-all duration-300"
               aria-label="Scroll products left"
             >
               <ChevronLeft size={18} strokeWidth={1.5} />
             </button>
             <button
               onClick={() => scrollSlider('right')}
-              className="w-12 h-12 rounded-full backdrop-blur-md border border-white/20 bg-white/5 flex items-center justify-center text-white hover:border-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#0B101E] transition-all duration-300"
+              className="w-12 h-12 rounded-full backdrop-blur-md border border-[#DCCFB6] bg-white/90 flex items-center justify-center text-[#253041] hover:border-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#18202B] transition-all duration-300"
               aria-label="Scroll products right"
             >
               <ChevronRight size={18} strokeWidth={1.5} />
@@ -128,12 +128,12 @@ export default function Products() {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
               viewport={{ once: true, margin: "-50px" }}
-              className="group relative shrink-0 w-[280px] sm:w-[310px] lg:w-[340px] snap-start bg-[#121A2F]/40 backdrop-blur-sm border border-white/5 rounded-3xl overflow-hidden hover:border-white/10 transition-all duration-500 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.7)]"
+              className="group relative shrink-0 w-[280px] sm:w-[310px] lg:w-[340px] snap-start bg-white/95 backdrop-blur-sm border border-[#E3D7C2] rounded-3xl overflow-hidden hover:border-[#D4AF37]/40 transition-all duration-500 hover:shadow-[0_20px_40px_-15px_rgba(24,32,43,0.24)]"
             >
               <Link href={`/product/${product.id}`} className="h-full flex flex-col">
                 
                 {/* Image Section */}
-                <div className="relative h-[220px] sm:h-[240px] lg:h-[260px] bg-[#0B101E] overflow-hidden p-3">
+                <div className="relative h-[220px] sm:h-[240px] lg:h-[260px] bg-white overflow-hidden p-3">
                   <HoverSwapImage
                     primaryImage={product.image}
                     secondaryImage={product.secondaryImage}
@@ -143,7 +143,7 @@ export default function Products() {
                   />
                   
                   {/* Subtle Image Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#121A2F] via-transparent to-transparent opacity-0 group-hover:opacity-80 transition-opacity duration-500" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#F4F4F4] via-transparent to-transparent opacity-0 group-hover:opacity-90 transition-opacity duration-500" />
                   
                   {/* Artisan Badge */}
                   <div className="absolute top-5 left-5 z-20">
@@ -155,19 +155,19 @@ export default function Products() {
                   {/* Wishlist Button (Stop propagation to avoid triggering link) */}
                   <button 
                     onClick={(e) => e.preventDefault()}
-                    className="absolute top-5 right-5 w-10 h-10 bg-white/10 backdrop-blur-md border border-white/10 rounded-full flex items-center justify-center text-white/70 hover:text-red-400 hover:bg-white/20 hover:border-red-400/50 transition-all duration-300 z-20"
+                    className="absolute top-5 right-5 w-10 h-10 bg-white/85 backdrop-blur-md border border-[#E0D4BF] rounded-full flex items-center justify-center text-[#4F5A69] hover:text-red-500 hover:bg-white hover:border-red-300 transition-all duration-300 z-20"
                   >
                     <Heart size={16} strokeWidth={2} />
                   </button>
                 </div>
 
                 {/* Product Info Section */}
-                <div className="p-6 md:p-8 flex flex-col flex-grow justify-between border-t border-white/5 relative z-20 bg-gradient-to-b from-transparent to-[#121A2F]/50">
+                <div className="p-6 md:p-8 flex flex-col flex-grow justify-between border-t border-[#E8E8E8] relative z-20 bg-gradient-to-b from-transparent to-white">
                   <div>
                     <p className="text-[#D4AF37] text-[9px] tracking-[0.25em] uppercase mb-3 font-bold">
                       {product.brand || 'B&B EXCLUSIVE'}
                     </p>
-                    <h3 className="text-xl font-serif font-bold text-white leading-tight mb-2 group-hover:text-[#D4AF37] transition-colors">
+                    <h3 className="text-xl font-serif font-bold text-[#18202B] leading-tight mb-2 group-hover:text-[#A97A18] transition-colors">
                       {product.name}
                     </h3>
                   </div>
@@ -178,12 +178,12 @@ export default function Products() {
                         PKR {product.price.toLocaleString()}
                       </p>
                       {product.originalPrice && product.originalPrice > product.price ? (
-                        <p className="text-xs text-white/40 line-through">PKR {product.originalPrice.toLocaleString()}</p>
+                        <p className="text-xs text-[#6A7483] line-through">PKR {product.originalPrice.toLocaleString()}</p>
                       ) : null}
                     </div>
                     
                     {/* Arrow Interaction */}
-                    <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white group-hover:bg-[#D4AF37] group-hover:text-[#0B101E] group-hover:border-[#D4AF37] transition-all duration-500">
+                    <div className="w-10 h-10 rounded-full bg-white border border-[#E4D8C3] flex items-center justify-center text-[#253041] group-hover:bg-[#D4AF37] group-hover:text-[#18202B] group-hover:border-[#D4AF37] transition-all duration-500">
                       <ArrowUpRight size={18} className="transform group-hover:rotate-45 transition-transform duration-500" />
                     </div>
                   </div>

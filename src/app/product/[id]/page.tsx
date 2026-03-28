@@ -119,10 +119,11 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
   const formattedOriginalPrice = hasDiscountPricing ? `PKR ${Number(product.originalPrice).toLocaleString()}` : '';
 
   return (
-    <div className="min-h-screen bg-[#0B101E] text-white">
+    <div className="min-h-screen bg-[#0B101E] text-white relative overflow-hidden">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_12%_18%,rgba(212,175,55,0.16),transparent_38%),radial-gradient(circle_at_88%_16%,rgba(255,255,255,0.08),transparent_30%),linear-gradient(180deg,#0B101E_0%,#111A2D_55%,#0B101E_100%)] pointer-events-none" />
       <Navbar />
 
-      <div className="pt-24 pb-16">
+      <div className="pt-24 pb-16 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
           {/* Breadcrumb */}
@@ -261,14 +262,14 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                 <button 
                   onClick={handleAddToCart}
                   disabled={!selectedSize || !product.inStock}
-                  className="flex-1 bg-[#D4AF37] hover:bg-[#F4CE5C] text-black font-bold py-4 px-8 rounded-full transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 bg-gradient-to-r from-[#D4AF37] to-[#F4CE5C] text-[#0B101E] font-bold py-4 px-8 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_12px_24px_-10px_rgba(212,175,55,0.6)] hover:shadow-[0_16px_30px_-12px_rgba(212,175,55,0.75)]"
                 >
                   <ShoppingBag className="w-5 h-5" />
                   {!product.inStock ? 'OUT OF STOCK' : showSuccess ? 'ADDED TO BAG!' : 'ADD TO BAG'}
                 </button>
                 <button 
                   onClick={() => setIsWishlisted(!isWishlisted)}
-                  className={`border ${isWishlisted ? 'border-[#D4AF37] bg-[#D4AF37]/10' : 'border-white/20'} hover:border-[#D4AF37] p-4 rounded-full transition-all`}
+                  className={`border-2 transition-all p-4 rounded-xl ${isWishlisted ? 'border-[#D4AF37] bg-[#D4AF37]/10' : 'border-white/20 hover:border-[#D4AF37]'}`}
                 >
                   <Heart className={`w-6 h-6 ${isWishlisted ? 'fill-[#D4AF37] stroke-[#D4AF37]' : ''}`} />
                 </button>
@@ -277,7 +278,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
               {/* Expandable Sections */}
               <div className="space-y-4">
                 {/* Product Details */}
-                <div className="border border-white/10 rounded-lg overflow-hidden">
+                <div className="bg-gradient-to-br from-[#1E2B44] via-[#1A2435] to-[#111A2D] rounded-2xl border border-white/10 overflow-hidden shadow-[0_20px_45px_-24px_rgba(0,0,0,0.58)] transform-gpu transition-all duration-500 hover:-translate-y-1">
                   <button
                     onClick={() => toggleSection('composition')}
                     className="w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors"
@@ -296,7 +297,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                 </div>
 
                 {/* Shipping & Returns */}
-                <div className="border border-white/10 rounded-lg overflow-hidden">
+                <div className="bg-gradient-to-br from-[#1E2B44] via-[#1A2435] to-[#111A2D] rounded-2xl border border-white/10 overflow-hidden shadow-[0_20px_45px_-24px_rgba(0,0,0,0.58)] transform-gpu transition-all duration-500 hover:-translate-y-1">
                   <button
                     onClick={() => toggleSection('shipping')}
                     className="w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors"
@@ -315,7 +316,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                 </div>
 
                 {/* About B&B Shoes */}
-                <div className="border border-white/10 rounded-lg overflow-hidden">
+                <div className="bg-gradient-to-br from-[#1E2B44] via-[#1A2435] to-[#111A2D] rounded-2xl border border-white/10 overflow-hidden shadow-[0_20px_45px_-24px_rgba(0,0,0,0.58)] transform-gpu transition-all duration-500 hover:-translate-y-1">
                   <button
                     onClick={() => toggleSection('heritage')}
                     className="w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors"
@@ -361,7 +362,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
             <button 
               onClick={handleAddToCart}
               disabled={!selectedSize || !product.inStock}
-              className="bg-[#D4AF37] hover:bg-[#F4CE5C] text-black font-bold py-3 px-8 rounded-full transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-gradient-to-r from-[#D4AF37] to-[#F4CE5C] text-[#0B101E] font-bold py-3 px-8 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_12px_24px_-10px_rgba(212,175,55,0.6)] hover:shadow-[0_16px_30px_-12px_rgba(212,175,55,0.75)]"
             >
               {!product.inStock ? 'OUT OF STOCK' : showSuccess ? 'ADDED!' : 'ADD TO BAG'}
             </button>

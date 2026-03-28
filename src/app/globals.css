@@ -95,6 +95,178 @@ a {
   text-decoration: none;
 }
 
+/* Luxury light theme override: keeps existing structure and logic unchanged. */
+:root {
+  --lux-bg: #ffffff;
+  --lux-surface: #ffffff;
+  --lux-surface-soft: #ffffff;
+  --lux-text: #18202b;
+  --lux-text-soft: #4f5a69;
+  --lux-accent: #a97a18;
+  --lux-accent-soft: #d4b06a;
+  --lux-border: #e6e6e6;
+}
+
+html,
+body,
+#__next {
+  background: var(--lux-bg) !important;
+}
+
+body {
+  color: var(--lux-text) !important;
+}
+
+.glass-nav {
+  background: rgba(255, 255, 255, 0.92) !important;
+  border-color: rgba(169, 122, 24, 0.2) !important;
+  box-shadow: 0 18px 45px -26px rgba(25, 33, 45, 0.2);
+}
+
+.bg-\[\#0B101E\],
+.bg-\[\#1A2435\],
+.bg-\[\#121A2F\],
+.bg-\[\#111A2D\],
+.bg-\[\#0F1825\],
+.bg-\[\#1E2B44\],
+.bg-\[\#0B101E\]\/95,
+.bg-\[\#0B101E\]\/80,
+.bg-\[\#121A2F\]\/60,
+.bg-\[\#0B101E\]\/60,
+.bg-black\/20,
+.bg-black\/70,
+.bg-black\/80,
+.bg-black\/95 {
+  background-color: var(--lux-surface) !important;
+}
+
+.bg-\[\#1A2435\],
+.bg-\[\#121A2F\],
+.bg-\[\#111A2D\] {
+  background: #ffffff !important;
+}
+
+.from-\[\#1E2B44\],
+.from-\[\#1A2435\],
+.from-\[\#121A2F\],
+.from-\[\#0F1825\],
+.to-\[\#111A2D\],
+.to-\[\#0F1825\],
+.via-\[\#1A2435\],
+.via-\[\#121A2F\],
+.via-\[\#243048\] {
+  --tw-gradient-from: #ffffff var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: #ffffff var(--tw-gradient-to-position) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), #ffffff var(--tw-gradient-via-position), var(--tw-gradient-to) !important;
+}
+
+.text-white,
+.text-white\/90,
+.text-white\/80,
+.text-white\/70,
+.text-white\/60,
+.text-white\/50,
+.text-white\/40,
+.text-white\/30,
+.text-white\/20 {
+  color: var(--lux-text) !important;
+}
+
+.text-gray-400,
+.text-gray-500,
+.text-gray-600,
+.text-gray-300 {
+  color: var(--lux-text-soft) !important;
+}
+
+.text-gray-200,
+.text-gray-200\/90 {
+  color: #3f4a59 !important;
+}
+
+.text-\[\#0B101E\],
+.text-gray-900,
+.text-black {
+  color: var(--lux-text) !important;
+}
+
+.text-\[\#D4AF37\] {
+  color: var(--lux-accent) !important;
+}
+
+.text-\[\#FFE7A3\],
+.text-\[\#FFE8A6\] {
+  color: var(--lux-accent-soft) !important;
+}
+
+.border-white\/5,
+.border-white\/10,
+.border-white\/20,
+.border-\[\#D4AF37\]\/20,
+.border-\[\#D4AF37\]\/25,
+.border-\[\#D4AF37\]\/30,
+.border-\[\#D4AF37\]\/50 {
+  border-color: var(--lux-border) !important;
+}
+
+.bg-\[\#D4AF37\] {
+  background-color: var(--lux-accent) !important;
+}
+
+.hover\:bg-\[\#C4A037\]:hover,
+.hover\:bg-\[\#F4CE5C\]:hover {
+  background-color: #956913 !important;
+}
+
+.hover\:text-\[\#D4AF37\]:hover {
+  color: var(--lux-accent) !important;
+}
+
+.shadow-\[0_16px_40px_-12px_rgba\(212\,175\,55\,0\.2\)\],
+.shadow-\[0_10px_30px_rgba\(212\,175\,55\,0\.12\)\],
+.shadow-\[0_20px_40px_-15px_rgba\(0\,0\,0\,0\.5\)\],
+.shadow-\[0_25px_60px_-20px_rgba\(0\,0\,0\,0\.8\)\] {
+  box-shadow: 0 18px 42px -24px rgba(20, 28, 40, 0.22) !important;
+}
+
+.rounded-xl,
+.rounded-2xl,
+.rounded-3xl {
+  box-shadow: 0 10px 30px -24px rgba(24, 32, 43, 0.28);
+}
+
+/* Hero headings and large display text stay dark and premium for readability. */
+h1,
+h2,
+h3,
+.text-4xl,
+.text-5xl,
+.text-6xl,
+.text-7xl {
+  color: var(--lux-text);
+}
+
+.hover\:bg-white\/5:hover,
+.hover\:bg-white\/10:hover,
+.hover\:bg-white\/20:hover {
+  background-color: #f7f7f7 !important;
+}
+
+.bg-white {
+  background-color: #ffffff !important;
+}
+
+.bg-gray-50,
+.bg-gray-100 {
+  background-color: #ffffff !important;
+}
+
+main,
+section,
+footer {
+  background-color: #ffffff;
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;

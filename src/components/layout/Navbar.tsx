@@ -7,6 +7,7 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
 import { useCart } from '@/context/CartContext'
+import { useProducts } from '@/context/ProductContext'
 import { 
   Search, 
   ShoppingBag, 
@@ -140,11 +141,29 @@ const profileItemVariants = {
   show: { opacity: 1, x: 0, transition: { type: "spring", stiffness: 300, damping: 25 } }
 }
 
+const getRemainingParts = (ms: number) => {
+  const totalSeconds = Math.max(0, Math.floor(ms / 1000))
+  const days = Math.floor(totalSeconds / 86400)
+  const hours = Math.floor((totalSeconds % 86400) / 3600)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+  const seconds = totalSeconds % 60
+
+  const two = (value: number) => String(value).padStart(2, '0')
+
+  return {
+    days,
+    label: `${days > 0 ? `${two(days)}d ` : ''}${two(hours)}h ${two(minutes)}m ${two(seconds)}s`,
+  }
+}
+
 export default function Navbar() {
   const router = useRouter()
   const { totalItems } = useCart()
+  const { allProducts } = useProducts()
   const { data: session, status } = useSession()
   const [mounted, setMounted] = useState(false)
+  const [salesEndsAt, setSalesEndsAt] = useState<string | null>(null)
+  const [nowTick, setNowTick] = useState<number>(Date.now())
   
   // UI States
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -198,6 +217,32 @@ export default function Navbar() {
 
   useEffect(() => setMounted(true), [])
 
+  useEffect(() => {
+    const fetchSalesTimer = async () => {
+      try {
+        const response = await fetch('/api/settings/sales-timer', { cache: 'no-store' })
+        if (!response.ok) return
+        const result = await response.json()
+        setSalesEndsAt(result?.data?.salesEndsAt || null)
+      } catch {
+        setSalesEndsAt(null)
+      }
+    }
+
+    fetchSalesTimer()
+    const timerPoll = setInterval(fetchSalesTimer, 60000)
+
+    return () => clearInterval(timerPoll)
+  }, [])
+
+  useEffect(() => {
+    const ticker = setInterval(() => {
+      setNowTick(Date.now())
+    }, 1000)
+
+    return () => clearInterval(ticker)
+  }, [])
+
   // Close profile dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -229,14 +274,67 @@ export default function Navbar() {
   const effectiveSession = mounted ? session : null
   const effectiveTotalItems = mounted ? totalItems : 0
 
+  const maxDiscount = allProducts.reduce((max, product) => {
+    const discount = Number(product.discount || 0)
+    if (discount > max) return discount
+
+    if ((product.originalPrice || 0) > product.price && product.originalPrice) {
+      const computed = Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
+      return Math.max(max, computed)
+    }
+
+    return max
+  }, 0)
+
+  const salesEndMs = salesEndsAt ? new Date(salesEndsAt).getTime() : NaN
+  const hasValidSalesTimer = Number.isFinite(salesEndMs) && salesEndMs > nowTick
+  const isSalesBannerVisible = hasValidSalesTimer && maxDiscount > 0
+  const remaining = isSalesBannerVisible ? getRemainingParts(salesEndMs - nowTick) : null
+  const salesEndLabel = isSalesBannerVisible
+    ? new Intl.DateTimeFormat('en-PK', {
+        timeZone: 'Asia/Karachi',
+        day: '2-digit',
+        month: 'short',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+      }).format(new Date(salesEndMs))
+    : ''
+
+  const navTopClass = isAtTop
+    ? isSalesBannerVisible
+      ? 'top-10 px-6 py-4 md:px-10'
+      : 'top-0 px-6 py-6 md:px-10'
+    : isSalesBannerVisible
+      ? 'top-14 px-4'
+      : 'top-4 px-4'
+
   return (
     <>
+      <AnimatePresence>
+        {isSalesBannerVisible && remaining && (
+          <motion.div
+            initial={{ opacity: 0, y: -16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -16 }}
+            className="fixed top-0 left-0 right-0 z-[130] bg-gradient-to-r from-[#A97A18] via-[#C59634] to-[#A97A18] text-white border-b border-[#8C6314]/30"
+          >
+            <div className="max-w-[1400px] mx-auto px-4 md:px-10 py-2 flex items-center justify-center text-center">
+              <Link href="/sales" className="block text-[11px] md:text-xs uppercase font-bold hover:opacity-90 transition-opacity leading-tight">
+                <span className="block tracking-[0.08em] md:tracking-[0.15em]">Flash Sale Live: Up to {maxDiscount}% OFF | Ends in {remaining.label}</span>
+                <span className="block mt-0.5 tracking-[0.06em] md:tracking-[0.12em]">Ends: {salesEndLabel} (PKT)</span>
+              </Link>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <motion.nav 
         initial={{ y: -100 }}
         animate={{ y: isVisible ? 0 : -100 }}
         transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
         className={`fixed left-0 right-0 z-[100] flex justify-center transition-all duration-500 ease-out ${
-          isAtTop ? 'top-0 px-6 py-6 md:px-10' : 'top-4 px-4'
+          navTopClass
         }`}
       >
         <div 
@@ -244,7 +342,7 @@ export default function Navbar() {
           className={`flex items-center justify-between transition-all duration-500 relative ${
             isAtTop 
               ? 'w-full max-w-[1400px] bg-transparent border-transparent' 
-              : 'w-full max-w-5xl bg-[#0B101E]/80 backdrop-blur-xl border border-white/10 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)] rounded-full px-6 md:px-8 py-3'
+              : 'w-full max-w-5xl bg-white/90 backdrop-blur-xl border border-[#E3D8C4] shadow-[0_20px_40px_-15px_rgba(24,32,43,0.22)] rounded-full px-6 md:px-8 py-3'
           }`}
         >
           {/* Left: Hamburger */}
@@ -296,7 +394,7 @@ export default function Navbar() {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 8, scale: 0.98 }}
                     transition={{ duration: 0.2 }}
-                    className="absolute right-0 top-[calc(100%+14px)] w-[260px] max-h-[65vh] overflow-y-auto bg-[#0B101E]/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-[0_25px_60px_-20px_rgba(0,0,0,0.8)] p-2 z-[120]"
+                    className="absolute right-0 top-[calc(100%+14px)] w-[260px] max-h-[65vh] overflow-y-auto bg-white/95 backdrop-blur-2xl border border-[#E3D8C4] rounded-2xl shadow-[0_25px_60px_-20px_rgba(24,32,43,0.25)] p-2 z-[120]"
                   >
                     <div className="mb-1 px-1">
                       {collectionFilterLinks.slice(0, 3).map((item) => (

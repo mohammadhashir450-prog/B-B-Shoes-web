@@ -45,10 +45,10 @@ export default function Curated() {
   const [hoveredIndex, setHoveredIndex] = useState<number>(0)
 
   return (
-    <section className="relative bg-[#0B101E] py-20 md:py-24 overflow-hidden selection:bg-[#D4AF37]/30 selection:text-white">
+    <section className="relative bg-white py-20 md:py-24 overflow-hidden selection:bg-[#D4AF37]/30 selection:text-[#18202B]">
       
       {/* Cinematic Ambient Background Glow */}
-      <div className="absolute top-1/2 left-0 w-[50vw] h-[50vw] max-w-[800px] max-h-[800px] bg-[#D4AF37]/5 rounded-full blur-[150px] pointer-events-none -translate-y-1/2" />
+      <div className="absolute top-1/2 left-0 w-[50vw] h-[50vw] max-w-[800px] max-h-[800px] bg-[#D4AF37]/8 rounded-full blur-[150px] pointer-events-none -translate-y-1/2" />
 
       <div className="max-w-[1400px] mx-auto px-6 md:px-10 relative z-10">
         
@@ -67,16 +67,16 @@ export default function Curated() {
                 <Sparkles size={12} /> The Archives
               </p>
             </div>
-            <h2 className="text-5xl md:text-7xl lg:text-[80px] font-serif font-black leading-[0.9] tracking-tight text-white">
+            <h2 className="text-5xl md:text-7xl lg:text-[80px] font-serif font-black leading-[0.9] tracking-tight text-[#18202B]">
               Curated
               <br />
-              <span className="text-transparent [-webkit-text-stroke:1px_rgba(255,255,255,0.4)] md:[-webkit-text-stroke:2px_rgba(255,255,255,0.4)]">
+              <span className="text-transparent [-webkit-text-stroke:1px_rgba(24,32,43,0.28)] md:[-webkit-text-stroke:2px_rgba(24,32,43,0.28)]">
                 Collections
               </span>
             </h2>
           </div>
           
-          <p className="text-white/50 text-sm max-w-[300px] leading-relaxed font-light mb-2">
+          <p className="text-[#4F5A69] text-sm max-w-[300px] leading-relaxed font-light mb-2">
             Explore our meticulously crafted divisions, designed to elevate every step with uncompromising luxury.
           </p>
         </motion.div>
@@ -92,14 +92,14 @@ export default function Curated() {
                 key={item.id}
                 layout // Framer Motion magic for smooth flexbox changes
                 onMouseEnter={() => setHoveredIndex(index)}
-                className={`relative overflow-hidden rounded-3xl cursor-pointer bg-[#121A2F] border border-white/5 group transition-all duration-[0.8s] ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                className={`relative overflow-hidden rounded-3xl cursor-pointer bg-white border border-[#E4D8C3] group transition-all duration-[0.8s] ease-[cubic-bezier(0.16,1,0.3,1)] ${
                   isActive ? 'flex-[4] md:flex-[6]' : 'flex-1 md:hover:flex-[1.5]'
                 } ${item.accentGlow}`}
               >
                 <Link href={item.link} className="block w-full h-full cursor-pointer relative z-10">
                   
                   {/* Background Image with Cinematic Parallax */}
-                  <div className="absolute inset-0 w-full h-full bg-[#0B101E]">
+                  <div className="absolute inset-0 w-full h-full bg-white">
                     <Image
                       src={item.image}
                       alt={item.title}
@@ -116,8 +116,8 @@ export default function Curated() {
                   {/* Adaptive Gradients for Text Legibility */}
                   <div className={`absolute inset-0 bg-gradient-to-t transition-opacity duration-[1s] ${
                     isActive 
-                      ? 'from-[#0B101E] via-[#0B101E]/40 to-transparent opacity-90' 
-                      : 'from-[#0B101E]/90 to-[#0B101E]/40 opacity-80'
+                        ? 'from-[#18202B]/45 via-[#18202B]/18 to-transparent opacity-90' 
+                        : 'from-[#18202B]/35 to-[#18202B]/12 opacity-80'
                   }`} />
 
                   {/* Content Overlay */}
@@ -160,7 +160,7 @@ export default function Curated() {
                             initial={{ opacity: 0, scale: 0.8 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ duration: 0.5, delay: 0.5 }}
-                            className="hidden md:flex w-14 h-14 rounded-full backdrop-blur-md bg-white/10 border border-white/20 items-center justify-center text-white hover:bg-white hover:text-[#0B101E] hover:scale-110 transition-all duration-500 flex-shrink-0"
+                            className="hidden md:flex w-14 h-14 rounded-full backdrop-blur-md bg-white/25 border border-white/50 items-center justify-center text-white hover:bg-white hover:text-[#18202B] hover:scale-110 transition-all duration-500 flex-shrink-0"
                           >
                             <ArrowUpRight size={24} className="transform group-hover:rotate-45 transition-transform duration-500" />
                           </motion.div>
@@ -178,8 +178,8 @@ export default function Curated() {
                           className="flex flex-col items-center justify-end h-full pb-4"
                         >
                           <div className="flex flex-col items-center gap-6 opacity-40 hover:opacity-100 transition-opacity duration-500">
-                            <Icon size={20} className="text-white hidden md:block" />
-                            <h3 className="font-serif font-bold text-white text-xl md:text-2xl tracking-widest whitespace-nowrap md:-rotate-90 md:origin-bottom md:translate-y-16">
+                            <Icon size={20} className="text-[#253041] hidden md:block" />
+                            <h3 className="font-serif font-bold text-[#253041] text-xl md:text-2xl tracking-widest whitespace-nowrap md:-rotate-90 md:origin-bottom md:translate-y-16">
                               {item.title}
                             </h3>
                           </div>
