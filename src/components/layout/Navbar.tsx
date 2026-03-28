@@ -333,16 +333,16 @@ export default function Navbar() {
         initial={{ y: -100 }}
         animate={{ y: isVisible ? 0 : -100 }}
         transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-        className={`fixed left-0 right-0 z-[100] flex justify-center transition-all duration-500 ease-out ${
+        className={`fixed left-0 right-0 z-[100] flex justify-center transition-all duration-500 ease-out !bg-[#06080F] ${
           navTopClass
         }`}
       >
         <div 
           // REMOVED `overflow-hidden` here so the profile dropdown isn't clipped
-          className={`flex items-center justify-between transition-all duration-500 relative ${
+          className={`flex items-center justify-between transition-all duration-500 relative !bg-[#06080F] ${
             isAtTop 
-              ? 'w-full max-w-[1400px] bg-transparent border-transparent' 
-              : '!bg-[#06080F] w-full max-w-5xl backdrop-blur-xl border border-[#1a1a1a] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)] rounded-full px-6 md:px-8 py-3'
+              ? 'w-full max-w-[1400px] border-transparent' 
+              : 'w-full max-w-5xl backdrop-blur-xl border border-[#1a1a1a] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)] rounded-full px-6 md:px-8 py-3'
           }`}
         >
           {/* Left: Hamburger */}
