@@ -242,10 +242,11 @@ export const PATCH = asyncHandler(async (req: NextRequest) => {
   const status = String(body.status || '').trim().toLowerCase();
   const orderId = String(body.orderId || '').trim();
   const id = String(body.id || '').trim();
+  const requestUserId = String(body.user_id || '').trim();
 
-  const allowedStatuses = new Set(['pending', 'processing', 'delivered']);
+  const allowedStatuses = new Set(['pending', 'processing', 'delivered', 'cancelled']);
   if (!allowedStatuses.has(status)) {
-    return validationErrorResponse(['Invalid status. Allowed: pending, processing, delivered']);
+    return validationErrorResponse(['Invalid status. Allowed: pending, processing, delivered, cancelled']);
   }
 
   if (!orderId && !id) {
@@ -259,6 +260,32 @@ export const PATCH = asyncHandler(async (req: NextRequest) => {
   const query: any = orderId
     ? { orderId }
     : { _id: new mongoose.Types.ObjectId(id) };
+
+  const existingOrder = await Order.collection.findOne(query);
+  if (!existingOrder) {
+    return errorResponse('Order not found', 404);
+  }
+
+  const currentStatus = String(existingOrder.status || 'pending').toLowerCase();
+
+  if (currentStatus === 'cancelled' && status !== 'cancelled') {
+    return errorResponse('Cancelled orders cannot be updated', 409);
+  }
+
+  if (status === 'cancelled') {
+    if (!requestUserId) {
+      return validationErrorResponse(['user_id is required to cancel order']);
+    }
+
+    if (String(existingOrder.user_id || '').trim() !== requestUserId) {
+      return errorResponse('You are not allowed to cancel this order', 403);
+    }
+
+    const cancellableStatuses = new Set(['pending', 'confirmed']);
+    if (!cancellableStatuses.has(currentStatus)) {
+      return errorResponse('Order can only be cancelled before processing starts', 409);
+    }
+  }
 
   const result = await Order.collection.findOneAndUpdate(
     query,

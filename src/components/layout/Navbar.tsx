@@ -268,13 +268,13 @@ export default function Navbar() {
           {/* Center: Logo */}
           <div className="absolute inset-x-0 flex justify-center pointer-events-none z-10">
             <Link href="/" className="pointer-events-auto flex items-center justify-center group">
-              <Image src="/logo.png" alt="Logo" width={100} height={40} priority />
+              <Image src="/logo.png" alt="Logo" width={100} height={40} priority className="w-[82px] sm:w-[94px] md:w-[100px] h-auto" />
             </Link>
           </div>
 
           {/* Right: Actions */}
           <div className="flex items-center gap-5 md:gap-6">
-            <div className="relative" ref={collectionMenuRef}>
+            <div className="relative order-last md:order-none ml-1 md:ml-0" ref={collectionMenuRef}>
               <button
                 type="button"
                 onClick={toggleCollectionMenu}

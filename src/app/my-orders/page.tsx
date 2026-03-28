@@ -63,6 +63,54 @@ function MyOrdersContent() {
   const [selectedTab, setSelectedTab] = useState<'bag' | 'orders'>('bag');
   const [ordersLoading, setOrdersLoading] = useState(true);
   const [ordersError, setOrdersError] = useState<string | null>(null);
+  const [cancellingOrderId, setCancellingOrderId] = useState<string | null>(null);
+
+  const canCancelOrder = (status: Order['status']) => status === 'pending' || status === 'confirmed';
+
+  const handleCancelOrder = async (orderId: string) => {
+    if (!session?.user?.user_id) {
+      setOrdersError('Please sign in again to cancel your order.');
+      return;
+    }
+
+    const selectedOrder = orders.find((order) => order.id === orderId);
+    if (!selectedOrder) return;
+
+    if (!canCancelOrder(selectedOrder.status)) {
+      setOrdersError('This order can only be cancelled before processing starts.');
+      return;
+    }
+
+    const confirmed = window.confirm('Are you sure you want to cancel this order?');
+    if (!confirmed) return;
+
+    try {
+      setCancellingOrderId(orderId);
+      setOrdersError(null);
+
+      const response = await fetch('/api/orders', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderId,
+          status: 'cancelled',
+          user_id: session.user.user_id,
+        }),
+      });
+
+      const result = await response.json();
+      if (!response.ok || !result?.success) {
+        throw new Error(result?.message || 'Failed to cancel order');
+      }
+
+      setOrders((prev) => prev.map((order) => (order.id === orderId ? { ...order, status: 'cancelled' } : order)));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to cancel order';
+      setOrdersError(message);
+    } finally {
+      setCancellingOrderId(null);
+    }
+  };
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -302,6 +350,21 @@ function MyOrdersContent() {
                               <StatusIcon className="w-4 h-4" />
                               <span className="text-sm font-semibold">{status.label}</span>
                             </div>
+                          </div>
+
+                          <div className="flex items-center justify-end">
+                            {canCancelOrder(order.status) ? (
+                              <button
+                                type="button"
+                                onClick={() => handleCancelOrder(order.id)}
+                                disabled={cancellingOrderId === order.id}
+                                className="text-xs font-semibold px-4 py-2 rounded-full border border-red-400/40 text-red-300 hover:bg-red-500/10 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                              >
+                                {cancellingOrderId === order.id ? 'Cancelling...' : 'Cancel Order'}
+                              </button>
+                            ) : order.status !== 'cancelled' ? (
+                              <p className="text-xs text-gray-400">Order can only be cancelled before processing.</p>
+                            ) : null}
                           </div>
 
                           <div className="flex items-center justify-between">
