@@ -26,7 +26,7 @@ export default function ContactPage() {
       <Navbar />
       <main className="min-h-screen bg-white pt-24 pb-16 relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_12%_18%,rgba(212,175,55,0.06),transparent_38%),radial-gradient(circle_at_88%_16%,rgba(0,0,0,0.02),transparent_30%),linear-gradient(180deg,#ffffff_0%,#F5F5F5_55%,#ffffff_100%)] pointer-events-none" />
-        <div className="max-w-[1200px] mx-auto px-6 md:px-10 relative z-10">
+        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 md:px-10 relative z-10">
           
           {/* Breadcrumb */}
           <div className="flex items-center gap-2 text-sm mb-8">
@@ -38,11 +38,11 @@ export default function ContactPage() {
           </div>
 
           {/* Header */}
-          <div className="text-center mb-12">
-            <h1 className="text-4xl md:text-5xl font-bold text-[#0B101E] mb-4">
+          <div className="text-center mb-10 md:mb-12">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-[#0B101E] mb-4">
               Get in <span className="text-[#D4AF37]">Touch</span>
             </h1>
-            <p className="text-[#4F5A69] text-lg">
+            <p className="text-[#4F5A69] text-base md:text-lg">
               We&apos;d love to hear from you
             </p>
           </div>
@@ -50,8 +50,8 @@ export default function ContactPage() {
           <div className="grid lg:grid-cols-[1fr,400px] gap-8 [perspective:1400px]">
             
             {/* Contact Form */}
-            <div className="bg-gradient-to-br from-white via-[#FAFAFA] to-[#F5F5F5] rounded-2xl p-8 border border-[#D4AF37]/30 shadow-[0_8px_24px_rgba(0,0,0,0.08)] transform-gpu transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_12px_32px_rgba(212,175,55,0.15)]">
-              <h2 className="text-[#0B101E] text-2xl font-bold mb-6">Send us a Message</h2>
+            <div className="bg-gradient-to-br from-white via-[#FAFAFA] to-[#F5F5F5] rounded-2xl p-5 sm:p-6 md:p-8 border border-[#D4AF37]/30 shadow-[0_8px_24px_rgba(0,0,0,0.08)] transform-gpu transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_12px_32px_rgba(212,175,55,0.15)]">
+              <h2 className="text-[#0B101E] text-xl md:text-2xl font-bold mb-6">Send us a Message</h2>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label className="block text-[#4F5A69] text-sm mb-2">Full Name</label>
@@ -103,7 +103,7 @@ export default function ContactPage() {
                 
                 <button 
                   type="submit"
-                  className="w-full bg-gradient-to-r from-[#D4AF37] to-[#F4CE5C] text-[#0B101E] py-3 rounded-xl font-bold tracking-wide uppercase hover:from-[#C4A037] hover:to-[#E3BA48] transition-all flex items-center justify-center gap-2 shadow-[0_12px_24px_-10px_rgba(212,175,55,0.6)] hover:shadow-[0_16px_30px_-12px_rgba(212,175,55,0.75)]"
+                  className="w-full bg-gradient-to-r from-[#D4AF37] to-[#F4CE5C] text-[#0B101E] py-3 rounded-xl font-bold text-xs md:text-sm tracking-[0.14em] uppercase hover:from-[#C4A037] hover:to-[#E3BA48] transition-all flex items-center justify-center gap-2 shadow-[0_12px_24px_-10px_rgba(212,175,55,0.6)] hover:shadow-[0_16px_30px_-12px_rgba(212,175,55,0.75)]"
                 >
                   <Send size={18} />
                   <span>Send Message</span>

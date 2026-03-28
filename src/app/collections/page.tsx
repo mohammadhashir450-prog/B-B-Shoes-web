@@ -84,7 +84,7 @@ export default function CollectionsPage() {
     <>
       <Navbar />
       <main className="min-h-screen bg-[#0B101E] pt-24 pb-16">
-        <div className="max-w-[1400px] mx-auto px-6 md:px-10">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-10">
           
           {/* Breadcrumb */}
           <div className="flex items-center gap-2 text-sm mb-8">
@@ -96,11 +96,11 @@ export default function CollectionsPage() {
           </div>
 
           {/* Header */}
-          <div className="mb-12">
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+          <div className="mb-10 md:mb-12">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4">
               All <span className="text-[#D4AF37]">Products</span>
             </h1>
-            <p className="text-gray-400 text-lg">
+            <p className="text-gray-400 text-base md:text-lg">
               Explore the complete portfolio of premium footwear
             </p>
           </div>
@@ -130,7 +130,7 @@ export default function CollectionsPage() {
                 <p className="text-gray-400 mb-8">Try another category filter or add matching products from admin panel.</p>
                 <button
                   onClick={() => router.push('/collections')}
-                  className="inline-block bg-[#D4AF37] hover:bg-[#F4CE5C] text-[#0B101E] font-bold py-3 px-8 rounded-full transition-all"
+                  className="inline-block bg-[#D4AF37] hover:bg-[#F4CE5C] text-[#0B101E] font-bold text-xs md:text-sm tracking-[0.14em] uppercase py-3 px-6 md:px-8 rounded-full transition-all"
                 >
                   Show All Products
                 </button>

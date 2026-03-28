@@ -13,7 +13,7 @@ export default function HeroSection() {
   }, [])
 
   return (
-    <section className="relative min-h-screen bg-white overflow-hidden pt-28 pb-24" suppressHydrationWarning>
+    <section className="relative min-h-screen bg-white overflow-hidden pt-24 md:pt-28 pb-16 md:pb-24" suppressHydrationWarning>
       <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(180deg,#ffffff_0%,#FCFCFC_58%,#ffffff_100%)]" />
 
       <div className="relative z-10 max-w-[1320px] mx-auto px-6 md:px-10">
@@ -29,7 +29,7 @@ export default function HeroSection() {
             </span>
           </div>
 
-          <h1 className="text-[3rem] md:text-[5.8rem] lg:text-[8rem] leading-[0.88] tracking-[-0.05em] font-black text-[#06080F] max-w-[1100px] mx-auto">
+          <h1 className="text-[2.35rem] sm:text-[2.8rem] md:text-[5.8rem] lg:text-[8rem] leading-[0.9] tracking-[-0.045em] font-black text-[#06080F] max-w-[1100px] mx-auto">
             Quiet Power.
           </h1>
 
@@ -37,17 +37,17 @@ export default function HeroSection() {
             Crafted for presence.
           </p>
 
-          <div className="mt-12 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2.5 w-full max-w-[520px] mx-auto">
+          <div className="mt-10 md:mt-12 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2.5 w-full max-w-[520px] mx-auto">
             <Link
               href="/collections#all-products-grid"
-              className="group inline-flex w-full sm:w-auto justify-center items-center gap-2 px-7 py-3 rounded-full bg-[#06080F] text-white text-xs md:text-sm font-bold tracking-[0.14em] uppercase hover:bg-[#161B26] transition-colors"
+              className="group inline-flex w-full sm:w-auto justify-center items-center gap-2 px-6 md:px-7 py-3 rounded-full bg-[#06080F] text-white text-xs md:text-sm font-bold tracking-[0.14em] uppercase hover:bg-[#161B26] transition-colors"
             >
               All Products
               <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
             </Link>
             <Link
               href="/new-arrivals"
-              className="inline-flex w-full sm:w-auto justify-center items-center gap-2 px-7 py-3 rounded-full border-2 border-[#06080F] bg-white text-[#06080F] text-xs md:text-sm font-bold tracking-[0.14em] uppercase hover:bg-[#06080F] hover:text-white transition-all"
+              className="inline-flex w-full sm:w-auto justify-center items-center gap-2 px-6 md:px-7 py-3 rounded-full border-2 border-[#06080F] bg-white text-[#06080F] text-xs md:text-sm font-bold tracking-[0.14em] uppercase hover:bg-[#06080F] hover:text-white transition-all"
             >
               New Arrivals
             </Link>
@@ -80,7 +80,7 @@ export default function HeroSection() {
             </div>
           </div>
 
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3 md:gap-10 text-[11px] tracking-[0.16em] uppercase text-[#374151]">
+          <div className="mt-7 md:mt-8 flex flex-wrap items-center justify-center gap-3 md:gap-10 text-[10px] md:text-[11px] tracking-[0.15em] uppercase text-[#374151]">
             <span>50K+ Clients</span>
             <span className="w-1 h-1 rounded-full bg-[#9CA3AF]" />
             <span>100% Authentic</span>

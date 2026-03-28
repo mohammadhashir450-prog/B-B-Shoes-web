@@ -11,7 +11,7 @@ export default function AboutPage() {
       <Navbar />
       <main className="min-h-screen bg-[#0B101E] pt-24 pb-16 relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_12%_18%,rgba(212,175,55,0.16),transparent_38%),radial-gradient(circle_at_88%_16%,rgba(255,255,255,0.08),transparent_30%),linear-gradient(180deg,#0B101E_0%,#111A2D_55%,#0B101E_100%)] pointer-events-none" />
-        <div className="max-w-[1200px] mx-auto px-6 md:px-10 relative z-10">
+        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 md:px-10 relative z-10">
           
           {/* Breadcrumb */}
           <div className="flex items-center gap-2 text-sm mb-8">
@@ -23,23 +23,23 @@ export default function AboutPage() {
           </div>
 
           {/* Header */}
-          <div className="text-center mb-16">
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+          <div className="text-center mb-12 md:mb-16">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4">
               About <span className="text-[#D4AF37]">B&B Shoes</span>
             </h1>
-            <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+            <p className="text-gray-400 text-base md:text-lg max-w-2xl mx-auto">
               Crafting luxury footwear excellence since 2023
             </p>
           </div>
 
           {/* Story Section */}
-          <div className="bg-gradient-to-br from-[#1D2A42] via-[#1A2435] to-[#111A2D] rounded-2xl p-8 md:p-12 mb-8 border border-[#D4AF37]/20 shadow-[0_26px_60px_-26px_rgba(0,0,0,0.65)] transform-gpu transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_30px_80px_-28px_rgba(212,175,55,0.35)]">
+          <div className="bg-gradient-to-br from-[#1D2A42] via-[#1A2435] to-[#111A2D] rounded-2xl p-6 md:p-12 mb-8 border border-[#D4AF37]/20 shadow-[0_26px_60px_-26px_rgba(0,0,0,0.65)] transform-gpu transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_30px_80px_-28px_rgba(212,175,55,0.35)]">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-16 h-16 bg-[#D4AF37] rounded-full flex items-center justify-center">
                 <Award size={28} className="text-[#0B101E]" />
               </div>
               <div>
-                <h2 className="text-white text-2xl font-bold">A Century of Quiet Luxury</h2>
+                <h2 className="text-white text-xl md:text-2xl font-bold">A Century of Quiet Luxury</h2>
                 <p className="text-[#D4AF37] text-sm">Since 2023</p>
               </div>
             </div>
@@ -57,7 +57,7 @@ export default function AboutPage() {
 
           {/* Values Grid */}
           <div className="grid md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-gradient-to-br from-[#1E2B44] via-[#1A2435] to-[#111A2D] rounded-2xl p-8 text-center border border-white/10 shadow-[0_20px_45px_-24px_rgba(0,0,0,0.58)] transform-gpu transition-all duration-500 hover:-translate-y-1">
+            <div className="bg-gradient-to-br from-[#1E2B44] via-[#1A2435] to-[#111A2D] rounded-2xl p-6 md:p-8 text-center border border-white/10 shadow-[0_20px_45px_-24px_rgba(0,0,0,0.58)] transform-gpu transition-all duration-500 hover:-translate-y-1">
               <Users size={40} className="text-[#D4AF37] mx-auto mb-4" />
               <h3 className="text-white text-xl font-bold mb-3">Expert Artisans</h3>
               <p className="text-gray-400 text-sm">
@@ -65,7 +65,7 @@ export default function AboutPage() {
               </p>
             </div>
             
-            <div className="bg-gradient-to-br from-[#1E2B44] via-[#1A2435] to-[#111A2D] rounded-2xl p-8 text-center border border-white/10 shadow-[0_20px_45px_-24px_rgba(0,0,0,0.58)] transform-gpu transition-all duration-500 hover:-translate-y-1">
+            <div className="bg-gradient-to-br from-[#1E2B44] via-[#1A2435] to-[#111A2D] rounded-2xl p-6 md:p-8 text-center border border-white/10 shadow-[0_20px_45px_-24px_rgba(0,0,0,0.58)] transform-gpu transition-all duration-500 hover:-translate-y-1">
               <Globe size={40} className="text-[#D4AF37] mx-auto mb-4" />
               <h3 className="text-white text-xl font-bold mb-3">Global Presence</h3>
               <p className="text-gray-400 text-sm">
@@ -73,7 +73,7 @@ export default function AboutPage() {
               </p>
             </div>
             
-            <div className="bg-gradient-to-br from-[#1E2B44] via-[#1A2435] to-[#111A2D] rounded-2xl p-8 text-center border border-white/10 shadow-[0_20px_45px_-24px_rgba(0,0,0,0.58)] transform-gpu transition-all duration-500 hover:-translate-y-1">
+            <div className="bg-gradient-to-br from-[#1E2B44] via-[#1A2435] to-[#111A2D] rounded-2xl p-6 md:p-8 text-center border border-white/10 shadow-[0_20px_45px_-24px_rgba(0,0,0,0.58)] transform-gpu transition-all duration-500 hover:-translate-y-1">
               <Heart size={40} className="text-[#D4AF37] mx-auto mb-4" />
               <h3 className="text-white text-xl font-bold mb-3">Passion for Quality</h3>
               <p className="text-gray-400 text-sm">

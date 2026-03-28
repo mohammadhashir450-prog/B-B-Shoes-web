@@ -67,7 +67,7 @@ export default function Products() {
       {/* Cinematic Ambient Glow */}
       <div className="absolute top-0 left-0 w-[600px] h-[600px] bg-[#D4AF37]/5 rounded-full blur-[150px] pointer-events-none" />
 
-      <div className="max-w-[1400px] mx-auto px-6 md:px-10 relative z-10">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-10 relative z-10">
         
         {/* Cinematic Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 md:mb-12 gap-6">
@@ -101,14 +101,14 @@ export default function Products() {
           >
             <button
               onClick={() => scrollSlider('left')}
-              className="w-12 h-12 rounded-full backdrop-blur-md border border-[#DCCFB6] bg-white/90 flex items-center justify-center text-[#253041] hover:border-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#18202B] transition-all duration-300"
+              className="w-10 h-10 md:w-12 md:h-12 rounded-full backdrop-blur-md border border-[#DCCFB6] bg-white/90 flex items-center justify-center text-[#253041] hover:border-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#18202B] transition-all duration-300"
               aria-label="Scroll products left"
             >
               <ChevronLeft size={18} strokeWidth={1.5} />
             </button>
             <button
               onClick={() => scrollSlider('right')}
-              className="w-12 h-12 rounded-full backdrop-blur-md border border-[#DCCFB6] bg-white/90 flex items-center justify-center text-[#253041] hover:border-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#18202B] transition-all duration-300"
+              className="w-10 h-10 md:w-12 md:h-12 rounded-full backdrop-blur-md border border-[#DCCFB6] bg-white/90 flex items-center justify-center text-[#253041] hover:border-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#18202B] transition-all duration-300"
               aria-label="Scroll products right"
             >
               <ChevronRight size={18} strokeWidth={1.5} />
