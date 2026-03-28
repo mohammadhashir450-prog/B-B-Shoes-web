@@ -342,7 +342,7 @@ export default function Navbar() {
           className={`flex items-center justify-between transition-all duration-500 relative ${
             isAtTop 
               ? 'w-full max-w-[1400px] bg-transparent border-transparent' 
-              : 'w-full max-w-5xl bg-[#06080F] backdrop-blur-xl border border-[#1a1a1a] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)] rounded-full px-6 md:px-8 py-3'
+              : '!bg-[#06080F] w-full max-w-5xl backdrop-blur-xl border border-[#1a1a1a] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)] rounded-full px-6 md:px-8 py-3'
           }`}
         >
           {/* Left: Hamburger */}
