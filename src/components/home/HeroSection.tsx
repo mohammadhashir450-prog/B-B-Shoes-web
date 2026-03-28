@@ -37,17 +37,17 @@ export default function HeroSection() {
             Crafted for presence.
           </p>
 
-          <div className="mt-12 flex flex-wrap items-center justify-center gap-2.5">
+          <div className="mt-12 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2.5 w-full max-w-[520px] mx-auto">
             <Link
               href="/collections#all-products-grid"
-              className="group inline-flex items-center gap-2 px-7 py-3 rounded-full bg-[#06080F] text-white text-xs md:text-sm font-bold tracking-[0.16em] uppercase hover:bg-[#161B26] transition-colors"
+              className="group inline-flex w-full sm:w-auto justify-center items-center gap-2 px-7 py-3 rounded-full bg-[#06080F] text-white text-xs md:text-sm font-bold tracking-[0.14em] uppercase hover:bg-[#161B26] transition-colors"
             >
               All Products
               <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
             </Link>
             <Link
               href="/new-arrivals"
-              className="inline-flex items-center gap-2 px-7 py-3 rounded-full border-2 border-[#06080F] bg-white text-[#06080F] text-xs md:text-sm font-bold tracking-[0.16em] uppercase hover:bg-[#06080F] hover:text-white transition-all"
+              className="inline-flex w-full sm:w-auto justify-center items-center gap-2 px-7 py-3 rounded-full border-2 border-[#06080F] bg-white text-[#06080F] text-xs md:text-sm font-bold tracking-[0.14em] uppercase hover:bg-[#06080F] hover:text-white transition-all"
             >
               New Arrivals
             </Link>
@@ -80,7 +80,7 @@ export default function HeroSection() {
             </div>
           </div>
 
-          <div className="mt-8 flex items-center justify-center gap-6 md:gap-10 text-[11px] tracking-[0.2em] uppercase text-[#374151]">
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3 md:gap-10 text-[11px] tracking-[0.16em] uppercase text-[#374151]">
             <span>50K+ Clients</span>
             <span className="w-1 h-1 rounded-full bg-[#9CA3AF]" />
             <span>100% Authentic</span>
