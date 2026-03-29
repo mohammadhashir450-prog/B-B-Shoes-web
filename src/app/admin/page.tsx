@@ -267,6 +267,9 @@ export default function AdminPanel() {
   const [salesEndsAtInput, setSalesEndsAtInput] = useState('');
   const [timerSaving, setTimerSaving] = useState(false);
   const [timerMessage, setTimerMessage] = useState('');
+  const [timerMode, setTimerMode] = useState<'custom' | 'duration'>('duration');
+  const [timerDuration, setTimerDuration] = useState<number>(1);
+  const [timerUnit, setTimerUnit] = useState<'seconds' | 'minutes' | 'hours' | 'days' | 'weeks' | 'months' | 'years'>('days');
   const [imageUploadError, setImageUploadError] = useState('');
   const [imageUploadStatus, setImageUploadStatus] = useState('');
   const [secondaryImageUploadError, setSecondaryImageUploadError] = useState('');
@@ -348,10 +351,35 @@ export default function AdminPanel() {
     setTimerSaving(true);
 
     try {
+      let endDateTime: string | null = null;
+
+      if (timerMode === 'duration') {
+        // Calculate end date based on duration
+        const now = new Date();
+        const durationMs = timerDuration * (
+          timerUnit === 'seconds' ? 1000 :
+          timerUnit === 'minutes' ? 60 * 1000 :
+          timerUnit === 'hours' ? 60 * 60 * 1000 :
+          timerUnit === 'days' ? 24 * 60 * 60 * 1000 :
+          timerUnit === 'weeks' ? 7 * 24 * 60 * 60 * 1000 :
+          timerUnit === 'months' ? 30 * 24 * 60 * 60 * 1000 :
+          365 * 24 * 60 * 60 * 1000 // years
+        );
+        
+        const endDate = new Date(now.getTime() + durationMs);
+        endDateTime = endDate.toISOString();
+      } else {
+        // Use custom datetime
+        if (salesEndsAtInput) {
+          const date = new Date(salesEndsAtInput);
+          endDateTime = date.toISOString();
+        }
+      }
+
       const response = await fetch('/api/settings/sales-timer', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ salesEndsAt: salesEndsAtInput || null }),
+        body: JSON.stringify({ salesEndsAt: endDateTime }),
       });
 
       const result = await response.json();
@@ -1323,42 +1351,104 @@ export default function AdminPanel() {
         {activeTab === 'sales' && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
             <div className="bg-[#121A2F]/60 backdrop-blur-md rounded-3xl border border-white/10 p-6 mb-8">
-              <div className="flex items-start justify-between gap-6 flex-col md:flex-row">
+              <div className="flex items-start justify-between gap-6 flex-col md:flex-row mb-6">
                 <div>
                   <h3 className="text-white font-bold text-lg flex items-center gap-2">
                     <Clock3 size={18} className="text-[#D4AF37]" />
                     Sales Countdown Timer
                   </h3>
-                  <p className="text-white/50 text-sm mt-1">Set when the Sales & Discounts event should end.</p>
+                  <p className="text-white/50 text-sm mt-1">
+                    {timerMode === 'duration' 
+                      ? 'Set timer by duration (5 seconds to 5+ years)'
+                      : 'Set exact date and time'}
+                  </p>
                 </div>
+              </div>
 
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
+              {/* Mode Toggle */}
+              <div className="flex gap-3 mb-6">
+                {(['custom', 'duration'] as const).map(mode => (
+                  <button
+                    key={mode}
+                    onClick={() => setTimerMode(mode)}
+                    className={`px-4 py-2 rounded-lg text-[10px] tracking-[0.1em] uppercase font-bold transition-all ${
+                      timerMode === mode
+                        ? 'bg-[#D4AF37] text-[#0B101E]'
+                        : 'bg-white/5 border border-white/10 text-white/70 hover:text-white'
+                    }`}
+                  >
+                    {mode === 'custom' ? 'Custom Date' : 'Quick Duration'}
+                  </button>
+                ))}
+              </div>
+
+              {/* Custom Date Mode */}
+              {timerMode === 'custom' && (
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-6">
                   <input
                     type="datetime-local"
                     value={salesEndsAtInput}
                     onChange={(e) => setSalesEndsAtInput(e.target.value)}
-                    className="bg-[#0B101E] border border-white/10 rounded-xl px-4 py-3 text-sm text-white"
+                    className="bg-[#0B101E] border border-white/10 rounded-xl px-4 py-3 text-sm text-white flex-1"
                   />
-                  <button
-                    type="button"
-                    onClick={saveSalesTimer}
-                    disabled={timerSaving}
-                    className="bg-[#D4AF37] text-[#0B101E] font-bold py-3 px-5 rounded-xl text-[10px] tracking-[0.15em] uppercase disabled:opacity-60"
-                  >
-                    {timerSaving ? 'Saving...' : 'Save Timer'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSalesEndsAtInput('')}
-                    className="bg-white/10 border border-white/10 text-white font-bold py-3 px-5 rounded-xl text-[10px] tracking-[0.15em] uppercase"
-                  >
-                    Clear
-                  </button>
                 </div>
+              )}
+
+              {/* Duration Mode */}
+              {timerMode === 'duration' && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                  <input
+                    type="number"
+                    min="1"
+                    max="999"
+                    value={timerDuration}
+                    onChange={(e) => setTimerDuration(Number(e.target.value) || 1)}
+                    className="bg-[#0B101E] border border-white/10 rounded-xl px-4 py-3 text-sm text-white col-span-2 md:col-span-1"
+                    placeholder="Duration"
+                  />
+                  <select
+                    value={timerUnit}
+                    onChange={(e) => setTimerUnit(e.target.value as typeof timerUnit)}
+                    className="bg-[#0B101E] border border-white/10 rounded-xl px-4 py-3 text-sm text-white col-span-2 md:col-span-3"
+                  >
+                    <option value="seconds">Seconds</option>
+                    <option value="minutes">Minutes</option>
+                    <option value="hours">Hours</option>
+                    <option value="days">Days</option>
+                    <option value="weeks">Weeks</option>
+                    <option value="months">Months</option>
+                    <option value="years">Years</option>
+                  </select>
+                </div>
+              )}
+
+              {/* Save Buttons */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <button
+                  type="button"
+                  onClick={saveSalesTimer}
+                  disabled={timerSaving || (timerMode === 'duration' && !timerDuration) || (timerMode === 'custom' && !salesEndsAtInput)}
+                  className="bg-[#D4AF37] text-[#0B101E] font-bold py-3 px-5 rounded-xl text-[10px] tracking-[0.15em] uppercase disabled:opacity-60 flex-1 sm:flex-none"
+                >
+                  {timerSaving ? 'Saving...' : 'Save Timer'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSalesEndsAtInput('');
+                    setTimerDuration(1);
+                    setTimerMode('duration');
+                    setTimerMessage('');
+                  }}
+                  className="bg-white/10 border border-white/10 text-white font-bold py-3 px-5 rounded-xl text-[10px] tracking-[0.15em] uppercase flex-1 sm:flex-none"
+                >
+                  Clear All
+                </button>
               </div>
-              {timerMessage ? (
+
+              {timerMessage && (
                 <p className="text-xs mt-4 text-[#D4AF37] tracking-wider uppercase">{timerMessage}</p>
-              ) : null}
+              )}
             </div>
 
             <button 
