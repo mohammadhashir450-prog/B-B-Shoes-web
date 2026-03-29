@@ -163,6 +163,8 @@ export default function Navbar() {
   const { data: session, status } = useSession()
   const [mounted, setMounted] = useState(false)
   const [salesEndsAt, setSalesEndsAt] = useState<string | null>(null)
+  const [salesTickerMessage, setSalesTickerMessage] = useState('')
+  const [salesTickerSpeed, setSalesTickerSpeed] = useState<number>(18)
   const [nowTick, setNowTick] = useState<number>(Date.now())
   
   // UI States
@@ -224,8 +226,12 @@ export default function Navbar() {
         if (!response.ok) return
         const result = await response.json()
         setSalesEndsAt(result?.data?.salesEndsAt || null)
+        setSalesTickerMessage((result?.data?.salesTickerMessage || '').trim())
+        setSalesTickerSpeed(Number(result?.data?.salesTickerSpeed || 18))
       } catch {
         setSalesEndsAt(null)
+        setSalesTickerMessage('')
+        setSalesTickerSpeed(18)
       }
     }
 
@@ -300,6 +306,12 @@ export default function Navbar() {
         hour12: true,
       }).format(new Date(salesEndMs))
     : ''
+  const salesTickerText = isSalesBannerVisible && remaining
+    ? `${salesTickerMessage || `Flash Sale Live | Up to ${maxDiscount}% Off | Ends In ${remaining.label} | Ends ${salesEndLabel} PKT | Shop Now`} | Up to ${maxDiscount}% Off | Ends In ${remaining.label} | Ends ${salesEndLabel} PKT`
+    : ''
+  const tickerDurationSeconds = Number.isFinite(salesTickerSpeed)
+    ? Math.min(45, Math.max(6, salesTickerSpeed))
+    : 18
 
   const navTopClass = isAtTop
     ? isSalesBannerVisible
@@ -317,12 +329,21 @@ export default function Navbar() {
             initial={{ opacity: 0, y: -16 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -16 }}
-            className="fixed top-0 left-0 right-0 z-[130] bg-gradient-to-r from-[#A97A18] via-[#C59634] to-[#A97A18] text-white border-b border-[#8C6314]/30"
+            className="fixed top-0 left-0 right-0 z-[130] bg-gradient-to-r from-[#7B0000] via-[#C20F1E] to-[#7B0000] text-white border-b border-[#FF9AA2]/30 shadow-[0_8px_28px_-12px_rgba(194,15,30,0.9)]"
           >
-            <div className="max-w-[1400px] mx-auto px-4 md:px-10 py-2 flex items-center justify-center text-center">
-              <Link href="/sales" className="block text-[11px] md:text-xs uppercase font-bold hover:opacity-90 transition-opacity leading-tight">
-                <span className="block tracking-[0.08em] md:tracking-[0.15em]">Flash Sale Live: Up to {maxDiscount}% OFF | Ends in {remaining.label}</span>
-                <span className="block mt-0.5 tracking-[0.06em] md:tracking-[0.12em]">Ends: {salesEndLabel} (PKT)</span>
+            <div className="max-w-[1400px] mx-auto px-3 md:px-10 py-2.5 flex items-center gap-3">
+              <span className="hidden sm:inline-flex items-center gap-2 rounded-md bg-[#2C0000] border border-[#FFB3BC]/30 px-2.5 py-1 text-[10px] font-extrabold tracking-[0.22em] uppercase whitespace-nowrap sales-badge-pulse">
+                <span className="sales-live-dot" />
+                Live
+              </span>
+              <Link href="/sales" className="sales-marquee group flex-1 overflow-hidden rounded-md border border-white/15 bg-white/5 px-2 py-1.5 hover:bg-white/10 transition-colors">
+                <div className="sales-marquee-track" style={{ animationDuration: `${tickerDurationSeconds}s` }}>
+                  {[1, 2].map((copy) => (
+                    <span key={copy} className="sales-marquee-content text-[11px] md:text-xs font-bold tracking-[0.12em] uppercase">
+                      {salesTickerText}
+                    </span>
+                  ))}
+                </div>
               </Link>
             </div>
           </motion.div>

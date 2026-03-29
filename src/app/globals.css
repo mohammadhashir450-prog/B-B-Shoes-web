@@ -58,6 +58,76 @@
   font-family: 'Playfair Display', serif;
 }
 
+.sales-marquee {
+  position: relative;
+}
+
+.sales-marquee-track {
+  display: flex;
+  width: max-content;
+  min-width: 100%;
+  animation: salesTicker 18s linear infinite;
+  will-change: transform;
+}
+
+.sales-marquee-content {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  padding-right: 2.5rem;
+}
+
+.sales-marquee:hover .sales-marquee-track {
+  animation-play-state: paused;
+}
+
+.sales-live-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background: #ff8a94;
+  box-shadow: 0 0 0 0 rgba(255, 138, 148, 0.8);
+  animation: salesDotPulse 1.8s ease-out infinite;
+}
+
+.sales-badge-pulse {
+  animation: salesBadgeGlow 2.8s ease-in-out infinite;
+}
+
+@keyframes salesTicker {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes salesDotPulse {
+  0% {
+    transform: scale(0.9);
+    box-shadow: 0 0 0 0 rgba(255, 138, 148, 0.7);
+  }
+  70% {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 8px rgba(255, 138, 148, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(255, 138, 148, 0);
+  }
+}
+
+@keyframes salesBadgeGlow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 rgba(255, 179, 188, 0);
+  }
+  50% {
+    box-shadow: 0 0 14px rgba(255, 179, 188, 0.28);
+  }
+}
+
 body {
   background-color: #0b132b;
 }

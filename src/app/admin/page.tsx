@@ -270,6 +270,8 @@ export default function AdminPanel() {
   const [timerMode, setTimerMode] = useState<'custom' | 'duration'>('duration');
   const [timerDuration, setTimerDuration] = useState<number>(1);
   const [timerUnit, setTimerUnit] = useState<'seconds' | 'minutes' | 'hours' | 'days' | 'weeks' | 'months' | 'years'>('days');
+  const [tickerMessage, setTickerMessage] = useState('');
+  const [tickerSpeed, setTickerSpeed] = useState<number>(18);
   const [imageUploadError, setImageUploadError] = useState('');
   const [imageUploadStatus, setImageUploadStatus] = useState('');
   const [secondaryImageUploadError, setSecondaryImageUploadError] = useState('');
@@ -329,6 +331,8 @@ export default function AdminPanel() {
 
           const result = await response.json();
           const endsAt = result?.data?.salesEndsAt;
+          setTickerMessage(result?.data?.salesTickerMessage || '');
+          setTickerSpeed(Number(result?.data?.salesTickerSpeed || 18));
           if (endsAt) {
             const date = new Date(endsAt);
             if (!Number.isNaN(date.getTime())) {
@@ -379,7 +383,11 @@ export default function AdminPanel() {
       const response = await fetch('/api/settings/sales-timer', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ salesEndsAt: endDateTime }),
+        body: JSON.stringify({
+          salesEndsAt: endDateTime,
+          salesTickerMessage: tickerMessage,
+          salesTickerSpeed: tickerSpeed,
+        }),
       });
 
       const result = await response.json();
@@ -1423,6 +1431,36 @@ export default function AdminPanel() {
               )}
 
               {/* Save Buttons */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+                <div className="col-span-1 md:col-span-2">
+                  <label className="text-[10px] uppercase tracking-[0.16em] text-white/60 mb-2 block">Ticker Message (Optional)</label>
+                  <input
+                    type="text"
+                    value={tickerMessage}
+                    onChange={(e) => setTickerMessage(e.target.value.slice(0, 180))}
+                    className="bg-[#0B101E] border border-white/10 rounded-xl px-4 py-3 text-sm text-white w-full"
+                    placeholder="Flash Sale Live | Free Delivery Nationwide | Limited Stock"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[10px] uppercase tracking-[0.16em] text-white/60 mb-2 block">Ticker Speed ({tickerSpeed}s loop)</label>
+                  <input
+                    type="range"
+                    min="6"
+                    max="45"
+                    step="1"
+                    value={tickerSpeed}
+                    onChange={(e) => setTickerSpeed(Number(e.target.value))}
+                    className="w-full accent-[#D4AF37]"
+                  />
+                </div>
+
+                <div className="bg-[#0B101E] border border-white/10 rounded-xl px-4 py-3 text-xs text-white/70 flex items-center">
+                  Lower value = faster ticker | Higher value = slower ticker
+                </div>
+              </div>
+
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 <button
                   type="button"
@@ -1438,6 +1476,8 @@ export default function AdminPanel() {
                     setSalesEndsAtInput('');
                     setTimerDuration(1);
                     setTimerMode('duration');
+                    setTickerMessage('');
+                    setTickerSpeed(18);
                     setTimerMessage('');
                   }}
                   className="bg-white/10 border border-white/10 text-white font-bold py-3 px-5 rounded-xl text-[10px] tracking-[0.15em] uppercase flex-1 sm:flex-none"

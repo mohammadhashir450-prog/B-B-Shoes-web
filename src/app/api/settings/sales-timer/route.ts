@@ -18,11 +18,13 @@ export const GET = asyncHandler(async () => {
     );
   }
 
-  const settings = await SiteSettings.findOne({ key: 'global' }).select('salesEndsAt updatedAt');
+  const settings = await SiteSettings.findOne({ key: 'global' }).select('salesEndsAt salesTickerMessage salesTickerSpeed updatedAt');
 
   return successResponse(
     {
       salesEndsAt: settings?.salesEndsAt || null,
+      salesTickerMessage: settings?.salesTickerMessage || '',
+      salesTickerSpeed: Number(settings?.salesTickerSpeed || 18),
       updatedAt: settings?.updatedAt || null,
     },
     'Sales timer fetched successfully'
@@ -45,6 +47,8 @@ export const PATCH = asyncHandler(async (req: NextRequest) => {
 
   const body = await req.json();
   const inputValue = body?.salesEndsAt;
+  const inputTickerMessage = typeof body?.salesTickerMessage === 'string' ? body.salesTickerMessage : '';
+  const inputTickerSpeed = Number(body?.salesTickerSpeed);
 
   let salesEndsAt: Date | null = null;
 
@@ -56,12 +60,19 @@ export const PATCH = asyncHandler(async (req: NextRequest) => {
     salesEndsAt = parsed;
   }
 
+  const salesTickerMessage = inputTickerMessage.trim().slice(0, 180);
+  const salesTickerSpeed = Number.isFinite(inputTickerSpeed)
+    ? Math.min(45, Math.max(6, inputTickerSpeed))
+    : 18;
+
   const settings = await SiteSettings.findOneAndUpdate(
     { key: 'global' },
     {
       $set: {
         key: 'global',
         salesEndsAt,
+        salesTickerMessage,
+        salesTickerSpeed,
         updatedBy: 'admin-panel',
       },
     },
@@ -70,11 +81,13 @@ export const PATCH = asyncHandler(async (req: NextRequest) => {
       new: true,
       setDefaultsOnInsert: true,
     }
-  ).select('salesEndsAt updatedAt');
+  ).select('salesEndsAt salesTickerMessage salesTickerSpeed updatedAt');
 
   return successResponse(
     {
       salesEndsAt: settings?.salesEndsAt || null,
+      salesTickerMessage: settings?.salesTickerMessage || '',
+      salesTickerSpeed: Number(settings?.salesTickerSpeed || 18),
       updatedAt: settings?.updatedAt || null,
     },
     'Sales timer updated successfully'
