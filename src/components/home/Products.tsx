@@ -13,13 +13,17 @@ export default function Products() {
   const { isWishlisted, toggleWishlist } = useWishlist()
   const sliderRef = useRef<HTMLDivElement>(null)
   const [showSwipeHint, setShowSwipeHint] = useState(true)
+  const [showAllProducts, setShowAllProducts] = useState(false)
 
-  // Get first 4 regular products (not on sale, not new arrivals)
+  // Get regular products for this section.
   const regularProducts = useMemo(() => {
-    return allProducts
-      .filter((p) => !p.isOnSale && !p.isNewArrival)
-      .slice(0, 4)
+    return allProducts.filter((p) => !p.isOnSale && !p.isNewArrival)
   }, [allProducts])
+
+  const displayedProducts = useMemo(
+    () => (showAllProducts ? regularProducts : regularProducts.slice(0, 4)),
+    [regularProducts, showAllProducts]
+  )
 
   const scrollSlider = (direction: 'left' | 'right') => {
     if (!sliderRef.current) return
@@ -100,21 +104,29 @@ export default function Products() {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="hidden sm:flex gap-3 md:gap-4"
+            className="flex items-center gap-2 sm:gap-3 md:gap-4"
           >
             <button
               onClick={() => scrollSlider('left')}
-              className="w-10 h-10 md:w-12 md:h-12 rounded-full backdrop-blur-md border border-[#DCCFB6] bg-white/90 flex items-center justify-center text-[#253041] hover:border-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#18202B] transition-all duration-300"
+              className="w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full backdrop-blur-md border border-[#DCCFB6] bg-white/90 flex items-center justify-center text-[#253041] hover:border-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#18202B] transition-all duration-300"
               aria-label="Scroll products left"
             >
-              <ChevronLeft size={18} strokeWidth={1.5} />
+              <ChevronLeft size={16} strokeWidth={1.5} />
             </button>
             <button
               onClick={() => scrollSlider('right')}
-              className="w-10 h-10 md:w-12 md:h-12 rounded-full backdrop-blur-md border border-[#DCCFB6] bg-white/90 flex items-center justify-center text-[#253041] hover:border-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#18202B] transition-all duration-300"
+              className="w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full backdrop-blur-md border border-[#DCCFB6] bg-white/90 flex items-center justify-center text-[#253041] hover:border-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#18202B] transition-all duration-300"
               aria-label="Scroll products right"
             >
-              <ChevronRight size={18} strokeWidth={1.5} />
+              <ChevronRight size={16} strokeWidth={1.5} />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowAllProducts((prev) => !prev)}
+              className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-full border border-[#DCCFB6] bg-white/90 text-[#253041] text-[10px] sm:text-[11px] font-bold tracking-[0.14em] uppercase hover:border-[#D4AF37] hover:bg-[#D4AF37] transition-all duration-300"
+            >
+              {showAllProducts ? 'Show Less' : 'See More'}
             </button>
           </motion.div>
         </div>
@@ -127,7 +139,7 @@ export default function Products() {
             onTouchStart={() => setShowSwipeHint(false)}
             className="flex gap-4 sm:gap-5 lg:gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-3 scroll-px-4 sm:scroll-px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
-            {regularProducts.map((product, index) => (
+            {displayedProducts.map((product, index) => (
               <motion.div
                 key={product.id}
                 initial={{ opacity: 0, y: 30 }}
@@ -206,10 +218,14 @@ export default function Products() {
             animate={{ opacity: 1, y: 0 }}
             className="md:hidden mt-3 flex items-center justify-center"
           >
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#F5EFE1] border border-[#E2D6BF] text-[#6A7483] text-[10px] tracking-[0.14em] uppercase font-bold">
-              <span>Swipe For More</span>
-              <span className="text-[#A97A18]">&larr; &rarr;</span>
-            </div>
+            <button
+              type="button"
+              onClick={() => setShowAllProducts(true)}
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#F5EFE1] border border-[#E2D6BF] text-[#6A7483] text-[10px] tracking-[0.14em] uppercase font-bold"
+            >
+              <span>See More Products</span>
+              <span className="text-[#A97A18]">+</span>
+            </button>
           </motion.div>
         ) : null}
       </div>

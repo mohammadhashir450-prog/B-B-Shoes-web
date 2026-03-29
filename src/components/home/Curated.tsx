@@ -119,14 +119,13 @@ export default function Curated() {
                   <div className="absolute inset-0 bg-gradient-to-t from-[#06080F]/62 via-[#06080F]/20 to-transparent" />
 
                   <div className="absolute left-4 sm:left-6 right-4 sm:right-6 bottom-4 sm:bottom-6">
-                    <p className="text-[#D4AF37] text-[10px] tracking-[0.18em] uppercase font-bold flex items-center gap-2">
-                      <currentItem.icon size={12} /> {currentItem.subtitle}
-                    </p>
-                    <div className="mt-2 flex items-center justify-between">
-                      <h3 className="text-white text-2xl sm:text-3xl md:text-4xl font-serif font-black leading-tight">
-                        {currentItem.title}
-                      </h3>
-                      <span className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/20 border border-white/40 flex items-center justify-center text-white group-hover:bg-white group-hover:text-[#18202B] transition-colors">
+                    <div className="flex items-start justify-between gap-3">
+                      <p className="text-white text-sm sm:text-base md:text-lg leading-relaxed max-w-[680px]">
+                        B&B Shoes delivers premium quality with comfort that lasts all day.
+                        Discover exclusive drops, limited deals, and signature designs crafted to stand out.
+                        Shop now and upgrade every step with confidence.
+                      </p>
+                      <span className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/20 border border-white/40 flex items-center justify-center text-white group-hover:bg-white group-hover:text-[#18202B] transition-colors shrink-0 mt-0.5">
                         <ArrowUpRight size={16} />
                       </span>
                     </div>
