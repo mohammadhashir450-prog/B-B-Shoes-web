@@ -65,7 +65,7 @@ export default function Products() {
   }
 
   return (
-    <section className="relative bg-[#FCFBF8] py-16 md:py-20 overflow-hidden">
+    <section className="relative bg-[#FCFBF8] py-12 md:py-20 overflow-hidden">
       
       {/* Cinematic Ambient Glow */}
       <div className="absolute top-0 left-0 w-[520px] h-[520px] bg-[#D4AF37]/5 rounded-full blur-[140px] pointer-events-none" />
@@ -73,20 +73,20 @@ export default function Products() {
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-10 relative z-10">
         
         {/* Cinematic Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 md:mb-10 gap-5">
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-7 md:mb-10 gap-4 md:gap-5">
           <motion.div 
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8, ease: "easeOut" }}
           >
-            <div className="flex items-center gap-4 mb-6">
+            <div className="flex items-center gap-3 md:gap-4 mb-4 md:mb-6">
               <div className="w-12 h-[1px] bg-[#D4AF37]"></div>
               <p className="text-[#D4AF37] text-[10px] tracking-[0.3em] uppercase font-bold flex items-center gap-2">
                 <Sparkles size={12} /> Exclusives
               </p>
             </div>
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif font-black text-[#18202B] leading-tight mb-3">
+            <h2 className="text-[30px] md:text-4xl lg:text-5xl font-serif font-black text-[#18202B] leading-tight mb-2 md:mb-3">
               The Gold Edition
             </h2>
             <p className="text-[#4F5A69] text-sm max-w-[420px] leading-relaxed">
@@ -100,7 +100,7 @@ export default function Products() {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="flex gap-4"
+            className="hidden sm:flex gap-3 md:gap-4"
           >
             <button
               onClick={() => scrollSlider('left')}
@@ -120,12 +120,12 @@ export default function Products() {
         </div>
 
         {/* Clean Horizontal Product Rail */}
-        <div className="relative">
+        <div className="relative -mx-4 px-4 sm:mx-0 sm:px-0">
           <div
             ref={sliderRef}
             onScroll={() => setShowSwipeHint(false)}
             onTouchStart={() => setShowSwipeHint(false)}
-            className="flex gap-5 lg:gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            className="flex gap-4 sm:gap-5 lg:gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-3 scroll-px-4 sm:scroll-px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
             {regularProducts.map((product, index) => (
               <motion.div
@@ -134,12 +134,12 @@ export default function Products() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 viewport={{ once: true, margin: "-50px" }}
-                className="group relative shrink-0 w-[270px] sm:w-[300px] lg:w-[320px] snap-start bg-white border border-[#E7E0D1] rounded-2xl overflow-hidden transition-all duration-400 hover:border-[#D4AF37]/45 hover:shadow-[0_18px_34px_-18px_rgba(24,32,43,0.22)]"
+                className="group relative shrink-0 w-[84vw] max-w-[300px] sm:w-[300px] lg:w-[320px] snap-start bg-white border border-[#E7E0D1] rounded-2xl overflow-hidden transition-all duration-400 hover:border-[#D4AF37]/45 hover:shadow-[0_18px_34px_-18px_rgba(24,32,43,0.22)]"
               >
                 <Link href={`/product/${product.id}`} className="h-full flex flex-col">
                   
                   {/* Image Section */}
-                  <div className="relative h-[210px] sm:h-[230px] lg:h-[245px] bg-[#FAF9F7] overflow-hidden p-3 rounded-xl border border-[#06080F]/45 shadow-[0_12px_24px_-18px_rgba(6,8,15,0.5)] transition-all duration-400 group-hover:border-[#06080F]/70">
+                  <div className="relative h-[195px] sm:h-[230px] lg:h-[245px] bg-[#FAF9F7] overflow-hidden p-3 rounded-xl border border-[#06080F]/45 shadow-[0_12px_24px_-18px_rgba(6,8,15,0.5)] transition-all duration-400 group-hover:border-[#06080F]/70">
                     <HoverSwapImage
                       primaryImage={product.image}
                       secondaryImage={product.secondaryImage}
@@ -165,12 +165,12 @@ export default function Products() {
                   </div>
 
                   {/* Product Info Section */}
-                  <div className="p-5 md:p-6 flex flex-col flex-grow justify-between border-t border-[#ECE7DD] bg-white">
+                  <div className="p-4 sm:p-5 md:p-6 flex flex-col flex-grow justify-between border-t border-[#ECE7DD] bg-white">
                     <div>
                       <p className="text-[#A97A18] text-[9px] tracking-[0.2em] uppercase mb-2 font-bold">
                         {product.brand || 'B&B EXCLUSIVE'}
                       </p>
-                      <h3 className="text-lg font-serif font-bold text-[#18202B] leading-tight mb-2 group-hover:text-[#A97A18] transition-colors line-clamp-2 min-h-[52px]">
+                      <h3 className="text-base sm:text-lg font-serif font-bold text-[#18202B] leading-tight mb-2 group-hover:text-[#A97A18] transition-colors line-clamp-2 min-h-[46px] sm:min-h-[52px]">
                         {product.name}
                       </h3>
                     </div>
@@ -196,8 +196,8 @@ export default function Products() {
             ))}
           </div>
 
-          <div className="pointer-events-none absolute inset-y-0 left-0 w-8 sm:w-10 bg-gradient-to-r from-[#FCFBF8] to-transparent" />
-          <div className="pointer-events-none absolute inset-y-0 right-0 w-8 sm:w-10 bg-gradient-to-l from-[#FCFBF8] to-transparent" />
+          <div className="hidden sm:block pointer-events-none absolute inset-y-0 left-0 w-8 sm:w-10 bg-gradient-to-r from-[#FCFBF8] to-transparent" />
+          <div className="hidden sm:block pointer-events-none absolute inset-y-0 right-0 w-8 sm:w-10 bg-gradient-to-l from-[#FCFBF8] to-transparent" />
         </div>
 
         {showSwipeHint ? (

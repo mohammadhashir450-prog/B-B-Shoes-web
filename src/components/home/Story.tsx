@@ -27,79 +27,53 @@ const trustStats = [
 
 export default function Story() {
   return (
-    <section className="relative bg-white py-20 md:py-24 overflow-hidden">
-      <div className="absolute -top-28 -left-24 w-[420px] h-[420px] bg-[#D4AF37]/10 blur-[130px] rounded-full pointer-events-none" />
-      <div className="absolute -bottom-24 -right-16 w-[360px] h-[360px] bg-[#06080F]/7 blur-[120px] rounded-full pointer-events-none" />
+    <section className="relative bg-white py-16 md:py-20 overflow-hidden">
+      <div className="absolute -top-20 -left-20 w-72 h-72 bg-[#D4AF37]/8 blur-[110px] rounded-full pointer-events-none" />
 
-      <div className="max-w-[1400px] mx-auto px-8">
-        <div className="grid lg:grid-cols-[1.1fr_1fr] gap-12 md:gap-16 items-center">
-          {/* Editorial Visual Block */}
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-10">
+        <div className="grid lg:grid-cols-[1.05fr_1fr] gap-8 md:gap-12 items-start">
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.65 }}
             viewport={{ once: true }}
-            className="relative"
+            className="space-y-4"
           >
-            <div className="relative aspect-[4/5] overflow-hidden rounded-[2rem] border border-[#06080F]/35 shadow-[0_38px_90px_-36px_rgba(6,8,15,0.42)]">
+            <div className="relative aspect-[4/5] overflow-hidden rounded-2xl border border-[#06080F]/35 shadow-[0_24px_48px_-30px_rgba(6,8,15,0.4)]">
               <Image
                 src="https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?auto=format&fit=crop&w=1400&q=80"
                 alt="B&B footwear craftsmanship close-up"
                 fill
-                className="object-cover scale-[1.04] grayscale-[6%] contrast-110"
+                className="object-cover"
               />
-
-              <motion.div
-                aria-hidden
-                animate={{
-                  x: [0, 24, -20, 0],
-                  y: [0, -16, 12, 0],
-                }}
-                transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
-                className="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-gradient-to-br from-white/35 via-[#D4AF37]/18 to-transparent blur-3xl"
-              />
-
               <div className="absolute inset-0 bg-gradient-to-t from-[#06080F]/56 via-[#06080F]/16 to-transparent" />
             </div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 18 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.2, duration: 0.6 }}
-              className="absolute left-5 bottom-5 right-5 bg-white/95 backdrop-blur-md border border-[#E7DDCB] rounded-2xl px-4 md:px-5 py-4 shadow-[0_20px_40px_-20px_rgba(24,32,43,0.28)]"
-            >
-              <p className="text-[10px] tracking-[0.18em] uppercase text-[#A97A18] font-bold">Signature Promise</p>
-              <p className="text-sm md:text-base text-[#18202B] font-semibold mt-1">
-                Built for statement wear. Trusted for daily comfort.
-              </p>
-            </motion.div>
-
-            <motion.div
-              animate={{ y: [0, -6, 0] }}
-              transition={{ duration: 4.4, repeat: Infinity, ease: 'easeInOut' }}
-              className="absolute -bottom-8 -right-6 w-36 h-36 bg-white border-4 border-[#D4AF37] rounded-full flex flex-col items-center justify-center shadow-[0_24px_45px_-20px_rgba(24,32,43,0.35)]"
-            >
-              <span className="text-[#D4AF37] text-[9px] tracking-widest uppercase">Est.</span>
-              <span className="text-[#A97A18] text-4xl font-bold leading-none">2023</span>
-              <span className="text-[#253041] text-[9px] tracking-[0.2em] uppercase mt-1">Luxury Craft</span>
-            </motion.div>
+            <div className="rounded-2xl border border-[#E7DDCB] bg-[#FBF7EE] px-4 py-4 flex items-center justify-between gap-4">
+              <div>
+                <p className="text-[10px] tracking-[0.18em] uppercase text-[#A97A18] font-bold">Signature Promise</p>
+                <p className="text-sm text-[#18202B] font-semibold mt-1">Built for statement wear. Trusted for daily comfort.</p>
+              </div>
+              <div className="text-right shrink-0">
+                <p className="text-[10px] tracking-[0.16em] uppercase text-[#A97A18] font-bold">Est.</p>
+                <p className="text-2xl font-black text-[#18202B] leading-none">2023</p>
+              </div>
+            </div>
           </motion.div>
 
-          {/* Brand Narrative Block */}
           <motion.div
             initial={{ opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.65 }}
             viewport={{ once: true }}
-            className="space-y-8"
+            className="space-y-6"
           >
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#F8F4EA] border border-[#E8DDCA]">
               <span className="w-2 h-2 rounded-full bg-[#D4AF37]" />
               <span className="text-[10px] tracking-[0.18em] uppercase font-bold text-[#A97A18]">Why B&B</span>
             </div>
 
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-[#18202B] leading-[1.05]">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-[#18202B] leading-[1.1]">
               Designed To Be Seen.
               <br />
               Engineered To Be Worn.
@@ -109,14 +83,14 @@ export default function Story() {
               B&B Shoes combines fashion-forward silhouettes with craft-level construction. Every pair is shaped to carry premium aesthetics, breathable comfort, and long-life performance in one refined product.
             </p>
 
-            <div className="grid grid-cols-3 gap-3 sm:gap-4">
+            <div className="grid grid-cols-3 gap-2 sm:gap-3">
               {trustStats.map((stat) => (
                 <div
                   key={stat.label}
-                  className="rounded-2xl border border-[#E8DFCF] bg-gradient-to-b from-white to-[#FBF7EE] px-3 py-4 text-center"
+                  className="rounded-xl border border-[#E8DFCF] bg-gradient-to-b from-white to-[#FBF7EE] px-2.5 py-3 text-center"
                 >
-                  <p className="text-[#18202B] text-xl md:text-2xl font-black leading-none">{stat.value}</p>
-                  <p className="text-[#6A7483] text-[10px] tracking-[0.12em] uppercase mt-2">{stat.label}</p>
+                  <p className="text-[#18202B] text-lg md:text-xl font-black leading-none">{stat.value}</p>
+                  <p className="text-[#6A7483] text-[9px] tracking-[0.1em] uppercase mt-1.5">{stat.label}</p>
                 </div>
               ))}
             </div>
@@ -129,7 +103,7 @@ export default function Story() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.45, delay: index * 0.08 }}
-                  className="rounded-2xl border border-[#E7DECF] bg-gradient-to-r from-white to-[#FBF7EF] px-4 py-3 hover:border-[#D8C8AA] transition-colors"
+                  className="rounded-xl border border-[#E7DECF] bg-gradient-to-r from-white to-[#FBF7EF] px-4 py-3"
                 >
                   <div className="flex items-start gap-3">
                     <div className="w-2.5 h-2.5 rounded-full bg-[#D4AF37] mt-1.5 shadow-[0_0_0_3px_rgba(212,175,55,0.2)]" />
@@ -145,13 +119,13 @@ export default function Story() {
             <div className="flex flex-col sm:flex-row gap-3 pt-1">
               <Link
                 href="/collections"
-                className="inline-flex items-center justify-center px-6 py-3 rounded-full bg-[#06080F] text-white text-[11px] tracking-[0.14em] uppercase font-bold hover:bg-[#1C2330] transition-colors"
+                className="inline-flex items-center justify-center px-6 py-3 rounded-full bg-[#06080F] text-white text-[10px] tracking-[0.14em] uppercase font-bold hover:bg-[#1C2330] transition-colors"
               >
                 Explore Collection
               </Link>
               <Link
                 href="/about"
-                className="inline-flex items-center justify-center px-6 py-3 rounded-full border border-[#D9C8AA] text-[#18202B] text-[11px] tracking-[0.14em] uppercase font-bold hover:bg-[#FBF7EE] transition-colors"
+                className="inline-flex items-center justify-center px-6 py-3 rounded-full border border-[#D9C8AA] text-[#18202B] text-[10px] tracking-[0.14em] uppercase font-bold hover:bg-[#FBF7EE] transition-colors"
               >
                 Discover Brand Story
               </Link>
