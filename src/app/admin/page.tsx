@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Package, ShoppingCart, Users, Plus, Edit2, Trash2, X, Save, Camera, Upload, Tag, Lock, Eye, EyeOff, TrendingUp, Sparkles, Crown, Check, ArrowRight, ChevronRight, Clock3, BarChart3, Wallet, PackageCheck } from 'lucide-react';
+import { Package, ShoppingCart, Users, Plus, Edit2, Trash2, X, Save, Camera, Upload, Tag, Lock, Eye, EyeOff, TrendingUp, Sparkles, Crown, Check, ArrowRight, ChevronRight, Clock3, BarChart3, Wallet, PackageCheck, Search } from 'lucide-react';
 import { CldUploadWidget } from 'next-cloudinary';
 import { useProducts, Product } from '@/context/ProductContext';
 import StockControl from '@/components/admin/StockControl';
@@ -76,11 +76,31 @@ export default function AdminPanel() {
   const [editingSaleProduct, setEditingSaleProduct] = useState<Product | null>(null);
   const [editingNewArrival, setEditingNewArrival] = useState<Product | null>(null);
   const [editingStockProduct, setEditingStockProduct] = useState<Product | null>(null);
+  const [productSearchQuery, setProductSearchQuery] = useState('');
   
   // Get filtered products from context
   const products = useMemo(() => {
     return allProducts.filter((p) => !p.isOnSale && !p.isNewArrival);
   }, [allProducts]);
+
+  const searchedProducts = useMemo(() => {
+    const normalized = productSearchQuery.trim().toLowerCase();
+
+    return products
+      .map((product, index) => ({
+        product,
+        serial: index + 1,
+      }))
+      .filter(({ product, serial }) => {
+        if (!normalized) return true;
+
+        const serialText = String(serial);
+        const productName = String(product.name || '').toLowerCase();
+        const productId = String(product.id || '').toLowerCase();
+
+        return serialText.includes(normalized) || productName.includes(normalized) || productId.includes(normalized);
+      });
+  }, [products, productSearchQuery]);
   
   const salesProducts = useMemo(() => {
     return getSaleProducts();
@@ -1349,6 +1369,34 @@ export default function AdminPanel() {
               <Plus size={16}/> 
               Register New Asset
             </button>
+
+            <div className="mb-8 bg-[#121A2F]/60 backdrop-blur-md rounded-2xl border border-white/10 p-4 sm:p-5">
+              <label className="text-[10px] tracking-[0.16em] uppercase text-white/60 font-bold block mb-3">
+                Search by Serial, Name, or Product ID
+              </label>
+              <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-[#0B101E] px-3 py-2.5">
+                <Search size={16} className="text-white/50" />
+                <input
+                  type="text"
+                  value={productSearchQuery}
+                  onChange={(e) => setProductSearchQuery(e.target.value)}
+                  placeholder="Example: 12 or Peshawari or 67f..."
+                  className="w-full bg-transparent text-white placeholder:text-white/35 outline-none text-sm"
+                />
+                {productSearchQuery ? (
+                  <button
+                    type="button"
+                    onClick={() => setProductSearchQuery('')}
+                    className="text-[10px] tracking-[0.12em] uppercase font-bold text-[#D4AF37] hover:text-white transition-colors"
+                  >
+                    Clear
+                  </button>
+                ) : null}
+              </div>
+              <p className="mt-3 text-xs text-white/55">
+                Showing {searchedProducts.length} of {products.length} products
+              </p>
+            </div>
             
             {loading || contextLoading ? (
               <div className="flex flex-col items-center justify-center py-32 opacity-50">
@@ -1360,9 +1408,15 @@ export default function AdminPanel() {
                 <Package size={48} className="mx-auto text-white/20 mb-6" strokeWidth={1} />
                 <p className="text-white/50 font-medium text-sm">Vault is empty. Initiate asset registration.</p>
               </div>
+            ) : searchedProducts.length === 0 ? (
+              <div className="text-center py-24 bg-[#121A2F]/40 backdrop-blur-sm rounded-3xl border border-white/5">
+                <Search size={42} className="mx-auto text-white/20 mb-5" strokeWidth={1.5} />
+                <p className="text-white/70 font-semibold text-sm">No product found for "{productSearchQuery}"</p>
+                <p className="text-white/45 text-xs mt-2">Try serial number, product name, or product id.</p>
+              </div>
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {products.map(p => (
+                {searchedProducts.map(({ product: p, serial }) => (
                   <div key={p.id} className="bg-[#121A2F]/60 backdrop-blur-md rounded-3xl border border-white/5 overflow-hidden group hover:border-white/20 transition-all">
                     <div className="relative aspect-square bg-[#0B101E] p-6">
                       <Image 
@@ -1378,7 +1432,7 @@ export default function AdminPanel() {
                       />
                       <div className="absolute top-4 left-4">
                         <span className="text-[8px] font-black tracking-[0.2em] text-[#D4AF37] bg-[#D4AF37]/10 border border-[#D4AF37]/20 px-3 py-1.5 rounded-full uppercase backdrop-blur-md">
-                          {p.category}
+                          #{serial} • {p.category}
                         </span>
                       </div>
                       {!p.inStock && (
