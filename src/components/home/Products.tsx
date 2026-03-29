@@ -14,17 +14,17 @@ export default function Products() {
   const sliderRef = useRef<HTMLDivElement>(null)
   const [showSwipeHint, setShowSwipeHint] = useState(true)
 
-  // Show more regular products so forward/reverse controls reveal additional items.
+  // Get first 4 regular products (not on sale, not new arrivals)
   const regularProducts = useMemo(() => {
     return allProducts
       .filter((p) => !p.isOnSale && !p.isNewArrival)
-      .slice(0, 12)
+      .slice(0, 4)
   }, [allProducts])
 
   const scrollSlider = (direction: 'left' | 'right') => {
     if (!sliderRef.current) return
 
-    const cardWidth = Math.max(sliderRef.current.clientWidth * 0.85, 280)
+    const cardWidth = 360
     sliderRef.current.scrollBy({
       left: direction === 'left' ? -cardWidth : cardWidth,
       behavior: 'smooth',
@@ -100,21 +100,21 @@ export default function Products() {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="flex gap-2 sm:gap-3 md:gap-4"
+            className="hidden sm:flex gap-3 md:gap-4"
           >
             <button
               onClick={() => scrollSlider('left')}
-              className="w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full backdrop-blur-md border border-[#DCCFB6] bg-white/90 flex items-center justify-center text-[#253041] hover:border-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#18202B] transition-all duration-300"
+              className="w-10 h-10 md:w-12 md:h-12 rounded-full backdrop-blur-md border border-[#DCCFB6] bg-white/90 flex items-center justify-center text-[#253041] hover:border-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#18202B] transition-all duration-300"
               aria-label="Scroll products left"
             >
-              <ChevronLeft size={16} strokeWidth={1.5} />
+              <ChevronLeft size={18} strokeWidth={1.5} />
             </button>
             <button
               onClick={() => scrollSlider('right')}
-              className="w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full backdrop-blur-md border border-[#DCCFB6] bg-white/90 flex items-center justify-center text-[#253041] hover:border-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#18202B] transition-all duration-300"
+              className="w-10 h-10 md:w-12 md:h-12 rounded-full backdrop-blur-md border border-[#DCCFB6] bg-white/90 flex items-center justify-center text-[#253041] hover:border-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#18202B] transition-all duration-300"
               aria-label="Scroll products right"
             >
-              <ChevronRight size={16} strokeWidth={1.5} />
+              <ChevronRight size={18} strokeWidth={1.5} />
             </button>
           </motion.div>
         </div>

@@ -387,30 +387,7 @@ export default function Navbar() {
               </span>
             </button>
 
-            <Link
-              href="/wishlist"
-              className="relative text-white hover:text-[#D4AF37] transition-colors hover:scale-110 transform duration-300"
-              aria-label="Wishlist"
-            >
-              <Heart size={18} strokeWidth={1.7} />
-              {effectiveTotalWishlistItems > 0 ? (
-                <span className="absolute -top-1.5 -right-2 w-[18px] h-[18px] bg-[#D4AF37] text-[#0B101E] rounded-full flex items-center justify-center text-[9px] font-black shadow-[0_0_10px_rgba(212,175,55,0.4)]">
-                  {effectiveTotalWishlistItems}
-                </span>
-              ) : null}
-            </Link>
-          </div>
-
-          {/* Center: Logo */}
-          <div className="absolute inset-x-0 flex justify-center pointer-events-none z-10">
-            <Link href="/" className="pointer-events-auto flex items-center justify-center group">
-              <Image src="/logo.png" alt="Logo" width={100} height={40} priority className="w-[82px] sm:w-[94px] md:w-[100px] h-auto" />
-            </Link>
-          </div>
-
-          {/* Right: Actions */}
-          <div className="flex items-center gap-2 sm:gap-3 md:gap-6">
-            <div className="relative block order-last md:order-none ml-1 md:ml-0" ref={collectionMenuRef}>
+            <div className="relative block" ref={collectionMenuRef}>
               <button
                 type="button"
                 onClick={toggleCollectionMenu}
@@ -432,7 +409,7 @@ export default function Navbar() {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 8, scale: 0.98 }}
                     transition={{ duration: 0.2 }}
-                    className="absolute right-0 top-[calc(100%+14px)] w-[260px] max-h-[65vh] overflow-y-auto bg-white/95 backdrop-blur-2xl border border-[#E3D8C4] rounded-2xl shadow-[0_25px_60px_-20px_rgba(24,32,43,0.25)] p-2 z-[120]"
+                    className="absolute left-0 top-[calc(100%+14px)] w-[260px] max-h-[65vh] overflow-y-auto bg-white/95 backdrop-blur-2xl border border-[#E3D8C4] rounded-2xl shadow-[0_25px_60px_-20px_rgba(24,32,43,0.25)] p-2 z-[120]"
                   >
                     <div className="mb-1 px-1">
                       {collectionFilterLinks.slice(0, 3).map((item) => (
@@ -495,6 +472,29 @@ export default function Navbar() {
               </AnimatePresence>
             </div>
 
+            <Link
+              href="/wishlist"
+              className="relative text-white hover:text-[#D4AF37] transition-colors hover:scale-110 transform duration-300"
+              aria-label="Wishlist"
+            >
+              <Heart size={18} strokeWidth={1.7} />
+              {effectiveTotalWishlistItems > 0 ? (
+                <span className="absolute -top-1.5 -right-2 w-[18px] h-[18px] bg-[#D4AF37] text-[#0B101E] rounded-full flex items-center justify-center text-[9px] font-black shadow-[0_0_10px_rgba(212,175,55,0.4)]">
+                  {effectiveTotalWishlistItems}
+                </span>
+              ) : null}
+            </Link>
+          </div>
+
+          {/* Center: Logo */}
+          <div className="absolute inset-x-0 flex justify-center pointer-events-none z-10">
+            <Link href="/" className="pointer-events-auto flex items-center justify-center group">
+              <Image src="/logo.png" alt="Logo" width={100} height={40} priority className="w-[82px] sm:w-[94px] md:w-[100px] h-auto" />
+            </Link>
+          </div>
+
+          {/* Right: Actions */}
+          <div className="flex items-center gap-2 sm:gap-3 md:gap-6">
             <button
               type="button"
               onClick={handleSearchClick}
