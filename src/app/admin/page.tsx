@@ -44,6 +44,18 @@ interface Order {
   date: string;
 }
 
+const getRemainingLabel = (ms: number) => {
+  const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  const two = (value: number) => String(value).padStart(2, '0');
+
+  return `${days > 0 ? `${two(days)}d ` : ''}${two(hours)}h ${two(minutes)}m ${two(seconds)}s`;
+};
+
 export default function AdminPanel() {
   const router = useRouter();
   const { allProducts, getSaleProducts, getNewArrivals, refetchProducts, loading: contextLoading } = useProducts();
@@ -300,6 +312,65 @@ export default function AdminPanel() {
     isOnSale: false,
     isNewArrival: false
   });
+
+  const previewMaxDiscount = useMemo(() => {
+    return allProducts.reduce((max, product) => {
+      const discount = Number(product.discount || 0);
+      if (discount > max) return discount;
+
+      if ((product.originalPrice || 0) > product.price && product.originalPrice) {
+        const computed = Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100);
+        return Math.max(max, computed);
+      }
+
+      return max;
+    }, 0);
+  }, [allProducts]);
+
+  const previewSalesEndMs = useMemo(() => {
+    if (timerMode === 'duration') {
+      const duration = Math.max(1, Number(timerDuration) || 1);
+      const multipliers: Record<'seconds' | 'minutes' | 'hours' | 'days' | 'weeks' | 'months' | 'years', number> = {
+        seconds: 1000,
+        minutes: 60 * 1000,
+        hours: 60 * 60 * 1000,
+        days: 24 * 60 * 60 * 1000,
+        weeks: 7 * 24 * 60 * 60 * 1000,
+        months: 30 * 24 * 60 * 60 * 1000,
+        years: 365 * 24 * 60 * 60 * 1000,
+      };
+
+      return Date.now() + duration * multipliers[timerUnit];
+    }
+
+    if (!salesEndsAtInput) return null;
+    const parsed = new Date(salesEndsAtInput).getTime();
+    return Number.isFinite(parsed) ? parsed : null;
+  }, [timerMode, timerDuration, timerUnit, salesEndsAtInput]);
+
+  const previewRemainingLabel = useMemo(() => {
+    if (!previewSalesEndMs) return '00h 00m 00s';
+    return getRemainingLabel(previewSalesEndMs - Date.now());
+  }, [previewSalesEndMs]);
+
+  const previewSalesEndLabel = useMemo(() => {
+    if (!previewSalesEndMs) return '--';
+
+    return new Intl.DateTimeFormat('en-PK', {
+      timeZone: 'Asia/Karachi',
+      day: '2-digit',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    }).format(new Date(previewSalesEndMs));
+  }, [previewSalesEndMs]);
+
+  const previewTickerDurationSeconds = Number.isFinite(tickerSpeed)
+    ? Math.min(45, Math.max(6, tickerSpeed))
+    : 18;
+
+  const previewTickerText = `${(tickerMessage.trim() || `Flash Sale Live | Up to ${previewMaxDiscount}% Off | Ends In ${previewRemainingLabel} | Ends ${previewSalesEndLabel} PKT | Shop Now`)} | Up to ${previewMaxDiscount}% Off | Ends In ${previewRemainingLabel} | Ends ${previewSalesEndLabel} PKT`;
 
   useEffect(() => {
     const auth = sessionStorage.getItem('adminAuth');
@@ -1458,6 +1529,29 @@ export default function AdminPanel() {
 
                 <div className="bg-[#0B101E] border border-white/10 rounded-xl px-4 py-3 text-xs text-white/70 flex items-center">
                   Lower value = faster ticker | Higher value = slower ticker
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <p className="text-[10px] uppercase tracking-[0.16em] text-white/60 mb-2">Live Preview (Navbar Ticker)</p>
+                <div className="rounded-xl overflow-hidden border border-white/10">
+                  <div className="bg-gradient-to-r from-[#7B0000] via-[#C20F1E] to-[#7B0000] text-white border-b border-[#FF9AA2]/30 shadow-[0_8px_28px_-12px_rgba(194,15,30,0.9)]">
+                    <div className="px-3 py-2.5 flex items-center gap-3">
+                      <span className="hidden sm:inline-flex items-center gap-2 rounded-md bg-[#2C0000] border border-[#FFB3BC]/30 px-2.5 py-1 text-[10px] font-extrabold tracking-[0.22em] uppercase whitespace-nowrap sales-badge-pulse">
+                        <span className="sales-live-dot" />
+                        Live
+                      </span>
+                      <div className="sales-marquee group flex-1 overflow-hidden rounded-md border border-white/15 bg-white/5 px-2 py-1.5">
+                        <div className="sales-marquee-track" style={{ animationDuration: `${previewTickerDurationSeconds}s` }}>
+                          {[1, 2].map((copy) => (
+                            <span key={copy} className="sales-marquee-content text-[11px] md:text-xs font-bold tracking-[0.12em] uppercase">
+                              {previewTickerText}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
