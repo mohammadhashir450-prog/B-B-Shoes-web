@@ -47,15 +47,26 @@
   backdrop-filter: blur(4px);
 }
 
-/* Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;600;700;800&family=Playfair+Display:wght@700;900&display=swap');
+/* Fonts (served via next/font in layout.tsx) */
 
 .font-display {
-  font-family: 'Manrope', sans-serif;
+  font-family: var(--font-manrope), sans-serif;
 }
 
 .font-serif {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-playfair), serif;
+}
+
+.home-deferred-section {
+  content-visibility: auto;
+  contain-intrinsic-size: 900px;
+}
+
+.home-section-skeleton {
+  min-height: 420px;
+  background: linear-gradient(90deg, #f8f4ea 0%, #fcfaf4 50%, #f8f4ea 100%);
+  background-size: 200% 100%;
+  animation: homeSkeletonPulse 1.2s ease-in-out infinite;
 }
 
 .sales-marquee {
@@ -125,6 +136,24 @@
   }
   50% {
     box-shadow: 0 0 14px rgba(255, 179, 188, 0.28);
+  }
+}
+
+@keyframes homeSkeletonPulse {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sales-marquee-track,
+  .sales-live-dot,
+  .sales-badge-pulse,
+  .home-section-skeleton {
+    animation: none !important;
   }
 }
 

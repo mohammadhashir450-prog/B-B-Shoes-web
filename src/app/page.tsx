@@ -1,11 +1,19 @@
-'use client'
-
+import dynamic from 'next/dynamic'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import HeroSection from '@/components/home/HeroSection'
-import Curated from '@/components/home/Curated'
-import Products from '@/components/home/Products'
-import Story from '@/components/home/Story'
+
+const Curated = dynamic(() => import('@/components/home/Curated'), {
+  loading: () => <div className="home-section-skeleton" aria-hidden />,
+})
+
+const Products = dynamic(() => import('@/components/home/Products'), {
+  loading: () => <div className="home-section-skeleton" aria-hidden />,
+})
+
+const Story = dynamic(() => import('@/components/home/Story'), {
+  loading: () => <div className="home-section-skeleton" aria-hidden />,
+})
 
 export default function HomePage() {
   return (
@@ -13,9 +21,15 @@ export default function HomePage() {
       <Navbar />
       <main className="min-h-screen">
         <HeroSection />
-        <Curated />
-        <Products />
-        <Story />
+        <div className="home-deferred-section">
+          <Curated />
+        </div>
+        <div className="home-deferred-section">
+          <Products />
+        </div>
+        <div className="home-deferred-section">
+          <Story />
+        </div>
       </main>
       <Footer />
     </>

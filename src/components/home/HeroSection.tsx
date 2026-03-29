@@ -1,12 +1,14 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
 
 export default function HeroSection() {
   const [mounted, setMounted] = useState(false)
+  const shouldReduceMotion = useReducedMotion()
 
   useEffect(() => {
     setMounted(true)
@@ -64,19 +66,25 @@ export default function HeroSection() {
 
           <div className="relative rounded-[2rem] md:rounded-[2.5rem] border border-[#D8DEE6] bg-white p-3 md:p-4 shadow-[0_30px_80px_-30px_rgba(6,8,15,0.42)]">
             <div className="relative overflow-hidden rounded-[1.5rem] md:rounded-[2rem] h-[380px] md:h-[560px] lg:h-[640px]">
-              <motion.img
-                src="https://images.pexels.com/photos/27100515/pexels-photo-27100515.jpeg?auto=compress&cs=tinysrgb&w=2200"
-                alt="B&B Premium Shoes"
-                className="w-full h-full object-cover object-center grayscale contrast-125 brightness-95"
-                loading="eager"
+              <motion.div
                 initial={false}
                 animate={
-                  mounted
+                  mounted && !shouldReduceMotion
                     ? { scale: [1.02, 1.04, 1.02], y: [0, -4, 0] }
-                    : { scale: 1.02, y: 2 }
+                    : { scale: 1.02, y: 0 }
                 }
-                transition={{ duration: 24, repeat: Infinity, ease: 'easeInOut' }}
-              />
+                transition={{ duration: 24, repeat: shouldReduceMotion ? 0 : Infinity, ease: 'easeInOut' }}
+                className="w-full h-full"
+              >
+                <Image
+                  src="https://images.pexels.com/photos/27100515/pexels-photo-27100515.jpeg?auto=compress&cs=tinysrgb&w=1800"
+                alt="B&B Premium Shoes"
+                  fill
+                  priority
+                  sizes="100vw"
+                  className="object-cover object-center grayscale contrast-125 brightness-95"
+                />
+              </motion.div>
             </div>
           </div>
 

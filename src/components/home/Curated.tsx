@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { ArrowUpRight, Sparkles, Tag, Grid } from 'lucide-react'
 
 const items = [
@@ -35,16 +35,25 @@ const items = [
 
 export default function Curated() {
   const [activeIndex, setActiveIndex] = useState(0)
+  const shouldReduceMotion = useReducedMotion()
 
   const currentItem = useMemo(() => items[activeIndex], [activeIndex])
 
   useEffect(() => {
+    if (shouldReduceMotion) {
+      return
+    }
+
     const timer = setInterval(() => {
+      if (document.hidden) {
+        return
+      }
+
       setActiveIndex((prev) => (prev + 1) % items.length)
-    }, 3000)
+    }, 5500)
 
     return () => clearInterval(timer)
-  }, [])
+  }, [shouldReduceMotion])
 
   return (
     <section className="relative bg-white py-16 md:py-20 overflow-hidden">
@@ -75,7 +84,7 @@ export default function Curated() {
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -50 }}
-              transition={{ duration: 0.55, ease: 'easeInOut' }}
+              transition={{ duration: shouldReduceMotion ? 0.2 : 0.45, ease: 'easeInOut' }}
             >
               <Link href={currentItem.link} className="group block">
                 <div className="relative h-[300px] sm:h-[360px] md:h-[430px] bg-[#F7F2E8]">
@@ -83,13 +92,13 @@ export default function Curated() {
                     src={currentItem.image}
                     alt={currentItem.title}
                     fill
-                    sizes="100vw"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1280px) 80vw, 1200px"
                     className="object-cover group-hover:scale-105 transition-transform duration-700"
                   />
                   <motion.div
                     aria-hidden
-                    animate={{ x: [0, 22, -16, 0], y: [0, -12, 10, 0] }}
-                    transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+                    animate={shouldReduceMotion ? { x: 0, y: 0 } : { x: [0, 22, -16, 0], y: [0, -12, 10, 0] }}
+                    transition={{ duration: 8, repeat: shouldReduceMotion ? 0 : Infinity, ease: 'easeInOut' }}
                     className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-gradient-to-br from-white/35 via-[#D4AF37]/20 to-transparent blur-3xl"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#06080F]/62 via-[#06080F]/20 to-transparent" />

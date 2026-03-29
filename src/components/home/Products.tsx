@@ -2,7 +2,7 @@
 
 import { useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { Heart, ChevronLeft, ChevronRight, ShoppingBag, Sparkles } from 'lucide-react'
 import { useProducts } from '@/context/ProductContext'
 import { useWishlist } from '@/context/WishlistContext'
@@ -11,6 +11,7 @@ import HoverSwapImage from '@/components/common/HoverSwapImage'
 export default function Products() {
   const { allProducts, loading } = useProducts()
   const { isWishlisted, toggleWishlist } = useWishlist()
+  const shouldReduceMotion = useReducedMotion()
   const sliderRef = useRef<HTMLDivElement>(null)
   const [showSwipeHint, setShowSwipeHint] = useState(true)
 
@@ -75,10 +76,10 @@ export default function Products() {
         {/* Cinematic Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-7 md:mb-10 gap-4 md:gap-5">
           <motion.div 
-            initial={{ opacity: 0, x: -30 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            initial={shouldReduceMotion ? false : { opacity: 0, x: -30 }}
+            whileInView={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
+            transition={{ duration: shouldReduceMotion ? 0.2 : 0.8, ease: "easeOut" }}
           >
             <div className="flex items-center gap-3 md:gap-4 mb-4 md:mb-6">
               <div className="w-12 h-[1px] bg-[#D4AF37]"></div>
@@ -96,10 +97,10 @@ export default function Products() {
           
           {/* Subtle Navigation UI (If you expand to a slider later, these are ready) */}
           <motion.div 
-            initial={{ opacity: 0, x: 30 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            initial={shouldReduceMotion ? false : { opacity: 0, x: 30 }}
+            whileInView={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
+            transition={{ duration: shouldReduceMotion ? 0.2 : 0.8, ease: "easeOut" }}
             className="flex items-center gap-2 sm:gap-3 md:gap-4"
           >
             <button
@@ -137,9 +138,9 @@ export default function Products() {
             {displayedProducts.map((product, index) => (
               <motion.div
                 key={product.id}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
+                initial={shouldReduceMotion ? false : { opacity: 0, y: 30 }}
+                whileInView={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
+                transition={{ duration: shouldReduceMotion ? 0.2 : 0.6, delay: shouldReduceMotion ? 0 : index * 0.06 }}
                 viewport={{ once: true, margin: "-50px" }}
                 className="group relative shrink-0 w-[84vw] max-w-[300px] sm:w-[300px] lg:w-[320px] snap-start bg-white border border-[#E7E0D1] rounded-2xl overflow-hidden transition-all duration-400 hover:border-[#D4AF37]/45 hover:shadow-[0_18px_34px_-18px_rgba(24,32,43,0.22)]"
               >
@@ -209,8 +210,8 @@ export default function Products() {
 
         {showSwipeHint ? (
           <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }}
+            animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
             className="md:hidden mt-3 flex items-center justify-center"
           >
             <Link

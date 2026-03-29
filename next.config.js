@@ -40,6 +40,14 @@ const nextConfig = {
 
       },
 
+      {
+
+        protocol: "https",
+
+        hostname: "images.pexels.com",
+
+      },
+
     ],
 
     // Device sizes for responsive images

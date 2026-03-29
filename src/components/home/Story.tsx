@@ -1,9 +1,11 @@
 'use client'
 
 import Image from 'next/image'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 
 export default function Story() {
+  const shouldReduceMotion = useReducedMotion()
+
   return (
     <section className="relative bg-white py-14 md:py-20 overflow-hidden">
       <div className="absolute -top-20 -left-20 w-72 h-72 bg-[#D4AF37]/8 blur-[110px] rounded-full pointer-events-none" />
@@ -19,8 +21,8 @@ export default function Story() {
           >
             <div className="relative aspect-[4/5] overflow-hidden rounded-2xl border border-[#06080F]/35 shadow-[0_24px_48px_-30px_rgba(6,8,15,0.4)] bg-[#F8F4EA]">
               <motion.div
-                animate={{ scale: [1, 1.04, 1] }}
-                transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+                animate={shouldReduceMotion ? { scale: 1 } : { scale: [1, 1.04, 1] }}
+                transition={{ duration: 8, repeat: shouldReduceMotion ? 0 : Infinity, ease: 'easeInOut' }}
                 className="absolute inset-0"
               >
                 <Image
