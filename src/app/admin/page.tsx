@@ -1411,7 +1411,7 @@ export default function AdminPanel() {
             ) : searchedProducts.length === 0 ? (
               <div className="text-center py-24 bg-[#121A2F]/40 backdrop-blur-sm rounded-3xl border border-white/5">
                 <Search size={42} className="mx-auto text-white/20 mb-5" strokeWidth={1.5} />
-                <p className="text-white/70 font-semibold text-sm">No product found for "{productSearchQuery}"</p>
+                <p className="text-white/70 font-semibold text-sm">No product found for &quot;{productSearchQuery}&quot;</p>
                 <p className="text-white/45 text-xs mt-2">Try serial number, product name, or product id.</p>
               </div>
             ) : (
