@@ -143,7 +143,7 @@ export default function CollectionsPage() {
                     href={`/product/${product.id}`}
                     className="group bg-white rounded-xl overflow-hidden hover:shadow-2xl transition-all"
                   >
-                    <div className="relative aspect-square bg-gray-50">
+                    <div className="relative aspect-square bg-gray-50 border border-[#06080F]/45 rounded-xl shadow-[0_10px_24px_-18px_rgba(6,8,15,0.55)]">
                       {product.discount ? (
                         <div className="absolute top-3 left-3 z-10 bg-red-600 text-white px-2 py-1 rounded-md text-xs font-bold">
                           -{product.discount}%

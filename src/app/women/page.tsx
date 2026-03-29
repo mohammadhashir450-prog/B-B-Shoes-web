@@ -126,7 +126,7 @@ export default function WomenPage() {
                   style={{ animationDelay: `${index * 100}ms` }}
                 >
                   <div className="bg-gradient-to-br from-[#1A2435] to-[#0F1825] rounded-2xl overflow-hidden border border-white/5 hover:border-[#D4AF37]/50 transition-all duration-500 hover:shadow-2xl hover:shadow-[#D4AF37]/10">
-                    <div className="relative aspect-square bg-black/20 overflow-hidden">
+                    <div className="relative aspect-square bg-black/20 overflow-hidden border border-[#06080F]/45 rounded-xl shadow-[0_10px_24px_-18px_rgba(6,8,15,0.55)]">
                       <HoverSwapImage
                         primaryImage={product.image}
                         secondaryImage={product.secondaryImage}

@@ -141,7 +141,7 @@ export default function MenPage() {
                   href={`/product/${product.id}`}
                   className="bg-[#1A2435] rounded-xl overflow-hidden border border-white/5 hover:border-[#D4AF37]/30 transition-all group block"
                 >
-                  <div className="relative aspect-square bg-black/20">
+                  <div className="relative aspect-square bg-black/20 border border-[#06080F]/45 rounded-xl shadow-[0_10px_24px_-18px_rgba(6,8,15,0.55)]">
                     <HoverSwapImage
                       primaryImage={product.image}
                       secondaryImage={product.secondaryImage}

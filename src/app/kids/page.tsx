@@ -129,7 +129,7 @@ export default function KidsPage() {
                 {filteredProducts.map((product) => (
                   <Link href={`/product/${product.id}`} key={product.id} className="group">
                     <article className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl hover:shadow-[#D4AF37]/20 transition-all duration-300">
-                      <div className="relative aspect-square bg-gray-100 overflow-hidden">
+                      <div className="relative aspect-square bg-gray-100 overflow-hidden border border-[#06080F]/45 rounded-xl shadow-[0_10px_24px_-18px_rgba(6,8,15,0.55)]">
                         <HoverSwapImage
                           primaryImage={product.image}
                           secondaryImage={product.secondaryImage}
