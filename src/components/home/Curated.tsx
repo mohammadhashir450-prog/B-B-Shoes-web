@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowUpRight, Sparkles, Tag, Grid, ChevronLeft, ChevronRight } from 'lucide-react'
+import { ArrowUpRight, Sparkles, Tag, Grid } from 'lucide-react'
 
 const items = [
   {
@@ -46,14 +46,6 @@ export default function Curated() {
     return () => clearInterval(timer)
   }, [])
 
-  const prevSlide = () => {
-    setActiveIndex((prev) => (prev - 1 + items.length) % items.length)
-  }
-
-  const nextSlide = () => {
-    setActiveIndex((prev) => (prev + 1) % items.length)
-  }
-
   return (
     <section className="relative bg-white py-16 md:py-20 overflow-hidden">
       <div className="absolute -top-24 -left-20 w-[420px] h-[420px] bg-[#D4AF37]/8 rounded-full blur-[120px] pointer-events-none" />
@@ -73,22 +65,6 @@ export default function Curated() {
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-black text-[#18202B] leading-tight">
               Curated Collections
             </h2>
-          </div>
-          <div className="flex items-center gap-2 sm:gap-3">
-            <button
-              onClick={prevSlide}
-              aria-label="Previous curated slide"
-              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-[#DCCFB6] bg-white text-[#253041] hover:border-[#D4AF37] hover:bg-[#D4AF37] transition-colors flex items-center justify-center"
-            >
-              <ChevronLeft size={16} />
-            </button>
-            <button
-              onClick={nextSlide}
-              aria-label="Next curated slide"
-              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-[#DCCFB6] bg-white text-[#253041] hover:border-[#D4AF37] hover:bg-[#D4AF37] transition-colors flex items-center justify-center"
-            >
-              <ChevronRight size={16} />
-            </button>
           </div>
         </motion.div>
 
