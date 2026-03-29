@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Package, ShoppingCart, Users, Plus, Edit2, Trash2, X, Save, Camera, Upload, Tag, Lock, Eye, EyeOff, TrendingUp, Sparkles, Crown, Check, ArrowRight, ChevronRight, Clock3, BarChart3, Wallet, PackageCheck } from 'lucide-react';
 import { CldUploadWidget } from 'next-cloudinary';
 import { useProducts, Product } from '@/context/ProductContext';
+import StockControl from '@/components/admin/StockControl';
 
 interface Order {
   id: string;
@@ -62,6 +63,7 @@ export default function AdminPanel() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [editingSaleProduct, setEditingSaleProduct] = useState<Product | null>(null);
   const [editingNewArrival, setEditingNewArrival] = useState<Product | null>(null);
+  const [editingStockProduct, setEditingStockProduct] = useState<Product | null>(null);
   
   // Get filtered products from context
   const products = useMemo(() => {
@@ -590,6 +592,7 @@ export default function AdminPanel() {
         <div className="flex gap-3 mb-12 overflow-x-auto pb-4 scrollbar-hide">
           {[
             { key: 'products', label: 'Portfolio', icon: Package },
+            { key: 'stock', label: 'Stock Control', icon: PackageCheck },
             { key: 'sales', label: 'Sales Event', icon: Tag },
             { key: 'newarrivals', label: 'New Drops', icon: Sparkles },
             { key: 'orders', label: 'Concierge (Orders)', icon: ShoppingCart },
@@ -1524,6 +1527,62 @@ export default function AdminPanel() {
                         </button>
                       </div>
                     </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </motion.div>
+        )}
+
+        {/* --- STOCK CONTROL TAB --- */}
+        {activeTab === 'stock' && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }} className="space-y-6">
+            {allProducts.length === 0 ? (
+              <div className="text-center py-32 bg-[#121A2F]/40 backdrop-blur-sm rounded-3xl border border-white/5">
+                <PackageCheck size={48} className="mx-auto text-white/20 mb-6" strokeWidth={1} />
+                <p className="text-white/50 font-medium text-sm">No products available.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {allProducts.map((product) => (
+                  <div key={product.id} className="bg-[#121A2F]/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:border-[#D4AF37]/30 transition-colors">
+                    <div className="flex items-start justify-between mb-4">
+                      <div>
+                        <h3 className="text-white font-bold text-lg">{product.name}</h3>
+                        <p className="text-white/50 text-sm mt-1">{product.sizes?.length || 0} sizes • Category: {product.category}</p>
+                      </div>
+                      <button
+                        onClick={() => setEditingStockProduct(editingStockProduct?.id === product.id ? null : product)}
+                        className="px-4 py-2 rounded-lg bg-[#D4AF37]/20 text-[#D4AF37] hover:bg-[#D4AF37]/30 transition-all text-xs font-bold tracking-[0.1em] uppercase whitespace-nowrap"
+                      >
+                        {editingStockProduct?.id === product.id ? 'Close' : 'Manage Stock'}
+                      </button>
+                    </div>
+
+                    {editingStockProduct?.id === product.id && (
+                      <StockControl
+                        product={product}
+                        onSave={async (_, sizeStock) => {
+                          try {
+                            const response = await fetch(`/api/products/${product.id}`, {
+                              method: 'PUT',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ sizeStock })
+                            });
+
+                            if (response.ok) {
+                              alert('Stock updated successfully!');
+                              await refetchProducts();
+                            } else {
+                              alert('Failed to update stock');
+                            }
+                          } catch (err) {
+                            alert('Error: ' + err);
+                          }
+                        }}
+                        onClose={() => setEditingStockProduct(null)}
+                      />
+                    )}
                   </div>
                 ))}
               </div>
