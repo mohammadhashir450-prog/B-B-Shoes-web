@@ -319,8 +319,8 @@ export default function Navbar() {
 
   const navTopClass = isAtTop
     ? isSalesBannerVisible
-      ? 'top-10 px-6 py-4 md:px-10'
-      : 'top-0 px-6 py-6 md:px-10'
+      ? 'top-10 px-4 py-4 md:px-10'
+      : 'top-0 px-4 py-6 md:px-10'
     : isSalesBannerVisible
       ? 'top-14 px-4'
       : 'top-4 px-4'
@@ -371,7 +371,7 @@ export default function Navbar() {
           }`}
         >
           {/* Left: Hamburger */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <button 
               onClick={toggleMenu}
               className="group flex items-center gap-3 text-white hover:text-[#D4AF37] transition-colors" 
@@ -409,8 +409,8 @@ export default function Navbar() {
           </div>
 
           {/* Right: Actions */}
-          <div className="flex items-center gap-5 md:gap-6">
-            <div className="relative order-last md:order-none ml-1 md:ml-0" ref={collectionMenuRef}>
+          <div className="flex items-center gap-3 md:gap-6">
+            <div className="relative hidden md:block order-last md:order-none ml-1 md:ml-0" ref={collectionMenuRef}>
               <button
                 type="button"
                 onClick={toggleCollectionMenu}
@@ -498,7 +498,7 @@ export default function Navbar() {
             <button
               type="button"
               onClick={handleSearchClick}
-              className="text-white hover:text-[#D4AF37] transition-colors hover:scale-110 transform duration-300"
+              className="text-white hover:text-[#D4AF37] transition-colors hover:scale-110 transform duration-300 hidden sm:inline-flex"
               aria-label="Search"
             >
               <Search size={18} strokeWidth={1.5} />
