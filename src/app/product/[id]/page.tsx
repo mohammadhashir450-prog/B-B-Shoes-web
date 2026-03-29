@@ -209,7 +209,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
               {product.colors && product.colors.length > 0 && (
                 <div className="mb-8">
                   <div className="flex items-center justify-between mb-4">
-                    <label className="text-sm font-semibold tracking-wider uppercase">
+                    <label className="text-sm font-semibold tracking-wider uppercase text-gray-800 dark:text-gray-200">
                       COLOR: <span className="text-[#D4AF37]">{selectedColor || 'Select'}</span>
                     </label>
                   </div>
@@ -235,25 +235,60 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
               {product.sizes && product.sizes.length > 0 && (
                 <div className="mb-8">
                   <div className="flex items-center justify-between mb-4">
-                    <label className="text-sm font-semibold tracking-wider uppercase">
+                    <label className="text-sm font-semibold tracking-wider uppercase text-gray-900 dark:text-gray-100">
                       SELECT SIZE: <span className="text-[#D4AF37]">{selectedSize || 'Choose'}</span>
                     </label>
                   </div>
                   <div className="grid grid-cols-4 gap-3">
-                    {product.sizes.map((size) => (
-                      <button
-                        key={size}
-                        onClick={() => setSelectedSize(size)}
-                        className={`py-3 rounded-lg font-semibold border-2 transition-all ${
-                          selectedSize === size
-                            ? 'bg-[#D4AF37] text-black border-[#D4AF37]'
-                            : 'border-white/20 hover:border-[#D4AF37] hover:bg-[#D4AF37]/10'
-                        }`}
-                      >
-                        {size}
-                      </button>
-                    ))}
+                    {product.sizes.map((size) => {
+                      const sizeStockInfo = product.sizeStock?.find(ss => ss.size === size);
+                      const isOutOfStock = !sizeStockInfo || sizeStockInfo.quantity === 0;
+                      
+                      return (
+                        <button
+                          key={size}
+                          onClick={() => !isOutOfStock && setSelectedSize(size)}
+                          disabled={isOutOfStock}
+                          className={`py-3 rounded-lg font-semibold border-2 transition-all relative ${
+                            selectedSize === size
+                              ? 'bg-[#D4AF37] text-black border-[#D4AF37]'
+                              : isOutOfStock
+                              ? 'border-red-400/50 bg-red-50/30 text-red-500 cursor-not-allowed opacity-60'
+                              : 'border-white/20 hover:border-[#D4AF37] hover:bg-[#D4AF37]/10'
+                          }`}
+                        >
+                          {size}
+                          {isOutOfStock && (
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <div className="w-full h-0.5 bg-red-500 rotate-45"></div>
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
                   </div>
+                  {product.sizeStock && (
+                    <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                      {product.sizes.map((size) => {
+                        const sizeStockInfo = product.sizeStock?.find(ss => ss.size === size);
+                        const quantity = sizeStockInfo?.quantity || 0;
+                        const isLowStock = quantity > 0 && quantity <= 3;
+                        const isOutOfStock = quantity === 0;
+                        
+                        return (
+                          <div key={size} className={`px-2 py-1.5 rounded text-center font-semibold ${
+                            isOutOfStock 
+                              ? 'bg-red-100 text-red-700'
+                              : isLowStock
+                              ? 'bg-yellow-100 text-yellow-700'
+                              : 'bg-green-100 text-green-700'
+                          }`}>
+                            {size}: {quantity > 0 ? quantity : 'Out'}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               )}
 

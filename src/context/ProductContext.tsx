@@ -3,6 +3,12 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 // Product Type
+export interface SizeStock {
+  size: string;
+  quantity: number;
+  color?: string;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -25,6 +31,7 @@ export interface Product {
   inStock?: boolean;
   stock?: number;
   sold?: number;
+  sizeStock?: SizeStock[];
 }
 
 // Context Type
