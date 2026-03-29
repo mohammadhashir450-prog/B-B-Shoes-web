@@ -8,12 +8,13 @@ import HoverSwapImage from '@/components/common/HoverSwapImage'
 import { ChevronRight, Star, Loader2, Award, Shield, Sparkles, ArrowRight, Heart, ShoppingBag } from 'lucide-react'
 import { useProducts } from '@/context/ProductContext'
 import { useCart } from '@/context/CartContext'
+import { useWishlist } from '@/context/WishlistContext'
 
 export default function FormalPage() {
   const { getProductsByCategory, loading } = useProducts()
   const { addToCart } = useCart()
+  const { isWishlisted, toggleWishlist } = useWishlist()
   const [addingToCart, setAddingToCart] = useState<string | null>(null)
-  const [wishlistedItems, setWishlistedItems] = useState<Set<string>>(new Set())
   
   const products = useMemo(() => {
     return getProductsByCategory('Formal')
@@ -33,18 +34,6 @@ export default function FormalPage() {
     setTimeout(() => {
       setAddingToCart(null)
     }, 1000)
-  }
-
-  const toggleWishlist = (productId: string) => {
-    setWishlistedItems(prev => {
-      const newSet = new Set(prev)
-      if (newSet.has(productId)) {
-        newSet.delete(productId)
-      } else {
-        newSet.add(productId)
-      }
-      return newSet
-    })
   }
 
   return (
@@ -193,7 +182,7 @@ export default function FormalPage() {
                     <div className="bg-gradient-to-br from-gray-100 to-gray-50 rounded-3xl overflow-hidden hover:shadow-2xl hover:shadow-[#D4AF37]/20 transition-all duration-500 border border-transparent hover:border-[#D4AF37]/30">
                       
                       {/* Product Image */}
-                      <div className={`relative ${index === 0 ? 'aspect-[3/4]' : 'aspect-square'} overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100`}>
+                      <div className={`relative ${index === 0 ? 'aspect-[3/4]' : 'aspect-square'} overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 border border-[#06080F]/45 rounded-2xl shadow-[0_10px_24px_-18px_rgba(6,8,15,0.55)]`}>
                         <HoverSwapImage
                           primaryImage={product.image}
                           secondaryImage={product.secondaryImage}
@@ -240,14 +229,14 @@ export default function FormalPage() {
                                 toggleWishlist(product.id)
                               }}
                               className={`w-12 h-12 backdrop-blur-md rounded-full flex items-center justify-center transition-colors border ${
-                                wishlistedItems.has(product.id)
+                                isWishlisted(product.id)
                                   ? 'bg-[#D4AF37] border-[#D4AF37]'
                                   : 'bg-white/10 border-white/20 hover:bg-white/20'
                               }`}
                             >
                               <Heart 
                                 size={18} 
-                                className={wishlistedItems.has(product.id) ? 'text-[#0B101E] fill-[#0B101E]' : 'text-white'}
+                                className={isWishlisted(product.id) ? 'text-[#0B101E] fill-[#0B101E]' : 'text-white'}
                               />
                             </button>
                           </div>
@@ -282,7 +271,7 @@ export default function FormalPage() {
                               toggleWishlist(product.id)
                             }}
                             className={`absolute top-5 right-5 w-9 h-9 backdrop-blur-sm rounded-full flex items-center justify-center transition-all shadow-lg group/btn ${
-                              wishlistedItems.has(product.id)
+                              isWishlisted(product.id)
                                 ? 'bg-[#D4AF37] text-white'
                                 : 'bg-white/90 hover:bg-[#D4AF37] hover:text-white'
                             }`}
@@ -290,7 +279,7 @@ export default function FormalPage() {
                             <Heart 
                               size={16} 
                               className={`group-hover/btn:scale-110 transition-transform ${
-                                wishlistedItems.has(product.id) ? 'fill-white' : ''
+                                isWishlisted(product.id) ? 'fill-white' : ''
                               }`}
                             />
                           </button>
