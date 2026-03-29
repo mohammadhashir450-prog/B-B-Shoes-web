@@ -1,9 +1,9 @@
 'use client'
 
-import { useMemo, useRef, useState } from 'react'
+import { useMemo } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { Heart, ChevronLeft, ChevronRight, ShoppingBag, Sparkles } from 'lucide-react'
+import { Heart, ShoppingBag } from 'lucide-react'
 import { useProducts } from '@/context/ProductContext'
 import { useWishlist } from '@/context/WishlistContext'
 import HoverSwapImage from '@/components/common/HoverSwapImage'
@@ -11,8 +11,6 @@ import HoverSwapImage from '@/components/common/HoverSwapImage'
 export default function Products() {
   const { allProducts, loading } = useProducts()
   const { isWishlisted, toggleWishlist } = useWishlist()
-  const sliderRef = useRef<HTMLDivElement>(null)
-  const [showSwipeHint, setShowSwipeHint] = useState(true)
 
   // Get first 4 regular products (not on sale, not new arrivals)
   const regularProducts = useMemo(() => {
@@ -20,16 +18,6 @@ export default function Products() {
       .filter((p) => !p.isOnSale && !p.isNewArrival)
       .slice(0, 4)
   }, [allProducts])
-
-  const scrollSlider = (direction: 'left' | 'right') => {
-    if (!sliderRef.current) return
-
-    const cardWidth = 360
-    sliderRef.current.scrollBy({
-      left: direction === 'left' ? -cardWidth : cardWidth,
-      behavior: 'smooth',
-    })
-  }
 
   // Premium Loading State
   if (loading) {
@@ -73,58 +61,25 @@ export default function Products() {
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-10 relative z-10">
         
         {/* Cinematic Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-7 md:mb-10 gap-4 md:gap-5">
+        <div className="flex flex-col mb-6 md:mb-8 gap-2">
           <motion.div 
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8, ease: "easeOut" }}
           >
-            <div className="flex items-center gap-3 md:gap-4 mb-4 md:mb-6">
-              <div className="w-12 h-[1px] bg-[#D4AF37]"></div>
-              <p className="text-[#D4AF37] text-[10px] tracking-[0.3em] uppercase font-bold flex items-center gap-2">
-                <Sparkles size={12} /> Exclusives
-              </p>
-            </div>
-            <h2 className="text-[30px] md:text-4xl lg:text-5xl font-serif font-black text-[#18202B] leading-tight mb-2 md:mb-3">
-              The Gold Edition
+            <h2 className="text-[28px] md:text-4xl lg:text-5xl font-serif font-black text-[#18202B] leading-tight mb-1">
+              Featured Picks
             </h2>
-            <p className="text-[#4F5A69] text-sm max-w-[420px] leading-relaxed">
-              A cleaner selection of premium picks, designed for quick browsing and effortless shopping.
+            <p className="text-[#4F5A69] text-sm max-w-[380px] leading-relaxed">
+              Simple, quick, and easy to shop.
             </p>
-          </motion.div>
-          
-          {/* Subtle Navigation UI (If you expand to a slider later, these are ready) */}
-          <motion.div 
-            initial={{ opacity: 0, x: 30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className="hidden sm:flex gap-3 md:gap-4"
-          >
-            <button
-              onClick={() => scrollSlider('left')}
-              className="w-10 h-10 md:w-12 md:h-12 rounded-full backdrop-blur-md border border-[#DCCFB6] bg-white/90 flex items-center justify-center text-[#253041] hover:border-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#18202B] transition-all duration-300"
-              aria-label="Scroll products left"
-            >
-              <ChevronLeft size={18} strokeWidth={1.5} />
-            </button>
-            <button
-              onClick={() => scrollSlider('right')}
-              className="w-10 h-10 md:w-12 md:h-12 rounded-full backdrop-blur-md border border-[#DCCFB6] bg-white/90 flex items-center justify-center text-[#253041] hover:border-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#18202B] transition-all duration-300"
-              aria-label="Scroll products right"
-            >
-              <ChevronRight size={18} strokeWidth={1.5} />
-            </button>
           </motion.div>
         </div>
 
         {/* Clean Horizontal Product Rail */}
         <div className="relative -mx-4 px-4 sm:mx-0 sm:px-0">
           <div
-            ref={sliderRef}
-            onScroll={() => setShowSwipeHint(false)}
-            onTouchStart={() => setShowSwipeHint(false)}
             className="flex gap-4 sm:gap-5 lg:gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-3 scroll-px-4 sm:scroll-px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
             {regularProducts.map((product, index) => (
@@ -167,9 +122,6 @@ export default function Products() {
                   {/* Product Info Section */}
                   <div className="p-4 sm:p-5 md:p-6 flex flex-col flex-grow justify-between border-t border-[#ECE7DD] bg-white">
                     <div>
-                      <p className="text-[#A97A18] text-[9px] tracking-[0.2em] uppercase mb-2 font-bold">
-                        {product.brand || 'B&B EXCLUSIVE'}
-                      </p>
                       <h3 className="text-base sm:text-lg font-serif font-bold text-[#18202B] leading-tight mb-2 group-hover:text-[#A97A18] transition-colors line-clamp-2 min-h-[46px] sm:min-h-[52px]">
                         {product.name}
                       </h3>
@@ -180,14 +132,7 @@ export default function Products() {
                         <p className="text-base font-bold text-[#D4AF37]">
                           PKR {product.price.toLocaleString()}
                         </p>
-                        {product.originalPrice && product.originalPrice > product.price ? (
-                          <p className="text-xs text-[#6A7483] line-through">PKR {product.originalPrice.toLocaleString()}</p>
-                        ) : null}
                       </div>
-
-                      <span className="text-[10px] tracking-[0.14em] uppercase font-bold text-[#4F5A69]">
-                        View Product
-                      </span>
                     </div>
                   </div>
                   
@@ -199,19 +144,6 @@ export default function Products() {
           <div className="hidden sm:block pointer-events-none absolute inset-y-0 left-0 w-8 sm:w-10 bg-gradient-to-r from-[#FCFBF8] to-transparent" />
           <div className="hidden sm:block pointer-events-none absolute inset-y-0 right-0 w-8 sm:w-10 bg-gradient-to-l from-[#FCFBF8] to-transparent" />
         </div>
-
-        {showSwipeHint ? (
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="md:hidden mt-3 flex items-center justify-center"
-          >
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#F5EFE1] border border-[#E2D6BF] text-[#6A7483] text-[10px] tracking-[0.14em] uppercase font-bold">
-              <span>Swipe For More</span>
-              <span className="text-[#A97A18]">&larr; &rarr;</span>
-            </div>
-          </motion.div>
-        ) : null}
       </div>
     </section>
   )
