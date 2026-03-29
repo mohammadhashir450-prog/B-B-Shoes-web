@@ -13,17 +13,13 @@ export default function Products() {
   const { isWishlisted, toggleWishlist } = useWishlist()
   const sliderRef = useRef<HTMLDivElement>(null)
   const [showSwipeHint, setShowSwipeHint] = useState(true)
-  const [showAllProducts, setShowAllProducts] = useState(false)
 
   // Get regular products for this section.
   const regularProducts = useMemo(() => {
     return allProducts.filter((p) => !p.isOnSale && !p.isNewArrival)
   }, [allProducts])
 
-  const displayedProducts = useMemo(
-    () => (showAllProducts ? regularProducts : regularProducts.slice(0, 4)),
-    [regularProducts, showAllProducts]
-  )
+  const displayedProducts = regularProducts.slice(0, 4)
 
   const scrollSlider = (direction: 'left' | 'right') => {
     if (!sliderRef.current) return
@@ -121,13 +117,12 @@ export default function Products() {
               <ChevronRight size={16} strokeWidth={1.5} />
             </button>
 
-            <button
-              type="button"
-              onClick={() => setShowAllProducts((prev) => !prev)}
+            <Link
+              href="/products"
               className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-full border border-[#DCCFB6] bg-white/90 text-[#253041] text-[10px] sm:text-[11px] font-bold tracking-[0.14em] uppercase hover:border-[#D4AF37] hover:bg-[#D4AF37] transition-all duration-300"
             >
-              {showAllProducts ? 'Show Less' : 'See More'}
-            </button>
+              See More
+            </Link>
           </motion.div>
         </div>
 
@@ -218,14 +213,13 @@ export default function Products() {
             animate={{ opacity: 1, y: 0 }}
             className="md:hidden mt-3 flex items-center justify-center"
           >
-            <button
-              type="button"
-              onClick={() => setShowAllProducts(true)}
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#F5EFE1] border border-[#E2D6BF] text-[#6A7483] text-[10px] tracking-[0.14em] uppercase font-bold"
+            <Link
+              href="/products"
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#F5EFE1] border border-[#E2D6BF] text-[#6A7483] text-[10px] tracking-[0.14em] uppercase font-bold hover:bg-[#EEDED4] transition-all duration-300"
             >
               <span>See More Products</span>
               <span className="text-[#A97A18]">+</span>
-            </button>
+            </Link>
           </motion.div>
         ) : null}
       </div>
