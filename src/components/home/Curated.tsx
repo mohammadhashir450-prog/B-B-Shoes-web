@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -13,36 +13,47 @@ const items = [
     title: "New Arrivals",
     subtitle: "The Vanguard Series",
     icon: Sparkles,
-    // High-end footwear image
-    image: "https://images.unsplash.com/photo-1549298916-b41d501d3772?q=80&w=1000",
+    // Editorial sneaker portrait
+    image: "https://images.unsplash.com/photo-1552346154-21d32810aba3?auto=format&fit=crop&w=1400&q=80",
     link: "/new-arrivals",
-    accentGlow: "group-hover:shadow-[0_0_40px_-10px_rgba(96,165,250,0.3)]" // Blue glow
+    accentGlow: "group-hover:shadow-[0_0_46px_-12px_rgba(96,165,250,0.35)]" // Blue glow
   },
   {
     id: 2,
     title: "Sales & Discounts",
     subtitle: "Private Insider Event",
     icon: Tag,
-    // Premium elegant footwear
-    image: "https://images.unsplash.com/photo-1603808033192-082d6919d3e1?q=80&w=1000",
+    // Bold sale-focused composition
+    image: "https://images.unsplash.com/photo-1491553895911-0055eca6402d?auto=format&fit=crop&w=1400&q=80",
     link: "/sales",
-    accentGlow: "group-hover:shadow-[0_0_40px_-10px_rgba(248,113,113,0.3)]" // Red glow
+    accentGlow: "group-hover:shadow-[0_0_46px_-12px_rgba(248,113,113,0.35)]" // Red glow
   },
   {
     id: 3,
     title: "All Products",
     subtitle: "Complete Portfolio",
     icon: Grid,
-    // Classic/Heritage shoes
-    image: "https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?q=80&w=1000",
+    // Contemporary premium lineup visual
+    image: "https://images.unsplash.com/photo-1515955656352-a1fa3ffcd111?auto=format&fit=crop&w=1400&q=80",
     link: "/collections",
-    accentGlow: "group-hover:shadow-[0_0_40px_-10px_rgba(212,175,55,0.3)]" // Gold glow
+    accentGlow: "group-hover:shadow-[0_0_46px_-12px_rgba(212,175,55,0.35)]" // Gold glow
   }
 ]
 
 export default function Curated() {
   // Keep the first item expanded by default
   const [hoveredIndex, setHoveredIndex] = useState<number>(0)
+  const [isAutoPaused, setIsAutoPaused] = useState(false)
+
+  useEffect(() => {
+    if (isAutoPaused) return
+
+    const autoSlider = setInterval(() => {
+      setHoveredIndex((prev) => (prev + 1) % items.length)
+    }, 3800)
+
+    return () => clearInterval(autoSlider)
+  }, [isAutoPaused])
 
   return (
     <section className="relative bg-white py-20 md:py-24 overflow-hidden selection:bg-[#D4AF37]/30 selection:text-[#18202B]">
@@ -82,7 +93,11 @@ export default function Curated() {
         </motion.div>
 
         {/* Interactive Expanding Gallery */}
-        <div className="flex flex-col md:flex-row gap-4 h-[600px] md:h-[550px] w-full group/gallery">
+        <div
+          className="flex flex-col md:flex-row gap-4 h-[600px] md:h-[550px] w-full group/gallery"
+          onMouseEnter={() => setIsAutoPaused(true)}
+          onMouseLeave={() => setIsAutoPaused(false)}
+        >
           {items.map((item, index) => {
             const isActive = hoveredIndex === index;
             const Icon = item.icon;
@@ -92,6 +107,8 @@ export default function Curated() {
                 key={item.id}
                 layout // Framer Motion magic for smooth flexbox changes
                 onMouseEnter={() => setHoveredIndex(index)}
+                whileHover={{ y: -6 }}
+                transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
                 className={`relative overflow-hidden rounded-3xl cursor-pointer bg-white border border-[#E4D8C3] group transition-all duration-[0.8s] ease-[cubic-bezier(0.16,1,0.3,1)] ${
                   isActive ? 'flex-[4] md:flex-[6]' : 'flex-1 md:hover:flex-[1.5]'
                 } ${item.accentGlow}`}
@@ -107,16 +124,31 @@ export default function Curated() {
                       sizes="(max-width: 768px) 100vw, 50vw"
                       className={`object-cover transition-all duration-[1.5s] ease-[cubic-bezier(0.16,1,0.3,1)] ${
                         isActive 
-                          ? 'scale-105 saturate-100 brightness-100' 
+                          ? 'scale-105 saturate-105 brightness-105' 
                           : 'scale-125 saturate-50 brightness-50 opacity-60'
                       }`}
                     />
                   </div>
 
+                  {/* Subtle moving color haze for modern depth */}
+                  <motion.div
+                    aria-hidden
+                    animate={{
+                      x: isActive ? [0, 24, -18, 0] : 0,
+                      y: isActive ? [0, -16, 10, 0] : 0,
+                      scale: isActive ? [1, 1.12, 1.02, 1] : 1,
+                    }}
+                    transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut' }}
+                    className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-gradient-to-br from-white/35 via-[#D4AF37]/20 to-transparent blur-3xl"
+                  />
+
+                  {/* Light sweep on hover */}
+                  <div className="absolute inset-y-0 -left-1/3 w-1/3 bg-gradient-to-r from-transparent via-white/25 to-transparent rotate-12 group-hover:translate-x-[520%] transition-transform duration-[1200ms] ease-out" />
+
                   {/* Adaptive Gradients for Text Legibility */}
                   <div className={`absolute inset-0 bg-gradient-to-t transition-opacity duration-[1s] ${
                     isActive 
-                        ? 'from-[#18202B]/45 via-[#18202B]/18 to-transparent opacity-90' 
+                    ? 'from-[#18202B]/50 via-[#18202B]/20 to-transparent opacity-95' 
                         : 'from-[#18202B]/35 to-[#18202B]/12 opacity-80'
                   }`} />
 
