@@ -284,6 +284,7 @@ export default function AdminPanel() {
   const [timerUnit, setTimerUnit] = useState<'seconds' | 'minutes' | 'hours' | 'days' | 'weeks' | 'months' | 'years'>('days');
   const [tickerMessage, setTickerMessage] = useState('');
   const [tickerSpeed, setTickerSpeed] = useState<number>(18);
+  const [previewDevice, setPreviewDevice] = useState<'desktop' | 'mobile'>('desktop');
   const [imageUploadError, setImageUploadError] = useState('');
   const [imageUploadStatus, setImageUploadStatus] = useState('');
   const [secondaryImageUploadError, setSecondaryImageUploadError] = useState('');
@@ -1533,24 +1534,57 @@ export default function AdminPanel() {
               </div>
 
               <div className="mb-6">
-                <p className="text-[10px] uppercase tracking-[0.16em] text-white/60 mb-2">Live Preview (Navbar Ticker)</p>
-                <div className="rounded-xl overflow-hidden border border-white/10">
+                <div className="flex items-center justify-between mb-2 gap-3">
+                  <p className="text-[10px] uppercase tracking-[0.16em] text-white/60">Live Preview (Navbar Ticker)</p>
+                  <div className="flex gap-2">
+                    {(['desktop', 'mobile'] as const).map((device) => (
+                      <button
+                        key={device}
+                        type="button"
+                        onClick={() => setPreviewDevice(device)}
+                        className={`px-3 py-1.5 rounded-lg text-[10px] tracking-[0.1em] uppercase font-bold transition-all ${
+                          previewDevice === device
+                            ? 'bg-[#D4AF37] text-[#0B101E]'
+                            : 'bg-white/5 border border-white/10 text-white/70 hover:text-white'
+                        }`}
+                      >
+                        {device}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className={`rounded-xl overflow-hidden border border-white/10 ${previewDevice === 'mobile' ? 'max-w-[390px] mx-auto' : ''}`}>
                   <div className="bg-gradient-to-r from-[#7B0000] via-[#C20F1E] to-[#7B0000] text-white border-b border-[#FF9AA2]/30 shadow-[0_8px_28px_-12px_rgba(194,15,30,0.9)]">
-                    <div className="px-3 py-2.5 flex items-center gap-3">
-                      <span className="hidden sm:inline-flex items-center gap-2 rounded-md bg-[#2C0000] border border-[#FFB3BC]/30 px-2.5 py-1 text-[10px] font-extrabold tracking-[0.22em] uppercase whitespace-nowrap sales-badge-pulse">
-                        <span className="sales-live-dot" />
-                        Live
-                      </span>
-                      <div className="sales-marquee group flex-1 overflow-hidden rounded-md border border-white/15 bg-white/5 px-2 py-1.5">
-                        <div className="sales-marquee-track" style={{ animationDuration: `${previewTickerDurationSeconds}s` }}>
-                          {[1, 2].map((copy) => (
-                            <span key={copy} className="sales-marquee-content text-[11px] md:text-xs font-bold tracking-[0.12em] uppercase">
-                              {previewTickerText}
-                            </span>
-                          ))}
+                    {previewDevice === 'desktop' ? (
+                      <div className="px-3 py-2.5 flex items-center gap-3">
+                        <span className="inline-flex items-center gap-2 rounded-md bg-[#2C0000] border border-[#FFB3BC]/30 px-2.5 py-1 text-[10px] font-extrabold tracking-[0.22em] uppercase whitespace-nowrap sales-badge-pulse">
+                          <span className="sales-live-dot" />
+                          Live
+                        </span>
+                        <div className="sales-marquee group flex-1 overflow-hidden rounded-md border border-white/15 bg-white/5 px-2 py-1.5">
+                          <div className="sales-marquee-track" style={{ animationDuration: `${previewTickerDurationSeconds}s` }}>
+                            {[1, 2].map((copy) => (
+                              <span key={copy} className="sales-marquee-content text-[11px] md:text-xs font-bold tracking-[0.12em] uppercase">
+                                {previewTickerText}
+                              </span>
+                            ))}
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    ) : (
+                      <div className="px-2 py-2">
+                        <div className="sales-marquee group flex-1 overflow-hidden rounded-md border border-white/15 bg-white/5 px-2 py-1.5">
+                          <div className="sales-marquee-track" style={{ animationDuration: `${previewTickerDurationSeconds}s` }}>
+                            {[1, 2].map((copy) => (
+                              <span key={copy} className="sales-marquee-content text-[10px] font-bold tracking-[0.1em] uppercase">
+                                {previewTickerText}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

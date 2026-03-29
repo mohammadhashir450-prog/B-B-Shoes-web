@@ -61,6 +61,7 @@ interface ProductContextType {
 const ProductContext = createContext<ProductContextType | undefined>(undefined);
 
 export function ProductProvider({ children }: { children: ReactNode }) {
+  const [sourceProducts, setSourceProducts] = useState<Product[]>([]);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [menProducts, setMenProducts] = useState<Product[]>([]);
   const [womenProducts, setWomenProducts] = useState<Product[]>([]);
@@ -76,16 +77,58 @@ export function ProductProvider({ children }: { children: ReactNode }) {
       .replace(/['’]/g, '')
       .replace(/\s+/g, '');
 
-  const fetchSalesTimer = async () => {
+  const isSaleTaggedProduct = (product: Product): boolean => {
+    return product.isOnSale === true || (product.discount || 0) > 0 || ((product.originalPrice || 0) > product.price);
+  };
+
+  const isSalesExpired = (timerValue: string | null, currentTick: number): boolean => {
+    if (!timerValue) return false;
+
+    const endDate = new Date(timerValue);
+    if (Number.isNaN(endDate.getTime())) return false;
+
+    return currentTick > endDate.getTime();
+  };
+
+  const buildVisibleProducts = (products: Product[], timerValue: string | null, currentTick: number): Product[] => {
+    if (!isSalesExpired(timerValue, currentTick)) {
+      return products;
+    }
+
+    // When sale timer expires, hide sale-tagged products from storefront lists.
+    return products.filter((product) => !isSaleTaggedProduct(product));
+  };
+
+  const applyVisibleProductBuckets = (products: Product[]) => {
+    setAllProducts(products);
+
+    const men = products.filter((p: Product) => {
+      const category = normalizeCategory(p.category);
+      return category === 'men' || category === 'mens';
+    });
+    setMenProducts(men);
+
+    const women = products.filter((p: Product) => {
+      const category = normalizeCategory(p.category);
+      return category === 'women' || category === 'womens';
+    });
+    setWomenProducts(women);
+  };
+
+  const fetchSalesTimer = async (): Promise<string | null> => {
     try {
       const timerResponse = await fetch('/api/settings/sales-timer', { cache: 'no-store' });
       if (timerResponse.ok) {
         const timerData = await timerResponse.json();
-        setSalesEndsAt(timerData?.data?.salesEndsAt || null);
+        const timerValue = timerData?.data?.salesEndsAt || null;
+        setSalesEndsAt(timerValue);
+        return timerValue;
       }
     } catch (timerError) {
       console.warn('⚠️ Sales timer fetch skipped:', timerError);
     }
+
+    return null;
   };
 
   // Fetch all products once
@@ -109,7 +152,7 @@ export function ProductProvider({ children }: { children: ReactNode }) {
     const responseData = await response.json();
 
     // Keep sales timer in sync with admin panel settings.
-    await fetchSalesTimer();
+    const timerValue = await fetchSalesTimer();
     
     // Extract products
     const products = responseData.data?.products || []; 
@@ -128,22 +171,10 @@ export function ProductProvider({ children }: { children: ReactNode }) {
       console.warn('⚠️ Missing images:', withoutImages.map((p: Product) => p.name));
     }
     
-    // Set all products
-    setAllProducts(products);
-    
-    // Filter Men products
-    const men = products.filter((p: Product) => {
-      const category = normalizeCategory(p.category);
-      return category === 'men' || category === 'mens';
-    });
-    setMenProducts(men);
-    
-    // Filter Women products
-    const women = products.filter((p: Product) => {
-      const category = normalizeCategory(p.category);
-      return category === 'women' || category === 'womens';
-    });
-    setWomenProducts(women);
+    setSourceProducts(products);
+
+    const visibleProducts = buildVisibleProducts(products, timerValue, Date.now());
+    applyVisibleProductBuckets(visibleProducts);
     
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : 'Failed to load products';
@@ -151,6 +182,7 @@ export function ProductProvider({ children }: { children: ReactNode }) {
     console.error('❌ Error loading products:', err);
     
     setAllProducts([]);
+    setSourceProducts([]);
     setMenProducts([]);
     setWomenProducts([]);
   } finally {
@@ -167,7 +199,7 @@ export function ProductProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const timer = setInterval(() => {
       setNowTick(Date.now());
-    }, 30000);
+    }, 1000);
 
     return () => clearInterval(timer);
   }, []);
@@ -180,6 +212,11 @@ export function ProductProvider({ children }: { children: ReactNode }) {
 
     return () => clearInterval(timerPoll);
   }, []);
+
+  useEffect(() => {
+    const visibleProducts = buildVisibleProducts(sourceProducts, salesEndsAt, nowTick);
+    applyVisibleProductBuckets(visibleProducts);
+  }, [sourceProducts, salesEndsAt, nowTick]);
 
   // Helper: Get product by ID
   const getProductById = (id: string): Product | undefined => {
