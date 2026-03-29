@@ -3,6 +3,7 @@ import './globals.css'
 import NextAuthProvider from '@/components/providers/AuthProvider'
 import { CartProvider } from '@/context/CartContext'
 import { ProductProvider } from '@/context/ProductContext'
+import { WishlistProvider } from '@/context/WishlistContext'
 import { Metadata, Viewport } from 'next'
 
 // Fonts ko Next.js standard ke mutabiq load karna (Warnings fix)
@@ -39,9 +40,11 @@ export default function RootLayout({
       <body className={`${inter.className} ${manrope.variable} ${playfair.variable}`}>
         <NextAuthProvider>
           <ProductProvider>
-            <CartProvider>
-              {children}
-            </CartProvider>
+            <WishlistProvider>
+              <CartProvider>
+                {children}
+              </CartProvider>
+            </WishlistProvider>
           </ProductProvider>
         </NextAuthProvider>
       </body>

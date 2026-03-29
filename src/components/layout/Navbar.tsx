@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
 import { useCart } from '@/context/CartContext'
 import { useProducts } from '@/context/ProductContext'
+import { useWishlist } from '@/context/WishlistContext'
 import { 
   Search, 
   ShoppingBag, 
@@ -17,7 +18,8 @@ import {
   ChevronRight,
   LogOut,
   Package,
-  Settings
+  Settings,
+  Heart
 } from 'lucide-react'
 
 // Condensed for the cinematic menu layout
@@ -159,6 +161,7 @@ const getRemainingParts = (ms: number) => {
 export default function Navbar() {
   const router = useRouter()
   const { totalItems } = useCart()
+  const { totalWishlistItems } = useWishlist()
   const { allProducts } = useProducts()
   const { data: session, status } = useSession()
   const [mounted, setMounted] = useState(false)
@@ -279,6 +282,7 @@ export default function Navbar() {
   const effectiveStatus = mounted ? status : 'loading'
   const effectiveSession = mounted ? session : null
   const effectiveTotalItems = mounted ? totalItems : 0
+  const effectiveTotalWishlistItems = mounted ? totalWishlistItems : 0
 
   const maxDiscount = allProducts.reduce((max, product) => {
     const discount = Number(product.discount || 0)
@@ -367,7 +371,7 @@ export default function Navbar() {
           }`}
         >
           {/* Left: Hamburger */}
-          <div className="flex items-center">
+          <div className="flex items-center gap-4">
             <button 
               onClick={toggleMenu}
               className="group flex items-center gap-3 text-white hover:text-[#D4AF37] transition-colors" 
@@ -382,6 +386,19 @@ export default function Navbar() {
                 {isMenuOpen ? 'Close' : 'Menu'}
               </span>
             </button>
+
+            <Link
+              href="/wishlist"
+              className="relative text-white hover:text-[#D4AF37] transition-colors hover:scale-110 transform duration-300"
+              aria-label="Wishlist"
+            >
+              <Heart size={18} strokeWidth={1.7} />
+              {effectiveTotalWishlistItems > 0 ? (
+                <span className="absolute -top-1.5 -right-2 w-[18px] h-[18px] bg-[#D4AF37] text-[#0B101E] rounded-full flex items-center justify-center text-[9px] font-black shadow-[0_0_10px_rgba(212,175,55,0.4)]">
+                  {effectiveTotalWishlistItems}
+                </span>
+              ) : null}
+            </Link>
           </div>
 
           {/* Center: Logo */}

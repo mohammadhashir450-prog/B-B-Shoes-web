@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 import { useProducts, Product as ProductType } from '@/context/ProductContext';
+import { useWishlist } from '@/context/WishlistContext';
 import { ChevronRight, ChevronDown, Star, Heart, ShoppingBag, Check, Loader2 } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
@@ -12,6 +13,7 @@ import Footer from '@/components/layout/Footer';
 export default function ProductDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
   const { addToCart } = useCart();
+  const { isWishlisted, toggleWishlist } = useWishlist();
   const { getProductById, loading: contextLoading } = useProducts();
   const [product, setProduct] = useState<ProductType | null>(null);
   const [loading, setLoading] = useState(true);
@@ -19,7 +21,6 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
-  const [isWishlisted, setIsWishlisted] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
@@ -303,10 +304,10 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                   {!product.inStock ? 'OUT OF STOCK' : showSuccess ? 'ADDED TO BAG!' : 'ADD TO BAG'}
                 </button>
                 <button 
-                  onClick={() => setIsWishlisted(!isWishlisted)}
-                  className={`border-2 transition-all p-4 rounded-xl ${isWishlisted ? 'border-[#D4AF37] bg-[#D4AF37]/10' : 'border-white/20 hover:border-[#D4AF37]'}`}
+                  onClick={() => toggleWishlist(product.id)}
+                  className={`border-2 transition-all p-4 rounded-xl ${isWishlisted(product.id) ? 'border-[#D4AF37] bg-[#D4AF37]/10' : 'border-white/20 hover:border-[#D4AF37]'}`}
                 >
-                  <Heart className={`w-6 h-6 ${isWishlisted ? 'fill-[#D4AF37] stroke-[#D4AF37]' : ''}`} />
+                  <Heart className={`w-6 h-6 ${isWishlisted(product.id) ? 'fill-[#D4AF37] stroke-[#D4AF37]' : ''}`} />
                 </button>
               </div>
 

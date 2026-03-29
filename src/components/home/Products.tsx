@@ -5,10 +5,12 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Heart, ChevronLeft, ChevronRight, ShoppingBag, Sparkles, ArrowUpRight } from 'lucide-react'
 import { useProducts } from '@/context/ProductContext'
+import { useWishlist } from '@/context/WishlistContext'
 import HoverSwapImage from '@/components/common/HoverSwapImage'
 
 export default function Products() {
   const { allProducts, loading } = useProducts()
+  const { isWishlisted, toggleWishlist } = useWishlist()
   const sliderRef = useRef<HTMLDivElement>(null)
 
   // Get first 4 regular products (not on sale, not new arrivals)
@@ -133,7 +135,7 @@ export default function Products() {
               <Link href={`/product/${product.id}`} className="h-full flex flex-col">
                 
                 {/* Image Section */}
-                <div className="relative h-[220px] sm:h-[240px] lg:h-[260px] bg-[#FAF9F7] overflow-hidden p-3">
+                <div className="relative h-[220px] sm:h-[240px] lg:h-[260px] bg-[#FAF9F7] overflow-hidden p-3 rounded-2xl border border-[#06080F]/45 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35),0_14px_30px_-20px_rgba(6,8,15,0.55)] transition-all duration-500 group-hover:border-[#06080F]/70 group-hover:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.45),0_18px_36px_-22px_rgba(6,8,15,0.65)]">
                   <HoverSwapImage
                     primaryImage={product.image}
                     secondaryImage={product.secondaryImage}
@@ -154,10 +156,17 @@ export default function Products() {
                   
                   {/* Wishlist Button (Stop propagation to avoid triggering link) */}
                   <button 
-                    onClick={(e) => e.preventDefault()}
-                    className="absolute top-5 right-5 w-10 h-10 bg-[#F9F8F6]/85 backdrop-blur-md border border-[#E0D4BF] rounded-full flex items-center justify-center text-[#4F5A69] hover:text-red-500 hover:bg-[#F9F8F6] hover:border-red-300 transition-all duration-300 z-20"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      toggleWishlist(product.id)
+                    }}
+                    className={`absolute top-5 right-5 w-10 h-10 backdrop-blur-md border rounded-full flex items-center justify-center transition-all duration-300 z-20 ${
+                      isWishlisted(product.id)
+                        ? 'bg-[#FDECEC] border-red-300 text-red-500'
+                        : 'bg-[#F9F8F6]/85 border-[#E0D4BF] text-[#4F5A69] hover:text-red-500 hover:bg-[#F9F8F6] hover:border-red-300'
+                    }`}
                   >
-                    <Heart size={16} strokeWidth={2} />
+                    <Heart size={16} strokeWidth={2} className={isWishlisted(product.id) ? 'fill-red-500' : ''} />
                   </button>
                 </div>
 
