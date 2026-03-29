@@ -1,9 +1,10 @@
 'use client'
 
+import { useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { motion } from 'framer-motion'
-import { ArrowUpRight, Sparkles, Tag, Grid } from 'lucide-react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { ArrowUpRight, Sparkles, Tag, Grid, ChevronLeft, ChevronRight } from 'lucide-react'
 
 const items = [
   {
@@ -33,6 +34,26 @@ const items = [
 ]
 
 export default function Curated() {
+  const [activeIndex, setActiveIndex] = useState(0)
+
+  const currentItem = useMemo(() => items[activeIndex], [activeIndex])
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % items.length)
+    }, 3000)
+
+    return () => clearInterval(timer)
+  }, [])
+
+  const prevSlide = () => {
+    setActiveIndex((prev) => (prev - 1 + items.length) % items.length)
+  }
+
+  const nextSlide = () => {
+    setActiveIndex((prev) => (prev + 1) % items.length)
+  }
+
   return (
     <section className="relative bg-white py-16 md:py-20 overflow-hidden">
       <div className="absolute -top-24 -left-20 w-[420px] h-[420px] bg-[#D4AF37]/8 rounded-full blur-[120px] pointer-events-none" />
@@ -53,53 +74,78 @@ export default function Curated() {
               Curated Collections
             </h2>
           </div>
-          <p className="text-[#4F5A69] text-sm max-w-[420px] leading-relaxed">
-            Explore our highlighted categories with a cleaner browsing experience built for both desktop and mobile.
-          </p>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <button
+              onClick={prevSlide}
+              aria-label="Previous curated slide"
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-[#DCCFB6] bg-white text-[#253041] hover:border-[#D4AF37] hover:bg-[#D4AF37] transition-colors flex items-center justify-center"
+            >
+              <ChevronLeft size={16} />
+            </button>
+            <button
+              onClick={nextSlide}
+              aria-label="Next curated slide"
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-[#DCCFB6] bg-white text-[#253041] hover:border-[#D4AF37] hover:bg-[#D4AF37] transition-colors flex items-center justify-center"
+            >
+              <ChevronRight size={16} />
+            </button>
+          </div>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5">
-          {items.map((item, index) => {
-            const Icon = item.icon
+        <div className="relative rounded-2xl overflow-hidden border border-[#E7DECF] shadow-[0_18px_34px_-22px_rgba(24,32,43,0.35)]">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentItem.id}
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -50 }}
+              transition={{ duration: 0.55, ease: 'easeInOut' }}
+            >
+              <Link href={currentItem.link} className="group block">
+                <div className="relative h-[300px] sm:h-[360px] md:h-[430px] bg-[#F7F2E8]">
+                  <Image
+                    src={currentItem.image}
+                    alt={currentItem.title}
+                    fill
+                    sizes="100vw"
+                    className="object-cover group-hover:scale-105 transition-transform duration-700"
+                  />
+                  <motion.div
+                    aria-hidden
+                    animate={{ x: [0, 22, -16, 0], y: [0, -12, 10, 0] }}
+                    transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+                    className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-gradient-to-br from-white/35 via-[#D4AF37]/20 to-transparent blur-3xl"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#06080F]/62 via-[#06080F]/20 to-transparent" />
 
-            return (
-              <motion.div
-                key={item.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.45, delay: index * 0.08 }}
-              >
-                <Link
-                  href={item.link}
-                  className="group block rounded-2xl overflow-hidden border border-[#E7DECF] bg-white shadow-[0_14px_30px_-24px_rgba(24,32,43,0.35)] hover:shadow-[0_24px_44px_-26px_rgba(24,32,43,0.45)] transition-all"
-                >
-                  <div className="relative aspect-[16/10] bg-[#F7F2E8]">
-                    <Image
-                      src={item.image}
-                      alt={item.title}
-                      fill
-                      sizes="(max-width: 768px) 100vw, 33vw"
-                      className="object-cover group-hover:scale-105 transition-transform duration-700"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#06080F]/55 via-[#06080F]/15 to-transparent" />
-
-                    <div className="absolute left-4 right-4 bottom-4">
-                      <p className="text-[#D4AF37] text-[10px] tracking-[0.18em] uppercase font-bold flex items-center gap-2">
-                        <Icon size={12} /> {item.subtitle}
-                      </p>
-                      <div className="mt-2 flex items-center justify-between">
-                        <h3 className="text-white text-2xl font-serif font-black leading-tight">{item.title}</h3>
-                        <span className="w-9 h-9 rounded-full bg-white/20 border border-white/40 flex items-center justify-center text-white group-hover:bg-white group-hover:text-[#18202B] transition-colors">
-                          <ArrowUpRight size={16} />
-                        </span>
-                      </div>
+                  <div className="absolute left-4 sm:left-6 right-4 sm:right-6 bottom-4 sm:bottom-6">
+                    <p className="text-[#D4AF37] text-[10px] tracking-[0.18em] uppercase font-bold flex items-center gap-2">
+                      <currentItem.icon size={12} /> {currentItem.subtitle}
+                    </p>
+                    <div className="mt-2 flex items-center justify-between">
+                      <h3 className="text-white text-2xl sm:text-3xl md:text-4xl font-serif font-black leading-tight">
+                        {currentItem.title}
+                      </h3>
+                      <span className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/20 border border-white/40 flex items-center justify-center text-white group-hover:bg-white group-hover:text-[#18202B] transition-colors">
+                        <ArrowUpRight size={16} />
+                      </span>
                     </div>
                   </div>
-                </Link>
-              </motion.div>
-            )
-          })}
+                </div>
+              </Link>
+            </motion.div>
+          </AnimatePresence>
+
+          <div className="absolute bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-1.5">
+            {items.map((item, idx) => (
+              <button
+                key={item.id}
+                onClick={() => setActiveIndex(idx)}
+                aria-label={`Go to ${item.title}`}
+                className={`h-1.5 rounded-full transition-all ${activeIndex === idx ? 'w-6 bg-[#D4AF37]' : 'w-3 bg-white/60'}`}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </section>

@@ -409,8 +409,8 @@ export default function Navbar() {
           </div>
 
           {/* Right: Actions */}
-          <div className="flex items-center gap-3 md:gap-6">
-            <div className="relative hidden md:block order-last md:order-none ml-1 md:ml-0" ref={collectionMenuRef}>
+          <div className="flex items-center gap-2 sm:gap-3 md:gap-6">
+            <div className="relative block order-last md:order-none ml-1 md:ml-0" ref={collectionMenuRef}>
               <button
                 type="button"
                 onClick={toggleCollectionMenu}
@@ -422,7 +422,7 @@ export default function Navbar() {
                   <span className={`absolute h-[1.5px] bg-current transform transition-all duration-300 ${isCollectionMenuOpen ? 'w-0 opacity-0' : 'w-4'}`} />
                   <span className={`absolute h-[1.5px] w-4 bg-current transform transition-all duration-300 ${isCollectionMenuOpen ? '-rotate-45' : 'translate-y-1.5'}`} />
                 </div>
-                <span className="hidden md:block text-[10px] uppercase tracking-[0.2em] font-bold">Sections</span>
+                <span className="hidden lg:block text-[10px] uppercase tracking-[0.2em] font-bold">Sections</span>
               </button>
 
               <AnimatePresence>
@@ -498,7 +498,7 @@ export default function Navbar() {
             <button
               type="button"
               onClick={handleSearchClick}
-              className="text-white hover:text-[#D4AF37] transition-colors hover:scale-110 transform duration-300 hidden sm:inline-flex"
+              className="text-white hover:text-[#D4AF37] transition-colors hover:scale-110 transform duration-300 inline-flex"
               aria-label="Search"
             >
               <Search size={18} strokeWidth={1.5} />

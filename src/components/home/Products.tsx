@@ -100,21 +100,21 @@ export default function Products() {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="hidden sm:flex gap-3 md:gap-4"
+            className="flex gap-2 sm:gap-3 md:gap-4"
           >
             <button
               onClick={() => scrollSlider('left')}
-              className="w-10 h-10 md:w-12 md:h-12 rounded-full backdrop-blur-md border border-[#DCCFB6] bg-white/90 flex items-center justify-center text-[#253041] hover:border-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#18202B] transition-all duration-300"
+              className="w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full backdrop-blur-md border border-[#DCCFB6] bg-white/90 flex items-center justify-center text-[#253041] hover:border-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#18202B] transition-all duration-300"
               aria-label="Scroll products left"
             >
-              <ChevronLeft size={18} strokeWidth={1.5} />
+              <ChevronLeft size={16} strokeWidth={1.5} />
             </button>
             <button
               onClick={() => scrollSlider('right')}
-              className="w-10 h-10 md:w-12 md:h-12 rounded-full backdrop-blur-md border border-[#DCCFB6] bg-white/90 flex items-center justify-center text-[#253041] hover:border-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#18202B] transition-all duration-300"
+              className="w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full backdrop-blur-md border border-[#DCCFB6] bg-white/90 flex items-center justify-center text-[#253041] hover:border-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#18202B] transition-all duration-300"
               aria-label="Scroll products right"
             >
-              <ChevronRight size={18} strokeWidth={1.5} />
+              <ChevronRight size={16} strokeWidth={1.5} />
             </button>
           </motion.div>
         </div>
