@@ -57,6 +57,33 @@ const getRemainingLabel = (ms: number) => {
 };
 
 export default function AdminPanel() {
+  const DEFAULT_SIZES = ['7', '8', '9', '10', '11'];
+  const DEFAULT_COLORS = ['Black'];
+  const makeSizeColorKey = (size: string | number, color: string) => `${String(size)}__${String(color)}`;
+
+  const buildInventoryMap = (
+    sizes: Array<string | number>,
+    colors: string[],
+    existing?: any[]
+  ): Record<string, number> => {
+    const map: Record<string, number> = {};
+    const source = Array.isArray(existing) ? existing : [];
+    const safeColors = colors.length > 0 ? colors : DEFAULT_COLORS;
+
+    sizes.forEach((size) => {
+      safeColors.forEach((color) => {
+        const key = makeSizeColorKey(size, color);
+        const matchedByColor = source.find(
+          (entry) => String(entry?.size) === String(size) && String(entry?.color || '') === String(color)
+        );
+        const fallbackBySize = source.find((entry) => String(entry?.size) === String(size));
+        map[key] = Number((matchedByColor || fallbackBySize)?.quantity || 0);
+      });
+    });
+
+    return map;
+  };
+
   const router = useRouter();
   const { allProducts, getSaleProducts, getNewArrivals, refetchProducts, loading: contextLoading } = useProducts();
   
@@ -291,8 +318,9 @@ export default function AdminPanel() {
   }, [filteredAnalyticsOrders, analyticsRange, customDateFrom, customDateTo, orders]);
   
   // Size and color management
-  const [selectedSizes, setSelectedSizes] = useState<string[]>(['7', '8', '9', '10', '11']);
-  const [selectedColors, setSelectedColors] = useState<string[]>(['Black']);
+  const [selectedSizes, setSelectedSizes] = useState<string[]>(DEFAULT_SIZES);
+  const [selectedColors, setSelectedColors] = useState<string[]>(DEFAULT_COLORS);
+  const [sizeInventory, setSizeInventory] = useState<Record<string, number>>(buildInventoryMap(DEFAULT_SIZES, DEFAULT_COLORS));
   const [newSize, setNewSize] = useState('');
   const [newColor, setNewColor] = useState('');
   const [loading, setLoading] = useState(false);
@@ -626,24 +654,58 @@ export default function AdminPanel() {
   const addSize = () => {
     const size = newSize.trim();
     if (size && !selectedSizes.includes(size)) {
-      setSelectedSizes([...selectedSizes, size].sort());
+      const nextSizes = [...selectedSizes, size].sort();
+      setSelectedSizes(nextSizes);
+      setSizeInventory((prev) => {
+        const next = { ...prev };
+        selectedColors.forEach((color) => {
+          const key = makeSizeColorKey(size, color);
+          next[key] = next[key] ?? 0;
+        });
+        return next;
+      });
       setNewSize('');
     }
   };
 
   const removeSize = (size: string) => {
     setSelectedSizes(selectedSizes.filter(s => s !== size));
+    setSizeInventory((prev) => {
+      const next = { ...prev };
+      selectedColors.forEach((color) => {
+        delete next[makeSizeColorKey(size, color)];
+      });
+      return next;
+    });
   };
 
   const addColor = () => {
-    if (newColor && !selectedColors.includes(newColor)) {
-      setSelectedColors([...selectedColors, newColor]);
+    const color = newColor.trim();
+    if (color && !selectedColors.includes(color)) {
+      const nextColors = [...selectedColors, color];
+      setSelectedColors(nextColors);
+      setSizeInventory((prev) => {
+        const next = { ...prev };
+        selectedSizes.forEach((size) => {
+          const key = makeSizeColorKey(size, color);
+          next[key] = next[key] ?? 0;
+        });
+        return next;
+      });
       setNewColor('');
     }
   };
 
   const removeColor = (color: string) => {
-    setSelectedColors(selectedColors.filter(c => c !== color));
+    const nextColors = selectedColors.filter(c => c !== color);
+    setSelectedColors(nextColors);
+    setSizeInventory((prev) => {
+      const next = { ...prev };
+      selectedSizes.forEach((size) => {
+        delete next[makeSizeColorKey(size, color)];
+      });
+      return next;
+    });
   };
 
   const handleAction = async (method: string, url: string, body: any) => {
@@ -666,8 +728,9 @@ export default function AdminPanel() {
         setEditingProduct(null);
         setEditingSaleProduct(null);
         setEditingNewArrival(null);
-        setSelectedSizes(['7', '8', '9', '10', '11']);
-        setSelectedColors(['Black']);
+        setSelectedSizes(DEFAULT_SIZES);
+        setSelectedColors(DEFAULT_COLORS);
+        setSizeInventory(buildInventoryMap(DEFAULT_SIZES, DEFAULT_COLORS));
         setImageUploadError('');
         setImageUploadStatus('');
         setSecondaryImageUploadError('');
@@ -828,10 +891,15 @@ export default function AdminPanel() {
                               setImageUploadStatus('✓ Primary image uploaded');
                               setTimeout(() => setImageUploadStatus(''), 3000);
 
-                              if (editingProduct) setEditingProduct({ ...editingProduct, image: url });
-                              else if (editingSaleProduct) setEditingSaleProduct({ ...editingSaleProduct, image: url });
-                              else if (editingNewArrival) setEditingNewArrival({ ...editingNewArrival, image: url });
-                              else setNewProduct({ ...newProduct, image: url });
+                              if (editingProduct) {
+                                setEditingProduct((prev) => (prev ? { ...prev, image: url } : prev));
+                              } else if (editingSaleProduct) {
+                                setEditingSaleProduct((prev) => (prev ? { ...prev, image: url } : prev));
+                              } else if (editingNewArrival) {
+                                setEditingNewArrival((prev) => (prev ? { ...prev, image: url } : prev));
+                              } else {
+                                setNewProduct((prev) => ({ ...prev, image: url }));
+                              }
                             } catch {
                               setImageUploadError('Failed to process upload');
                             }
@@ -912,10 +980,15 @@ export default function AdminPanel() {
                               setSecondaryImageUploadStatus('✓ Secondary image uploaded');
                               setTimeout(() => setSecondaryImageUploadStatus(''), 3000);
 
-                              if (editingProduct) setEditingProduct({ ...editingProduct, secondaryImage: url });
-                              else if (editingSaleProduct) setEditingSaleProduct({ ...editingSaleProduct, secondaryImage: url });
-                              else if (editingNewArrival) setEditingNewArrival({ ...editingNewArrival, secondaryImage: url });
-                              else setNewProduct({ ...newProduct, secondaryImage: url });
+                              if (editingProduct) {
+                                setEditingProduct((prev) => (prev ? { ...prev, secondaryImage: url } : prev));
+                              } else if (editingSaleProduct) {
+                                setEditingSaleProduct((prev) => (prev ? { ...prev, secondaryImage: url } : prev));
+                              } else if (editingNewArrival) {
+                                setEditingNewArrival((prev) => (prev ? { ...prev, secondaryImage: url } : prev));
+                              } else {
+                                setNewProduct((prev) => ({ ...prev, secondaryImage: url }));
+                              }
                             } catch {
                               setSecondaryImageUploadError('Failed to process secondary upload');
                             }
@@ -1240,27 +1313,40 @@ export default function AdminPanel() {
                     <Package size={16} className="text-[#D4AF37]" /> Size-wise Inventory
                   </label>
                   <div className="space-y-3 max-h-[300px] overflow-y-auto">
-                    {selectedSizes.length === 0 ? (
+                    {selectedSizes.length === 0 || selectedColors.length === 0 ? (
                       <p className="text-white/40 text-sm text-center py-8">Add sizes above to manage inventory</p>
                     ) : (
                       selectedSizes.map(size => (
-                        <div key={size} className="flex items-center gap-4 p-4 bg-[#0B101E] rounded-xl border border-white/5">
-                          <div className="w-16 px-3 py-2 bg-[#D4AF37]/10 border border-[#D4AF37]/30 rounded-lg text-[#D4AF37] font-bold text-center">
+                        <div key={size} className="p-4 bg-[#0B101E] rounded-xl border border-white/5">
+                          <div className="w-16 px-3 py-2 bg-[#D4AF37]/10 border border-[#D4AF37]/30 rounded-lg text-[#D4AF37] font-bold text-center mb-3">
                             Size {size}
                           </div>
-                          <input 
-                            type="number" 
-                            placeholder="Qty in stock" 
-                            defaultValue={0}
-                            min="0"
-                            className="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-[#D4AF37]/50" 
-                          />
-                          <span className="text-white/40 text-xs uppercase tracking-wide font-bold">units</span>
+                          <div className="grid sm:grid-cols-2 gap-3">
+                            {selectedColors.map((color) => {
+                              const key = makeSizeColorKey(size, color);
+                              return (
+                                <div key={key} className="flex items-center gap-2">
+                                  <span className="w-20 text-[11px] text-white/70 font-semibold truncate">{color}</span>
+                                  <input
+                                    type="number"
+                                    placeholder="Qty"
+                                    value={sizeInventory[key] ?? 0}
+                                    onChange={(e) => {
+                                      const nextQty = Math.max(0, Number(e.target.value) || 0);
+                                      setSizeInventory((prev) => ({ ...prev, [key]: nextQty }));
+                                    }}
+                                    min="0"
+                                    className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-[#D4AF37]/50"
+                                  />
+                                </div>
+                              );
+                            })}
+                          </div>
                         </div>
                       ))
                     )}
                   </div>
-                  <p className="text-[10px] text-white/30 tracking-widest uppercase mt-4">Leave as 0 to mark out of stock</p>
+                  <p className="text-[10px] text-white/30 tracking-widest uppercase mt-4">0 quantity means out of stock for that size + color</p>
                 </div>
 
                 {/* Final Actions */}
@@ -1309,14 +1395,35 @@ export default function AdminPanel() {
                         else setNewProduct({...newProduct, price: calculatedPrice, discount, originalPrice});
                       }
 
+                      const normalizedSizes = selectedSizes
+                        .map((size) => ({ raw: size, numeric: Number(size) }))
+                        .filter((entry) => Number.isFinite(entry.numeric));
+
+                      const normalizedColors = selectedColors
+                        .map((color) => String(color).trim())
+                        .filter(Boolean);
+
+                      const sizeStockPayload = normalizedSizes.flatMap((entry) => (
+                        normalizedColors.map((color) => ({
+                          size: entry.numeric,
+                          quantity: Math.max(0, Number(sizeInventory[makeSizeColorKey(entry.raw, color)] || 0)),
+                          color
+                        }))
+                      ));
+
+                      const hasAnyAvailableSize = sizeStockPayload.some((entry) => entry.quantity > 0);
+                      const computedStock = sizeStockPayload.reduce((sum, entry) => sum + entry.quantity, 0);
+
                       const body = {
                         ...currentProduct, 
                         brand: 'B&B', 
-                        sizes: selectedSizes, 
-                        colors: selectedColors, 
+                        sizes: normalizedSizes.map((entry) => entry.numeric), 
+                        colors: normalizedColors, 
+                        sizeStock: sizeStockPayload,
                         isOnSale: saleActive,
                         isNewArrival: activeTab === 'newarrivals' || showAddNewArrivalForm,
-                        inStock: currentProduct.inStock !== undefined ? currentProduct.inStock : true,
+                        inStock: currentProduct.inStock === false ? false : (sizeStockPayload.length > 0 ? hasAnyAvailableSize : true),
+                        stock: sizeStockPayload.length > 0 ? computedStock : Number(currentProduct.stock || 0),
                         discount: saleActive ? Number(currentProduct.discount) : 0,
                         originalPrice: saleActive ? Number(currentProduct.originalPrice) : 0,
                         price: saleActive
@@ -1338,8 +1445,9 @@ export default function AdminPanel() {
                     onClick={() => {
                       setShowAddForm(false); setShowAddSaleForm(false); setShowAddNewArrivalForm(false);
                       setEditingProduct(null); setEditingSaleProduct(null); setEditingNewArrival(null);
-                      setSelectedSizes(['7', '8', '9', '10', '11']);
-                      setSelectedColors(['Black']);
+                      setSelectedSizes(DEFAULT_SIZES);
+                      setSelectedColors(DEFAULT_COLORS);
+                      setSizeInventory(buildInventoryMap(DEFAULT_SIZES, DEFAULT_COLORS));
                     }} 
                     className="px-10 py-5 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-bold rounded-2xl transition-all text-[10px] tracking-[0.2em] uppercase"
                   >
@@ -1362,7 +1470,7 @@ export default function AdminPanel() {
                   category: 'Men', subcategory: '', brand: 'B&B', sizes: [], colors: [], description: '',
                   rating: 4.5, reviews: 0, inStock: true, isOnSale: false, isNewArrival: false
                 });
-                setSelectedSizes(['7', '8', '9', '10', '11']); setSelectedColors(['Black']);
+                setSelectedSizes(DEFAULT_SIZES); setSelectedColors(DEFAULT_COLORS); setSizeInventory(buildInventoryMap(DEFAULT_SIZES, DEFAULT_COLORS));
               }} 
               className="bg-white/5 border border-white/10 text-white px-6 py-4 rounded-full font-bold mb-10 flex items-center gap-3 hover:bg-white/10 transition-all text-[10px] tracking-[0.2em] uppercase"
             >
@@ -1457,6 +1565,7 @@ export default function AdminPanel() {
                           onClick={() => {
                             setEditingProduct(p);
                             setSelectedSizes((p.sizes || []).map((s) => String(s))); setSelectedColors(p.colors || []);
+                            setSizeInventory(buildInventoryMap((p.sizes || []).map((s) => String(s)), (p.colors || DEFAULT_COLORS), (p as any).sizeStock));
                           }} 
                           className="flex-1 bg-white/5 border border-white/10 text-white/70 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all flex items-center justify-center gap-2"
                         >
@@ -1681,7 +1790,7 @@ export default function AdminPanel() {
                   category: 'Men', subcategory: '', brand: 'B&B', sizes: [], colors: [], description: '',
                   rating: 4.5, reviews: 0, inStock: true, isOnSale: true, isNewArrival: false
                 });
-                setSelectedSizes(['7', '8', '9', '10', '11']); setSelectedColors(['Black']);
+                setSelectedSizes(DEFAULT_SIZES); setSelectedColors(DEFAULT_COLORS); setSizeInventory(buildInventoryMap(DEFAULT_SIZES, DEFAULT_COLORS));
               }} 
               className="bg-white/5 border border-white/10 text-white px-6 py-4 rounded-full font-bold mb-10 flex items-center gap-3 hover:bg-white/10 transition-all text-[10px] tracking-[0.2em] uppercase"
             >
@@ -1736,6 +1845,7 @@ export default function AdminPanel() {
                           onClick={() => {
                             setEditingSaleProduct(p);
                             setSelectedSizes((p.sizes || []).map((s) => String(s))); setSelectedColors(p.colors || []);
+                            setSizeInventory(buildInventoryMap((p.sizes || []).map((s) => String(s)), (p.colors || DEFAULT_COLORS), (p as any).sizeStock));
                           }} 
                           className="flex-1 bg-white/5 border border-white/10 text-white/70 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all flex items-center justify-center gap-2"
                         >
@@ -1769,7 +1879,7 @@ export default function AdminPanel() {
                   category: 'Men', subcategory: '', brand: 'B&B', sizes: [], colors: [], description: '',
                   rating: 4.5, reviews: 0, inStock: true, isOnSale: false, isNewArrival: true
                 });
-                setSelectedSizes(['7', '8', '9', '10', '11']); setSelectedColors(['Black']);
+                setSelectedSizes(DEFAULT_SIZES); setSelectedColors(DEFAULT_COLORS); setSizeInventory(buildInventoryMap(DEFAULT_SIZES, DEFAULT_COLORS));
               }} 
               className="bg-white/5 border border-white/10 text-white px-6 py-4 rounded-full font-bold mb-10 flex items-center gap-3 hover:bg-white/10 transition-all text-[10px] tracking-[0.2em] uppercase"
             >
@@ -1824,6 +1934,7 @@ export default function AdminPanel() {
                           onClick={() => {
                             setEditingNewArrival(p);
                             setSelectedSizes((p.sizes || []).map((s) => String(s))); setSelectedColors(p.colors || []);
+                            setSizeInventory(buildInventoryMap((p.sizes || []).map((s) => String(s)), (p.colors || DEFAULT_COLORS), (p as any).sizeStock));
                           }} 
                           className="flex-1 bg-white/5 border border-white/10 text-white/70 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all flex items-center justify-center gap-2"
                         >

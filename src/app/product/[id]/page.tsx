@@ -83,13 +83,40 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
     setExpandedSection(expandedSection === section ? null : section);
   };
 
+  const getSizeQuantityForColor = (sizeValue: string): number | null => {
+    if (!product || !Array.isArray(product.sizeStock) || product.sizeStock.length === 0) {
+      return null;
+    }
+
+    const bySize = product.sizeStock.filter((ss) => String(ss.size) === sizeValue);
+    if (bySize.length === 0) {
+      return 0;
+    }
+
+    if (selectedColor) {
+      const exact = bySize.find((ss) => String(ss.color || '').toLowerCase() === selectedColor.toLowerCase());
+      return exact ? Number(exact.quantity || 0) : 0;
+    }
+
+    return bySize.reduce((sum, ss) => sum + Number(ss.quantity || 0), 0);
+  };
+
+  useEffect(() => {
+    if (!selectedSize || !product) return;
+
+    const quantity = getSizeQuantityForColor(selectedSize);
+    if (quantity !== null && quantity <= 0) {
+      setSelectedSize(null);
+    }
+  }, [selectedColor, selectedSize, product]);
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0B101E] text-white">
+      <div className="min-h-screen bg-white text-[#0B101E]">
         <Navbar />
         <div className="pt-24 pb-16 flex flex-col items-center justify-center min-h-[60vh]">
           <Loader2 className="w-12 h-12 text-[#D4AF37] animate-spin mb-4" />
-          <p className="text-gray-400">Loading product details...</p>
+          <p className="text-gray-600">Loading product details...</p>
         </div>
         <Footer />
       </div>
@@ -98,12 +125,12 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
 
   if (error || !product) {
     return (
-      <div className="min-h-screen bg-[#0B101E] text-white">
+      <div className="min-h-screen bg-white text-[#0B101E]">
         <Navbar />
         <div className="pt-24 pb-16 flex flex-col items-center justify-center min-h-[60vh]">
           <div className="text-6xl mb-4">😕</div>
           <h2 className="text-2xl font-bold mb-2">Product Not Found</h2>
-          <p className="text-gray-400 mb-6">{error || 'The product you are looking for does not exist'}</p>
+          <p className="text-gray-600 mb-6">{error || 'The product you are looking for does not exist'}</p>
           <Link 
             href="/"
             className="px-8 py-3 bg-gradient-to-r from-[#D4AF37] to-[#F4CE5C] text-[#0B101E] rounded-full font-bold text-sm uppercase tracking-wider hover:shadow-lg hover:shadow-[#D4AF37]/50 transition-all duration-300"
@@ -119,22 +146,23 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
   const formattedPrice = `PKR ${product.price.toLocaleString()}`;
   const hasDiscountPricing = Boolean(product.originalPrice && product.originalPrice > product.price);
   const formattedOriginalPrice = hasDiscountPricing ? `PKR ${Number(product.originalPrice).toLocaleString()}` : '';
+  const serialNumber = String(product.id || '').slice(-8).toUpperCase();
 
   return (
-    <div className="min-h-screen bg-[#0B101E] text-white relative overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_12%_18%,rgba(212,175,55,0.16),transparent_38%),radial-gradient(circle_at_88%_16%,rgba(255,255,255,0.08),transparent_30%),linear-gradient(180deg,#0B101E_0%,#111A2D_55%,#0B101E_100%)] pointer-events-none" />
+    <div className="min-h-screen bg-white text-[#0B101E] relative overflow-hidden">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_12%_18%,rgba(212,175,55,0.08),transparent_38%),radial-gradient(circle_at_88%_16%,rgba(0,0,0,0.03),transparent_30%),linear-gradient(180deg,#ffffff_0%,#fbfbfb_55%,#ffffff_100%)] pointer-events-none" />
       <Navbar />
 
-      <div className="pt-24 pb-16 relative z-10">
+      <div className="pt-24 pb-16 md:pb-28 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
           {/* Breadcrumb */}
-          <div className="flex items-center gap-2 text-sm text-gray-400 mb-8">
+          <div className="flex items-center gap-2 text-sm text-gray-500 mb-8">
             <Link href="/" className="hover:text-[#D4AF37] transition-colors">HOME</Link>
             <ChevronRight className="w-4 h-4" />
             <Link href={`/${product.category.toLowerCase()}`} className="hover:text-[#D4AF37] transition-colors">{product.category.toUpperCase()}</Link>
             <ChevronRight className="w-4 h-4" />
-            <span className="text-white uppercase">{product.name}</span>
+            <span className="text-[#0B101E] uppercase">{product.name}</span>
           </div>
 
           {/* Main Content */}
@@ -142,7 +170,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
             
             {/* Left Side - Image */}
             <div>
-              <div className="bg-gradient-to-br from-[#1A2435] to-[#0F1825] rounded-3xl overflow-hidden mb-6 aspect-square relative">
+              <div className="bg-[#F8F8F8] rounded-3xl overflow-hidden mb-6 aspect-square relative border border-gray-200">
                 <img 
                   src={product.image} 
                   alt={product.name}
@@ -159,9 +187,12 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
             {/* Right Side - Details */}
             <div>
               {/* Badges */}
-              <div className="flex gap-2 mb-4">
+              <div className="flex gap-2 mb-4 flex-wrap">
                 <div className="inline-block bg-[#D4AF37]/10 border border-[#D4AF37] px-4 py-1 rounded-full">
                   <span className="text-[#D4AF37] text-xs font-bold tracking-wider">{product.category}</span>
+                </div>
+                <div className="inline-block bg-[#0B101E]/5 border border-[#0B101E]/20 px-4 py-1 rounded-full">
+                  <span className="text-[#0B101E] text-xs font-bold tracking-wider">SERIAL #{serialNumber}</span>
                 </div>
                 {product.isNewArrival && (
                   <div className="inline-block bg-green-500/10 border border-green-500 px-4 py-1 rounded-full">
@@ -185,11 +216,11 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                     <Star
                       key={i}
                       size={18}
-                      className={i < (product.rating || 0) ? 'fill-[#D4AF37] text-[#D4AF37]' : 'fill-gray-600 text-gray-600'}
+                      className={i < (product.rating || 0) ? 'fill-[#D4AF37] text-[#D4AF37]' : 'fill-gray-300 text-gray-300'}
                     />
                   ))}
                 </div>
-                <span className="text-gray-400 text-sm">({product.reviews || 0} reviews)</span>
+                <span className="text-gray-500 text-sm">({product.reviews || 0} reviews)</span>
               </div>
 
               {/* Price */}
@@ -202,7 +233,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
 
               {/* Description */}
               {product.description && (
-                <p className="text-gray-300 leading-relaxed mb-8">
+                <p className="text-gray-700 leading-relaxed mb-8">
                   {product.description}
                 </p>
               )}
@@ -211,7 +242,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
               {product.colors && product.colors.length > 0 && (
                 <div className="mb-8">
                   <div className="flex items-center justify-between mb-4">
-                    <label className="text-sm font-semibold tracking-wider uppercase text-gray-800 dark:text-gray-200">
+                    <label className="text-sm font-semibold tracking-wider uppercase text-gray-700">
                       COLOR: <span className="text-[#D4AF37]">{selectedColor || 'Select'}</span>
                     </label>
                   </div>
@@ -222,8 +253,8 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                         onClick={() => setSelectedColor(color)}
                         className={`px-4 py-2 rounded-lg border-2 transition-all ${
                           selectedColor === color 
-                            ? 'border-[#D4AF37] bg-[#D4AF37]/10 text-[#D4AF37]' 
-                            : 'border-white/20 hover:border-white/40'
+                            ? 'border-[#0B101E] bg-[#0B101E] text-white shadow-sm' 
+                            : 'bg-white text-[#0B101E] border-gray-300 hover:border-[#0B101E]'
                         }`}
                       >
                         {color}
@@ -237,16 +268,16 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
               {product.sizes && product.sizes.length > 0 && (
                 <div className="mb-8">
                   <div className="flex items-center justify-between mb-4">
-                    <label className="text-sm font-semibold tracking-wider uppercase text-gray-900 dark:text-gray-100">
+                    <label className="text-sm font-semibold tracking-wider uppercase text-gray-700">
                       SELECT SIZE: <span className="text-[#D4AF37]">{selectedSize || 'Choose'}</span>
                     </label>
                   </div>
                   <div className="grid grid-cols-4 gap-3">
                     {product.sizes.map((size) => {
                       const normalizedSize = String(size);
-                      const sizeStockInfo = product.sizeStock?.find((ss) => String(ss.size) === normalizedSize);
-                      const hasExplicitInventory = Array.isArray(product.sizeStock) && product.sizeStock.length > 0;
-                      const isOutOfStock = hasExplicitInventory && (sizeStockInfo?.quantity || 0) === 0;
+                      const quantity = getSizeQuantityForColor(normalizedSize);
+                      const hasExplicitInventory = quantity !== null;
+                      const isOutOfStock = hasExplicitInventory && quantity <= 0;
                       
                       return (
                         <button
@@ -257,7 +288,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                             selectedSize === normalizedSize
                               ? 'bg-[#D4AF37] text-black border-[#D4AF37]'
                               : isOutOfStock
-                              ? 'border-red-400/50 bg-red-50/30 text-red-500 cursor-not-allowed opacity-60'
+                              ? 'border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed opacity-75'
                               : 'bg-white text-black border-gray-300 hover:border-[#D4AF37] hover:bg-[#FFF7D9]'
                           }`}
                         >
@@ -275,9 +306,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                     <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
                       {product.sizes.map((size) => {
                         const normalizedSize = String(size);
-                        const sizeStockInfo = product.sizeStock?.find((ss) => String(ss.size) === normalizedSize);
-                        const hasExplicitInventory = Array.isArray(product.sizeStock) && product.sizeStock.length > 0;
-                        const quantity = hasExplicitInventory ? (sizeStockInfo?.quantity || 0) : null;
+                        const quantity = getSizeQuantityForColor(normalizedSize);
                         const isLowStock = quantity !== null && quantity > 0 && quantity <= 3;
                         const isOutOfStock = quantity === 0;
                         
@@ -313,7 +342,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                 </button>
                 <button 
                   onClick={() => toggleWishlist(product.id)}
-                  className={`border-2 transition-all p-4 rounded-xl ${isWishlisted(product.id) ? 'border-[#D4AF37] bg-[#D4AF37]/10' : 'border-white/20 hover:border-[#D4AF37]'}`}
+                  className={`border-2 transition-all p-4 rounded-xl ${isWishlisted(product.id) ? 'border-[#D4AF37] bg-[#D4AF37]/10' : 'border-gray-300 hover:border-[#D4AF37]'}`}
                 >
                   <Heart className={`w-6 h-6 ${isWishlisted(product.id) ? 'fill-[#D4AF37] stroke-[#D4AF37]' : ''}`} />
                 </button>
@@ -322,16 +351,16 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
               {/* Expandable Sections */}
               <div className="space-y-4">
                 {/* Product Details */}
-                <div className="bg-gradient-to-br from-[#1E2B44] via-[#1A2435] to-[#111A2D] rounded-2xl border border-white/10 overflow-hidden shadow-[0_20px_45px_-24px_rgba(0,0,0,0.58)] transform-gpu transition-all duration-500 hover:-translate-y-1">
+                <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm transform-gpu transition-all duration-300 hover:-translate-y-1">
                   <button
                     onClick={() => toggleSection('composition')}
-                    className="w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors"
+                    className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
                   >
-                    <span className="font-semibold tracking-wider text-sm">PRODUCT DETAILS</span>
+                    <span className="font-semibold tracking-wider text-sm text-[#0B101E]">PRODUCT DETAILS</span>
                     <ChevronDown className={`w-5 h-5 transition-transform ${expandedSection === 'composition' ? 'rotate-180' : ''}`} />
                   </button>
                   {expandedSection === 'composition' && (
-                    <div className="p-4 pt-0 space-y-2 text-sm text-gray-300">
+                    <div className="p-4 pt-0 space-y-2 text-sm text-gray-700">
                       <p>• Premium quality materials</p>
                       <p>• Expert craftsmanship</p>
                       <p>• Durable construction</p>
@@ -341,16 +370,16 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                 </div>
 
                 {/* Shipping & Returns */}
-                <div className="bg-gradient-to-br from-[#1E2B44] via-[#1A2435] to-[#111A2D] rounded-2xl border border-white/10 overflow-hidden shadow-[0_20px_45px_-24px_rgba(0,0,0,0.58)] transform-gpu transition-all duration-500 hover:-translate-y-1">
+                <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm transform-gpu transition-all duration-300 hover:-translate-y-1">
                   <button
                     onClick={() => toggleSection('shipping')}
-                    className="w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors"
+                    className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
                   >
-                    <span className="font-semibold tracking-wider text-sm">SHIPPING & RETURNS</span>
+                    <span className="font-semibold tracking-wider text-sm text-[#0B101E]">SHIPPING & RETURNS</span>
                     <ChevronDown className={`w-5 h-5 transition-transform ${expandedSection === 'shipping' ? 'rotate-180' : ''}`} />
                   </button>
                   {expandedSection === 'shipping' && (
-                    <div className="p-4 pt-0 space-y-2 text-sm text-gray-300">
+                    <div className="p-4 pt-0 space-y-2 text-sm text-gray-700">
                       <p>• Free shipping on orders above PKR 4,000</p>
                       <p>• Delivery within 3-5 business days</p>
                       <p>• Easy returns within 7 days</p>
@@ -360,16 +389,16 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                 </div>
 
                 {/* About B&B Shoes */}
-                <div className="bg-gradient-to-br from-[#1E2B44] via-[#1A2435] to-[#111A2D] rounded-2xl border border-white/10 overflow-hidden shadow-[0_20px_45px_-24px_rgba(0,0,0,0.58)] transform-gpu transition-all duration-500 hover:-translate-y-1">
+                <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm transform-gpu transition-all duration-300 hover:-translate-y-1">
                   <button
                     onClick={() => toggleSection('heritage')}
-                    className="w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors"
+                    className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
                   >
-                    <span className="font-semibold tracking-wider text-sm">ABOUT B&B SHOES</span>
+                    <span className="font-semibold tracking-wider text-sm text-[#0B101E]">ABOUT B&B SHOES</span>
                     <ChevronDown className={`w-5 h-5 transition-transform ${expandedSection === 'heritage' ? 'rotate-180' : ''}`} />
                   </button>
                   {expandedSection === 'heritage' && (
-                    <div className="p-4 pt-0 space-y-3 text-sm text-gray-300">
+                    <div className="p-4 pt-0 space-y-3 text-sm text-gray-700">
                       <p>B&B Shoes represents the perfect blend of traditional craftsmanship and modern design.</p>
                       <p>Each piece is carefully selected to ensure the highest standards of quality and comfort.</p>
                       <p>Trust in our commitment to excellence with every purchase.</p>
@@ -385,15 +414,15 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
       </div>
 
       {/* Fixed Bottom Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-xl border-t border-white/10 py-4 z-40">
+      <div className="hidden md:block fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-gray-200 py-4 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 bg-gradient-to-br from-[#1A2435] to-[#0F1825] rounded-lg overflow-hidden">
+            <div className="w-16 h-16 bg-[#F5F5F5] rounded-lg overflow-hidden border border-gray-200">
               <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
             </div>
             <div>
               <p className="font-semibold text-sm">{product.name}</p>
-              <p className="text-gray-400 text-xs">{selectedColor || 'Color'} / Size {selectedSize || '-'}</p>
+              <p className="text-gray-500 text-xs">{selectedColor || 'Color'} / Size {selectedSize || '-'}</p>
             </div>
           </div>
           <div className="flex items-center gap-6">

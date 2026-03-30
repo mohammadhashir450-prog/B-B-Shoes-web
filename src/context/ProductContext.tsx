@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { usePathname } from 'next/navigation';
 
 // Product Type
 export interface SizeStock {
@@ -61,6 +62,9 @@ interface ProductContextType {
 const ProductContext = createContext<ProductContextType | undefined>(undefined);
 
 export function ProductProvider({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  const isAdminRoute = pathname?.startsWith('/admin') ?? false;
+
   const [sourceProducts, setSourceProducts] = useState<Product[]>([]);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [menProducts, setMenProducts] = useState<Product[]>([]);
@@ -90,13 +94,40 @@ export function ProductProvider({ children }: { children: ReactNode }) {
     return currentTick > endDate.getTime();
   };
 
-  const buildVisibleProducts = (products: Product[], timerValue: string | null, currentTick: number): Product[] => {
-    if (!isSalesExpired(timerValue, currentTick)) {
+  const isProductVisibleForStorefront = (product: Product): boolean => {
+    if (product.inStock === false) {
+      return false;
+    }
+
+    const hasSizeInventory = Array.isArray(product.sizeStock) && product.sizeStock.length > 0;
+    if (hasSizeInventory) {
+      return product.sizeStock!.some((entry) => Number(entry.quantity || 0) > 0);
+    }
+
+    if (typeof product.stock === 'number') {
+      return product.stock > 0;
+    }
+
+    return true;
+  };
+
+  const buildVisibleProducts = (
+    products: Product[],
+    timerValue: string | null,
+    currentTick: number,
+    includeOutOfStock: boolean
+  ): Product[] => {
+    if (includeOutOfStock) {
       return products;
     }
 
+    if (!isSalesExpired(timerValue, currentTick)) {
+      return products.filter(isProductVisibleForStorefront);
+    }
+
     // When sale timer expires, hide sale-tagged products from storefront lists.
-    return products.filter((product) => !isSaleTaggedProduct(product));
+    const saleFiltered = products.filter((product) => !isSaleTaggedProduct(product));
+    return saleFiltered.filter(isProductVisibleForStorefront);
   };
 
   const applyVisibleProductBuckets = (products: Product[]) => {
@@ -173,7 +204,7 @@ export function ProductProvider({ children }: { children: ReactNode }) {
     
     setSourceProducts(products);
 
-    const visibleProducts = buildVisibleProducts(products, timerValue, Date.now());
+    const visibleProducts = buildVisibleProducts(products, timerValue, Date.now(), isAdminRoute);
     applyVisibleProductBuckets(visibleProducts);
     
   } catch (err) {
@@ -214,9 +245,9 @@ export function ProductProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    const visibleProducts = buildVisibleProducts(sourceProducts, salesEndsAt, nowTick);
+    const visibleProducts = buildVisibleProducts(sourceProducts, salesEndsAt, nowTick, isAdminRoute);
     applyVisibleProductBuckets(visibleProducts);
-  }, [sourceProducts, salesEndsAt, nowTick]);
+  }, [sourceProducts, salesEndsAt, nowTick, isAdminRoute]);
 
   // Helper: Get product by ID
   const getProductById = (id: string): Product | undefined => {

@@ -102,14 +102,14 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0B101E] relative flex flex-col items-center justify-center overflow-x-hidden selection:bg-[#D4AF37]/30 selection:text-white">
+    <div className="min-h-screen bg-white relative flex flex-col items-center justify-center overflow-x-hidden selection:bg-[#D4AF37]/25 selection:text-black">
       
       {/* --- Cinematic Background Effects --- */}
       {/* Grid Texture */}
-      <div className="fixed inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px] pointer-events-none" />
+      <div className="fixed inset-0 bg-[linear-gradient(rgba(0,0,0,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.03)_1px,transparent_1px)] bg-[size:64px_64px] pointer-events-none" />
       {/* Massive Ambient Glows */}
-      <div className="fixed top-[-20%] left-[-10%] w-[60vw] h-[60vw] max-w-[800px] max-h-[800px] bg-[#D4AF37]/10 blur-[120px] rounded-full pointer-events-none" />
-      <div className="fixed bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] max-w-[800px] max-h-[800px] bg-[#121A2F] blur-[120px] rounded-full pointer-events-none" />
+      <div className="fixed top-[-20%] left-[-10%] w-[60vw] h-[60vw] max-w-[800px] max-h-[800px] bg-[#D4AF37]/8 blur-[120px] rounded-full pointer-events-none" />
+      <div className="fixed bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] max-w-[800px] max-h-[800px] bg-[#EDEFF3] blur-[120px] rounded-full pointer-events-none" />
 
       {/* --- Floating Top Navigation --- */}
       <nav className="absolute top-0 left-0 right-0 z-50 px-6 py-8 md:px-12 flex items-center justify-between">
@@ -120,7 +120,7 @@ export default function RegisterPage() {
             <path d="M12 18 C16 15 22 15 26 17" stroke="#0B101E" strokeWidth="2.5" strokeLinecap="round"/>
           </svg>
           <div className="flex flex-col">
-            <span className="text-white text-lg font-bold tracking-widest leading-none group-hover:text-[#D4AF37] transition-colors">B&B SHOES</span>
+            <span className="text-[#0B101E] text-lg font-bold tracking-widest leading-none group-hover:text-[#A97A18] transition-colors">B&B SHOES</span>
             <span className="text-[#D4AF37]/50 text-[8px] tracking-[0.3em] uppercase mt-1 font-bold">The Vault</span>
           </div>
         </Link>
@@ -129,7 +129,7 @@ export default function RegisterPage() {
         <div className="relative" ref={dotsMenuRef}>
           <button
             onClick={() => setShowDotsMenu(!showDotsMenu)}
-            className="w-10 h-10 flex items-center justify-center rounded-full text-white/50 hover:text-white hover:bg-white/5 transition-all duration-300"
+            className="w-10 h-10 flex items-center justify-center rounded-full text-[#0B101E]/60 hover:text-[#0B101E] hover:bg-black/5 transition-all duration-300"
             aria-label="More options"
           >
             <MoreVertical size={20} />
@@ -142,11 +142,11 @@ export default function RegisterPage() {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 10, scale: 0.95 }}
                 transition={{ duration: 0.2 }}
-                className="absolute right-0 top-full mt-2 w-48 bg-[#0B101E]/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50"
+                className="absolute right-0 top-full mt-2 w-48 bg-white/95 backdrop-blur-xl border border-gray-200 rounded-2xl shadow-2xl overflow-hidden z-50"
               >
                 <Link
                   href="/admin"
-                  className="flex items-center gap-3 px-5 py-4 text-white/70 hover:text-[#D4AF37] hover:bg-white/5 transition-colors group"
+                  className="flex items-center gap-3 px-5 py-4 text-[#0B101E]/70 hover:text-[#A97A18] hover:bg-black/5 transition-colors group"
                 >
                   <Lock size={14} className="group-hover:scale-110 transition-transform" />
                   <span className="font-bold tracking-[0.2em] uppercase text-[10px]">Admin Access</span>
@@ -168,16 +168,16 @@ export default function RegisterPage() {
           <p className="text-[#D4AF37] text-[10px] tracking-[0.3em] uppercase font-bold mb-4">
             Client Registration
           </p>
-          <h1 className="text-4xl md:text-5xl font-serif font-black text-white leading-tight mb-2">
-            Become an <span className="text-transparent [-webkit-text-stroke:1px_rgba(255,255,255,0.4)]">Insider</span>
+          <h1 className="text-4xl md:text-5xl font-serif font-black text-[#0B101E] leading-tight mb-2">
+            Become an <span className="text-transparent [-webkit-text-stroke:1px_rgba(11,16,30,0.35)]">Insider</span>
           </h1>
         </div>
 
         {/* The Glass Card */}
-        <div className="bg-[#121A2F]/40 backdrop-blur-2xl rounded-3xl p-8 md:p-10 border border-white/10 shadow-[0_0_60px_-15px_rgba(0,0,0,0.7)] relative overflow-hidden">
+        <div className="bg-white/95 backdrop-blur-2xl rounded-3xl p-8 md:p-10 border border-gray-200 shadow-[0_20px_50px_-24px_rgba(15,23,42,0.28)] relative overflow-hidden">
           
           {/* Subtle inner card gradient */}
-          <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/5 to-transparent pointer-events-none" />
 
           {/* Animated Error/Success Messages */}
           <AnimatePresence mode="wait">
@@ -213,17 +213,17 @@ export default function RegisterPage() {
             
             {/* Name Field */}
             <div className="space-y-2">
-              <label className="block text-white/50 text-[10px] tracking-[0.2em] uppercase font-bold ml-1">
+              <label className="block text-[#0B101E]/60 text-[10px] tracking-[0.2em] uppercase font-bold ml-1">
                 Full Name
               </label>
               <div className="relative group">
-                <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 group-focus-within:text-[#D4AF37] transition-colors duration-300" />
+                <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#0B101E]/40 group-focus-within:text-[#A97A18] transition-colors duration-300" />
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({...formData, name: e.target.value})}
                   placeholder="John Doe"
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#D4AF37]/50 focus:bg-white/10 transition-all duration-300"
+                  className="w-full bg-white border border-gray-300 rounded-2xl pl-12 pr-4 py-4 text-sm text-[#0B101E] placeholder:text-gray-400 focus:outline-none focus:border-[#A97A18]/60 focus:bg-white transition-all duration-300"
                   required
                 />
               </div>
@@ -231,17 +231,17 @@ export default function RegisterPage() {
 
             {/* Email Field */}
             <div className="space-y-2">
-              <label className="block text-white/50 text-[10px] tracking-[0.2em] uppercase font-bold ml-1">
+              <label className="block text-[#0B101E]/60 text-[10px] tracking-[0.2em] uppercase font-bold ml-1">
                 Email Address
               </label>
               <div className="relative group">
-                <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 group-focus-within:text-[#D4AF37] transition-colors duration-300" />
+                <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#0B101E]/40 group-focus-within:text-[#A97A18] transition-colors duration-300" />
                 <input
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({...formData, email: e.target.value})}
                   placeholder="your@email.com"
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#D4AF37]/50 focus:bg-white/10 transition-all duration-300"
+                  className="w-full bg-white border border-gray-300 rounded-2xl pl-12 pr-4 py-4 text-sm text-[#0B101E] placeholder:text-gray-400 focus:outline-none focus:border-[#A97A18]/60 focus:bg-white transition-all duration-300"
                   required
                 />
               </div>
@@ -249,23 +249,23 @@ export default function RegisterPage() {
 
             {/* Password Field */}
             <div className="space-y-2">
-              <label className="block text-white/50 text-[10px] tracking-[0.2em] uppercase font-bold ml-1">
+              <label className="block text-[#0B101E]/60 text-[10px] tracking-[0.2em] uppercase font-bold ml-1">
                 Password
               </label>
               <div className="relative group">
-                <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 group-focus-within:text-[#D4AF37] transition-colors duration-300" />
+                <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#0B101E]/40 group-focus-within:text-[#A97A18] transition-colors duration-300" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={formData.password}
                   onChange={(e) => setFormData({...formData, password: e.target.value})}
                   placeholder="••••••••••••"
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-12 py-4 text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#D4AF37]/50 focus:bg-white/10 transition-all duration-300"
+                  className="w-full bg-white border border-gray-300 rounded-2xl pl-12 pr-12 py-4 text-sm text-[#0B101E] placeholder:text-gray-400 focus:outline-none focus:border-[#A97A18]/60 focus:bg-white transition-all duration-300"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-white transition-colors"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[#0B101E]/40 hover:text-[#0B101E] transition-colors"
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
@@ -274,23 +274,23 @@ export default function RegisterPage() {
 
             {/* Confirm Password Field */}
             <div className="space-y-2">
-              <label className="block text-white/50 text-[10px] tracking-[0.2em] uppercase font-bold ml-1">
+              <label className="block text-[#0B101E]/60 text-[10px] tracking-[0.2em] uppercase font-bold ml-1">
                 Confirm Password
               </label>
               <div className="relative group">
-                <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 group-focus-within:text-[#D4AF37] transition-colors duration-300" />
+                <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#0B101E]/40 group-focus-within:text-[#A97A18] transition-colors duration-300" />
                 <input
                   type={showConfirmPassword ? 'text' : 'password'}
                   value={formData.confirmPassword}
                   onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
                   placeholder="••••••••••••"
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-12 py-4 text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#D4AF37]/50 focus:bg-white/10 transition-all duration-300"
+                  className="w-full bg-white border border-gray-300 rounded-2xl pl-12 pr-12 py-4 text-sm text-[#0B101E] placeholder:text-gray-400 focus:outline-none focus:border-[#A97A18]/60 focus:bg-white transition-all duration-300"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-white transition-colors"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[#0B101E]/40 hover:text-[#0B101E] transition-colors"
                 >
                   {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
@@ -300,7 +300,7 @@ export default function RegisterPage() {
             {/* Terms Checkbox */}
             <div className="pt-2">
               <label className="flex items-start gap-3 cursor-pointer group">
-                <div className="relative w-4 h-4 mt-0.5 rounded border border-white/20 bg-white/5 flex-shrink-0 flex items-center justify-center group-hover:border-[#D4AF37] transition-colors">
+                <div className="relative w-4 h-4 mt-0.5 rounded border border-gray-300 bg-white flex-shrink-0 flex items-center justify-center group-hover:border-[#A97A18] transition-colors">
                   <input
                     type="checkbox"
                     checked={agreeToTerms}
@@ -309,11 +309,11 @@ export default function RegisterPage() {
                   />
                   {agreeToTerms && <div className="w-2 h-2 bg-[#D4AF37] rounded-sm" />}
                 </div>
-                <span className="text-xs text-white/50 group-hover:text-white transition-colors leading-relaxed">
+                <span className="text-xs text-[#0B101E]/70 group-hover:text-[#0B101E] transition-colors leading-relaxed">
                   I agree to the{' '}
-                  <Link href="/terms" className="text-[#D4AF37] hover:underline">Terms of Service</Link>
+                  <Link href="/terms" className="text-[#A97A18] hover:underline">Terms of Service</Link>
                   {' '}and{' '}
-                  <Link href="/privacy" className="text-[#D4AF37] hover:underline">Privacy Policy</Link>
+                  <Link href="/privacy" className="text-[#A97A18] hover:underline">Privacy Policy</Link>
                 </span>
               </label>
             </div>
@@ -322,7 +322,7 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={isLoading || success !== ''}
-              className="w-full group relative bg-[#D4AF37] text-[#0B101E] font-black py-4 rounded-2xl transition-all duration-300 uppercase tracking-[0.2em] text-[10px] disabled:opacity-70 disabled:cursor-not-allowed hover:bg-white overflow-hidden mt-6"
+              className="w-full group relative bg-[#D4AF37] text-[#0B101E] font-black py-4 rounded-2xl transition-all duration-300 uppercase tracking-[0.2em] text-[10px] disabled:opacity-70 disabled:cursor-not-allowed hover:bg-[#0B101E] hover:text-white overflow-hidden mt-6"
             >
               <div className="relative z-10 flex items-center justify-center gap-3">
                 {isLoading ? (
@@ -340,10 +340,10 @@ export default function RegisterPage() {
           {/* Divider */}
           <div className="relative py-8 z-10">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-white/10" />
+              <div className="w-full border-t border-gray-300" />
             </div>
             <div className="relative flex justify-center">
-              <span className="px-4 text-[9px] text-white/30 bg-[#151D2F] uppercase tracking-[0.3em] font-bold">
+              <span className="px-4 text-[9px] text-[#0B101E]/40 bg-white uppercase tracking-[0.3em] font-bold">
                 Or Register With
               </span>
             </div>
@@ -354,7 +354,7 @@ export default function RegisterPage() {
             type="button"
             onClick={handleGoogleSignUp}
             disabled={isLoading || success !== ''}
-            className="w-full relative z-10 border border-white/10 hover:border-white/30 bg-white/5 text-white py-4 rounded-2xl transition-all duration-300 flex items-center justify-center gap-3 hover:bg-white/10 disabled:opacity-70 disabled:cursor-not-allowed"
+            className="w-full relative z-10 border border-gray-300 hover:border-[#0B101E]/40 bg-white text-[#0B101E] py-4 rounded-2xl transition-all duration-300 flex items-center justify-center gap-3 hover:bg-gray-50 disabled:opacity-70 disabled:cursor-not-allowed"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -370,9 +370,9 @@ export default function RegisterPage() {
 
         {/* Footer / Login Link */}
         <div className="mt-8 text-center relative z-10">
-          <p className="text-xs text-white/50">
+          <p className="text-xs text-[#0B101E]/60">
             Already an Insider?{' '}
-            <Link href="/login" className="text-[#D4AF37] hover:text-white font-bold tracking-wide transition-colors">
+            <Link href="/login" className="text-[#A97A18] hover:text-[#0B101E] font-bold tracking-wide transition-colors">
               Sign In
             </Link>
           </p>
@@ -381,7 +381,7 @@ export default function RegisterPage() {
 
       {/* Floating Copyright */}
       <div className="absolute bottom-6 text-center w-full z-10 pointer-events-none hidden md:block">
-        <p className="text-[9px] text-white/20 tracking-[0.3em] uppercase">
+        <p className="text-[9px] text-[#0B101E]/35 tracking-[0.3em] uppercase">
           © {new Date().getFullYear()} B&B Luxury Footwear
         </p>
       </div>
