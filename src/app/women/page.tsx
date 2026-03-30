@@ -160,7 +160,7 @@ export default function WomenPage() {
                       <p className="text-[#D4AF37] text-[10px] tracking-[0.25em] uppercase font-bold mb-2">
                         {product.category}
                       </p>
-                      <h3 className="text-xl font-bold text-white mb-3 group-hover:text-[#D4AF37] transition-colors">
+                      <h3 className="text-xl font-bold !text-white mb-3 group-hover:!text-[#D4AF37] transition-colors">
                         {product.name}
                       </h3>
 

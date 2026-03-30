@@ -250,7 +250,7 @@ export default function FormalPage() {
                             {product.brand || product.category}
                           </p>
                         )}
-                        <h3 className="text-white font-bold text-lg mb-1 group-hover:text-[#D4AF37] transition-colors">
+                        <h3 className="!text-white font-bold text-lg mb-1 group-hover:!text-[#D4AF37] transition-colors">
                           {product.name}
                         </h3>
                         <div className="mb-3">

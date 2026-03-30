@@ -177,7 +177,7 @@ export default function MenPage() {
                     <p className="text-[#D4AF37] text-[10px] tracking-[0.2em] uppercase font-bold mb-2">
                       {product.category}
                     </p>
-                    <h3 className="text-xl font-bold text-white mb-3">
+                    <h3 className="text-xl font-bold !text-white mb-3">
                       {product.name}
                     </h3>
 
