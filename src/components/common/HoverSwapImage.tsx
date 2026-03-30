@@ -20,8 +20,12 @@ export default function HoverSwapImage({
   const primary = primaryImage || '/images/placeholder.jpg'
   const secondary = secondaryImage && secondaryImage.trim() !== '' ? secondaryImage : null
 
+  const wrapperClassName = className
+    ? `relative block w-full h-full overflow-hidden ${className}`
+    : 'relative block w-full h-full overflow-hidden'
+
   return (
-    <div className={className}>
+    <div className={wrapperClassName}>
       <Image
         src={primary}
         alt={alt}
