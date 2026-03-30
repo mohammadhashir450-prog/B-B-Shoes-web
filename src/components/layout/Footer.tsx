@@ -19,7 +19,7 @@ export default function Footer() {
             </p>
           </div>
 
-          <div className="flex items-center gap-6 text-sm text-[#4F5A69] pt-1">
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-[#4F5A69] pt-1 w-full md:w-auto">
             <Link href="/collections" className="hover:text-[#18202B] transition-colors">Collections</Link>
             <Link href="/contact" className="hover:text-[#18202B] transition-colors">Contact</Link>
             <Link href="/about" className="hover:text-[#18202B] transition-colors">About</Link>
