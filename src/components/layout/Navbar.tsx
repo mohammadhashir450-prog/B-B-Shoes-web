@@ -168,6 +168,7 @@ export default function Navbar() {
   const [salesEndsAt, setSalesEndsAt] = useState<string | null>(null)
   const [salesTickerMessage, setSalesTickerMessage] = useState('')
   const [salesTickerSpeed, setSalesTickerSpeed] = useState<number>(18)
+  const [flatSalePercent, setFlatSalePercent] = useState<number>(0)
   const [nowTick, setNowTick] = useState<number>(Date.now())
   
   // UI States
@@ -231,10 +232,12 @@ export default function Navbar() {
         setSalesEndsAt(result?.data?.salesEndsAt || null)
         setSalesTickerMessage((result?.data?.salesTickerMessage || '').trim())
         setSalesTickerSpeed(Number(result?.data?.salesTickerSpeed || 18))
+        setFlatSalePercent(Math.min(100, Math.max(0, Number(result?.data?.flatSalePercent || 0))))
       } catch {
         setSalesEndsAt(null)
         setSalesTickerMessage('')
         setSalesTickerSpeed(18)
+        setFlatSalePercent(0)
       }
     }
 
@@ -284,7 +287,7 @@ export default function Navbar() {
   const effectiveTotalItems = mounted ? totalItems : 0
   const effectiveTotalWishlistItems = mounted ? totalWishlistItems : 0
 
-  const maxDiscount = allProducts.reduce((max, product) => {
+  const maxProductDiscount = allProducts.reduce((max, product) => {
     const discount = Number(product.discount || 0)
     if (discount > max) return discount
 
@@ -295,6 +298,7 @@ export default function Navbar() {
 
     return max
   }, 0)
+  const maxDiscount = Math.max(maxProductDiscount, flatSalePercent)
 
   const salesEndMs = salesEndsAt ? new Date(salesEndsAt).getTime() : NaN
   const hasValidSalesTimer = Number.isFinite(salesEndMs) && salesEndMs > nowTick

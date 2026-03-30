@@ -55,7 +55,7 @@ const ProductSchema = new Schema<IProduct>(
     discount: {
       type: Number,
       min: [0, 'Discount cannot be negative'],
-      max: [99, 'Discount cannot exceed 99%'],
+      max: [100, 'Discount cannot exceed 100%'],
     },
     image: {
       type: String,

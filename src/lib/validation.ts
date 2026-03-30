@@ -72,7 +72,7 @@ export function validateProduct(product: any): {
     errors.push('Product name is required');
   }
 
-  if (!price || !isValidPrice(price)) {
+  if (!Number.isFinite(price) || !isValidPrice(price)) {
     errors.push('Valid product price is required');
   }
 
@@ -93,14 +93,14 @@ export function validateProduct(product: any): {
   }
 
   if (product.discount !== undefined && product.discount !== null && product.discount !== '') {
-    if (!Number.isFinite(discount) || discount < 0 || discount > 99) {
-      errors.push('Discount must be between 0 and 99');
+    if (!Number.isFinite(discount) || discount < 0 || discount > 100) {
+      errors.push('Discount must be between 0 and 100');
     }
   }
 
   if (product.isOnSale) {
-    if (!Number.isFinite(discount) || discount < 1 || discount > 99) {
-      errors.push('Sale discount must be between 1 and 99');
+    if (!Number.isFinite(discount) || discount < 1 || discount > 100) {
+      errors.push('Sale discount must be between 1 and 100');
     }
 
     if (!Number.isFinite(originalPrice) || originalPrice <= 0) {

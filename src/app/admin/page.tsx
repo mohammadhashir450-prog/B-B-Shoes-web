@@ -332,6 +332,12 @@ export default function AdminPanel() {
   const [timerUnit, setTimerUnit] = useState<'seconds' | 'minutes' | 'hours' | 'days' | 'weeks' | 'months' | 'years'>('days');
   const [tickerMessage, setTickerMessage] = useState('');
   const [tickerSpeed, setTickerSpeed] = useState<number>(18);
+  const [flatSalePercent, setFlatSalePercent] = useState<number>(25);
+  const [flatSaleProductIds, setFlatSaleProductIds] = useState<string[]>([]);
+  const [removeFlatSaleProductIds, setRemoveFlatSaleProductIds] = useState<string[]>([]);
+  const [flatSaleApplying, setFlatSaleApplying] = useState(false);
+  const [flatSaleRemoving, setFlatSaleRemoving] = useState(false);
+  const [flatSaleMessage, setFlatSaleMessage] = useState('');
   const [previewDevice, setPreviewDevice] = useState<'desktop' | 'mobile'>('desktop');
   const [imageUploadError, setImageUploadError] = useState('');
   const [imageUploadStatus, setImageUploadStatus] = useState('');
@@ -363,7 +369,7 @@ export default function AdminPanel() {
   });
 
   const previewMaxDiscount = useMemo(() => {
-    return allProducts.reduce((max, product) => {
+    const productMax = allProducts.reduce((max, product) => {
       const discount = Number(product.discount || 0);
       if (discount > max) return discount;
 
@@ -374,7 +380,9 @@ export default function AdminPanel() {
 
       return max;
     }, 0);
-  }, [allProducts]);
+
+    return Math.max(productMax, Math.min(100, Math.max(0, Number(flatSalePercent) || 0)));
+  }, [allProducts, flatSalePercent]);
 
   const previewSalesEndMs = useMemo(() => {
     if (timerMode === 'duration') {
@@ -453,6 +461,7 @@ export default function AdminPanel() {
           const endsAt = result?.data?.salesEndsAt;
           setTickerMessage(result?.data?.salesTickerMessage || '');
           setTickerSpeed(Number(result?.data?.salesTickerSpeed || 18));
+          setFlatSalePercent(Math.min(100, Math.max(1, Number(result?.data?.flatSalePercent || 25))));
           if (endsAt) {
             const date = new Date(endsAt);
             if (!Number.isNaN(date.getTime())) {
@@ -507,6 +516,7 @@ export default function AdminPanel() {
           salesEndsAt: endDateTime,
           salesTickerMessage: tickerMessage,
           salesTickerSpeed: tickerSpeed,
+          flatSalePercent,
         }),
       });
 
@@ -520,6 +530,110 @@ export default function AdminPanel() {
       setTimerMessage(error instanceof Error ? error.message : 'Failed to update sales timer');
     } finally {
       setTimerSaving(false);
+    }
+  };
+
+  const applyFlatSaleToSelected = async () => {
+    setFlatSaleMessage('');
+
+    const normalizedPercent = Math.min(100, Math.max(1, Number(flatSalePercent) || 1));
+    const selectedProducts = products.filter((product) => flatSaleProductIds.includes(String(product.id)));
+
+    if (selectedProducts.length === 0) {
+      setFlatSaleMessage('Select at least one product to apply flat sale.');
+      return;
+    }
+
+    setFlatSaleApplying(true);
+    try {
+      const updates = selectedProducts.map(async (product) => {
+        const basePrice = Number(product.price) || 0;
+        const originalPrice = Number(product.originalPrice) > 0
+          ? Number(product.originalPrice)
+          : basePrice;
+
+        if (originalPrice <= 0) {
+          throw new Error(`Invalid original price for ${product.name}`);
+        }
+
+        const salePrice = Math.max(0, Math.round(originalPrice * (100 - normalizedPercent) / 100));
+
+        const response = await fetch(`/api/products/${product.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...product,
+            isOnSale: true,
+            discount: normalizedPercent,
+            originalPrice,
+            price: salePrice,
+          }),
+        });
+
+        const result = await response.json();
+        if (!response.ok || !result?.success) {
+          throw new Error(result?.message || `Failed to update ${product.name}`);
+        }
+      });
+
+      await Promise.all(updates);
+      setFlatSaleProductIds([]);
+      setFlatSaleMessage(`Flat ${normalizedPercent}% sale applied to ${selectedProducts.length} product(s).`);
+      await refetchProducts();
+    } catch (error) {
+      setFlatSaleMessage(error instanceof Error ? error.message : 'Failed to apply flat sale');
+    } finally {
+      setFlatSaleApplying(false);
+    }
+  };
+
+  const removeFlatSaleFromSelected = async () => {
+    setFlatSaleMessage('');
+
+    const selectedSaleProducts = salesProducts.filter((product) => removeFlatSaleProductIds.includes(String(product.id)));
+
+    if (selectedSaleProducts.length === 0) {
+      setFlatSaleMessage('Select at least one sale product to remove flat sale.');
+      return;
+    }
+
+    setFlatSaleRemoving(true);
+    try {
+      const updates = selectedSaleProducts.map(async (product) => {
+        const restorePrice = Number(product.originalPrice) > 0
+          ? Number(product.originalPrice)
+          : Number(product.price) || 0;
+
+        if (restorePrice <= 0) {
+          throw new Error(`Invalid restore price for ${product.name}`);
+        }
+
+        const response = await fetch(`/api/products/${product.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...product,
+            isOnSale: false,
+            discount: 0,
+            originalPrice: 0,
+            price: restorePrice,
+          }),
+        });
+
+        const result = await response.json();
+        if (!response.ok || !result?.success) {
+          throw new Error(result?.message || `Failed to update ${product.name}`);
+        }
+      });
+
+      await Promise.all(updates);
+      setRemoveFlatSaleProductIds([]);
+      setFlatSaleMessage(`Sale removed from ${selectedSaleProducts.length} product(s).`);
+      await refetchProducts();
+    } catch (error) {
+      setFlatSaleMessage(error instanceof Error ? error.message : 'Failed to remove sale');
+    } finally {
+      setFlatSaleRemoving(false);
     }
   };
 
@@ -1091,14 +1205,14 @@ export default function AdminPanel() {
                         <input
                           type="number"
                           min="1"
-                          max="99"
+                          max="100"
                           placeholder="25"
                           value={currentProduct.discount || ''}
                           onChange={e => {
                             const val = Number(e.target.value);
-                            const clamped = Number.isFinite(val) ? Math.min(99, Math.max(1, val)) : 1;
+                            const clamped = Number.isFinite(val) ? Math.min(100, Math.max(1, val)) : 1;
                             const original = Number(currentProduct.originalPrice) || 0;
-                            const salePrice = original > 0 ? Math.max(1, Math.round(original * (100 - clamped) / 100)) : currentProduct.price;
+                            const salePrice = original > 0 ? Math.max(0, Math.round(original * (100 - clamped) / 100)) : currentProduct.price;
 
                             if(editingProduct) setEditingProduct({...editingProduct, discount: clamped, price: salePrice});
                             else if(editingSaleProduct) setEditingSaleProduct({...editingSaleProduct, discount: clamped, price: salePrice});
@@ -1108,7 +1222,7 @@ export default function AdminPanel() {
                           className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#D4AF37]/50 focus:bg-white/10 transition-all"
                           required
                         />
-                        <p className="text-[10px] text-white/40 tracking-wide uppercase">Allowed range: 1-99%</p>
+                        <p className="text-[10px] text-white/40 tracking-wide uppercase">Allowed range: 1-100%</p>
                       </div>
 
                       <div className="md:col-span-2 bg-[#0B101E] border border-[#D4AF37]/20 rounded-xl p-4">
@@ -1373,8 +1487,8 @@ export default function AdminPanel() {
                         const discount = Number(currentProduct.discount);
                         const originalPrice = Number(currentProduct.originalPrice);
 
-                        if (!Number.isFinite(discount) || discount < 1 || discount > 99) {
-                          alert('❌ Discount must be between 1 and 99%');
+                        if (!Number.isFinite(discount) || discount < 1 || discount > 100) {
+                          alert('❌ Discount must be between 1 and 100%');
                           return;
                         }
 
@@ -1383,7 +1497,7 @@ export default function AdminPanel() {
                           return;
                         }
 
-                        const calculatedPrice = Math.max(1, Math.round(originalPrice * (100 - discount) / 100));
+                        const calculatedPrice = Math.max(0, Math.round(originalPrice * (100 - discount) / 100));
                         if (calculatedPrice >= originalPrice) {
                           alert('❌ Discounted price must be lower than original price');
                           return;
@@ -1427,7 +1541,7 @@ export default function AdminPanel() {
                         discount: saleActive ? Number(currentProduct.discount) : 0,
                         originalPrice: saleActive ? Number(currentProduct.originalPrice) : 0,
                         price: saleActive
-                          ? Math.max(1, Math.round((Number(currentProduct.originalPrice) || 0) * (100 - (Number(currentProduct.discount) || 0)) / 100))
+                          ? Math.max(0, Math.round((Number(currentProduct.originalPrice) || 0) * (100 - (Number(currentProduct.discount) || 0)) / 100))
                           : Number(currentProduct.price)
                       };
                       const method = (editingProduct || editingSaleProduct || editingNewArrival) ? 'PUT' : 'POST';
@@ -1769,6 +1883,10 @@ export default function AdminPanel() {
                     setTimerMode('duration');
                     setTickerMessage('');
                     setTickerSpeed(18);
+                    setFlatSalePercent(25);
+                    setFlatSaleProductIds([]);
+                    setRemoveFlatSaleProductIds([]);
+                    setFlatSaleMessage('');
                     setTimerMessage('');
                   }}
                   className="bg-white/10 border border-white/10 text-white font-bold py-3 px-5 rounded-xl text-[10px] tracking-[0.15em] uppercase flex-1 sm:flex-none"
@@ -1780,6 +1898,169 @@ export default function AdminPanel() {
               {timerMessage && (
                 <p className="text-xs mt-4 text-[#D4AF37] tracking-wider uppercase">{timerMessage}</p>
               )}
+            </div>
+
+            <div className="bg-[#121A2F]/60 backdrop-blur-md rounded-3xl border border-white/10 p-6 mb-8">
+              <div className="flex items-start justify-between gap-4 flex-col md:flex-row mb-4">
+                <div>
+                  <h3 className="text-white font-bold text-lg flex items-center gap-2">
+                    <Tag size={18} className="text-[#D4AF37]" />
+                    Flat Sale For Specific Products
+                  </h3>
+                  <p className="text-white/50 text-sm mt-1">
+                    Choose products and apply one flat discount (1-100%). Timer expiry will hide these sale products automatically.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-3 gap-3 mb-4">
+                <div>
+                  <label className="text-[10px] uppercase tracking-[0.16em] text-white/60 mb-2 block">Flat Discount (%)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="100"
+                    value={flatSalePercent}
+                    onChange={(e) => setFlatSalePercent(Math.min(100, Math.max(1, Number(e.target.value) || 1)))}
+                    className="bg-[#0B101E] border border-white/10 rounded-xl px-4 py-3 text-sm text-white w-full"
+                  />
+                </div>
+                <div className="md:col-span-2 flex gap-2 items-end">
+                  <button
+                    type="button"
+                    onClick={() => setFlatSaleProductIds(products.map((item) => String(item.id)))}
+                    className="bg-white/10 border border-white/10 text-white px-4 py-3 rounded-xl text-[10px] tracking-[0.12em] uppercase font-bold"
+                  >
+                    Select All
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFlatSaleProductIds([])}
+                    className="bg-white/5 border border-white/10 text-white/70 px-4 py-3 rounded-xl text-[10px] tracking-[0.12em] uppercase font-bold"
+                  >
+                    Clear Selection
+                  </button>
+                  <button
+                    type="button"
+                    onClick={applyFlatSaleToSelected}
+                    disabled={flatSaleApplying || flatSaleProductIds.length === 0}
+                    className="ml-auto bg-[#D4AF37] text-[#0B101E] font-bold px-4 py-3 rounded-xl text-[10px] tracking-[0.12em] uppercase disabled:opacity-60"
+                  >
+                    {flatSaleApplying ? 'Applying...' : `Apply ${flatSalePercent}%`}
+                  </button>
+                </div>
+              </div>
+
+              <div className="max-h-64 overflow-y-auto rounded-2xl border border-white/10 bg-[#0B101E]/70">
+                {products.length === 0 ? (
+                  <p className="text-white/50 text-sm p-4">No non-sale products available for flat sale.</p>
+                ) : (
+                  <div className="divide-y divide-white/5">
+                    {products.map((product) => {
+                      const productId = String(product.id);
+                      const checked = flatSaleProductIds.includes(productId);
+
+                      return (
+                        <label key={productId} className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-white/5 transition-colors">
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={(e) => {
+                              setFlatSaleProductIds((prev) => {
+                                if (e.target.checked) return [...prev, productId];
+                                return prev.filter((id) => id !== productId);
+                              });
+                            }}
+                            className="accent-[#D4AF37]"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm text-white truncate">{product.name}</p>
+                            <p className="text-xs text-white/50">PKR {(Number(product.price) || 0).toLocaleString()}</p>
+                          </div>
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {flatSaleMessage && (
+                <p className="text-xs mt-4 text-[#D4AF37] tracking-wider uppercase">{flatSaleMessage}</p>
+              )}
+            </div>
+
+            <div className="bg-[#121A2F]/60 backdrop-blur-md rounded-3xl border border-white/10 p-6 mb-8">
+              <div className="flex items-start justify-between gap-4 flex-col md:flex-row mb-4">
+                <div>
+                  <h3 className="text-white font-bold text-lg flex items-center gap-2">
+                    <Tag size={18} className="text-red-400" />
+                    Remove Flat Sale From Selected
+                  </h3>
+                  <p className="text-white/50 text-sm mt-1">
+                    Select active sale products and rollback them with one click.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-2 items-center mb-4">
+                <button
+                  type="button"
+                  onClick={() => setRemoveFlatSaleProductIds(salesProducts.map((item) => String(item.id)))}
+                  className="bg-white/10 border border-white/10 text-white px-4 py-3 rounded-xl text-[10px] tracking-[0.12em] uppercase font-bold"
+                >
+                  Select All Sale
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRemoveFlatSaleProductIds([])}
+                  className="bg-white/5 border border-white/10 text-white/70 px-4 py-3 rounded-xl text-[10px] tracking-[0.12em] uppercase font-bold"
+                >
+                  Clear Selection
+                </button>
+                <button
+                  type="button"
+                  onClick={removeFlatSaleFromSelected}
+                  disabled={flatSaleRemoving || removeFlatSaleProductIds.length === 0}
+                  className="ml-auto bg-red-500/90 text-white font-bold px-4 py-3 rounded-xl text-[10px] tracking-[0.12em] uppercase disabled:opacity-60"
+                >
+                  {flatSaleRemoving ? 'Removing...' : 'Remove Flat Sale'}
+                </button>
+              </div>
+
+              <div className="max-h-64 overflow-y-auto rounded-2xl border border-white/10 bg-[#0B101E]/70">
+                {salesProducts.length === 0 ? (
+                  <p className="text-white/50 text-sm p-4">No active sale products found.</p>
+                ) : (
+                  <div className="divide-y divide-white/5">
+                    {salesProducts.map((product) => {
+                      const productId = String(product.id);
+                      const checked = removeFlatSaleProductIds.includes(productId);
+
+                      return (
+                        <label key={productId} className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-white/5 transition-colors">
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={(e) => {
+                              setRemoveFlatSaleProductIds((prev) => {
+                                if (e.target.checked) return [...prev, productId];
+                                return prev.filter((id) => id !== productId);
+                              });
+                            }}
+                            className="accent-red-400"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm text-white truncate">{product.name}</p>
+                            <p className="text-xs text-white/50">
+                              PKR {(Number(product.price) || 0).toLocaleString()} {product.originalPrice ? `| Was PKR ${Number(product.originalPrice).toLocaleString()}` : ''}
+                            </p>
+                          </div>
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             </div>
 
             <button 

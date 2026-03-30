@@ -18,13 +18,14 @@ export const GET = asyncHandler(async () => {
     );
   }
 
-  const settings = await SiteSettings.findOne({ key: 'global' }).select('salesEndsAt salesTickerMessage salesTickerSpeed updatedAt');
+  const settings = await SiteSettings.findOne({ key: 'global' }).select('salesEndsAt salesTickerMessage salesTickerSpeed flatSalePercent updatedAt');
 
   return successResponse(
     {
       salesEndsAt: settings?.salesEndsAt || null,
       salesTickerMessage: settings?.salesTickerMessage || '',
       salesTickerSpeed: Number(settings?.salesTickerSpeed || 18),
+      flatSalePercent: Number(settings?.flatSalePercent || 0),
       updatedAt: settings?.updatedAt || null,
     },
     'Sales timer fetched successfully'
@@ -49,6 +50,7 @@ export const PATCH = asyncHandler(async (req: NextRequest) => {
   const inputValue = body?.salesEndsAt;
   const inputTickerMessage = typeof body?.salesTickerMessage === 'string' ? body.salesTickerMessage : '';
   const inputTickerSpeed = Number(body?.salesTickerSpeed);
+  const inputFlatSalePercent = Number(body?.flatSalePercent);
 
   let salesEndsAt: Date | null = null;
 
@@ -64,6 +66,9 @@ export const PATCH = asyncHandler(async (req: NextRequest) => {
   const salesTickerSpeed = Number.isFinite(inputTickerSpeed)
     ? Math.min(45, Math.max(6, inputTickerSpeed))
     : 18;
+  const flatSalePercent = Number.isFinite(inputFlatSalePercent)
+    ? Math.min(100, Math.max(0, Math.round(inputFlatSalePercent)))
+    : 0;
 
   const settings = await SiteSettings.findOneAndUpdate(
     { key: 'global' },
@@ -73,6 +78,7 @@ export const PATCH = asyncHandler(async (req: NextRequest) => {
         salesEndsAt,
         salesTickerMessage,
         salesTickerSpeed,
+        flatSalePercent,
         updatedBy: 'admin-panel',
       },
     },
@@ -81,13 +87,14 @@ export const PATCH = asyncHandler(async (req: NextRequest) => {
       new: true,
       setDefaultsOnInsert: true,
     }
-  ).select('salesEndsAt salesTickerMessage salesTickerSpeed updatedAt');
+  ).select('salesEndsAt salesTickerMessage salesTickerSpeed flatSalePercent updatedAt');
 
   return successResponse(
     {
       salesEndsAt: settings?.salesEndsAt || null,
       salesTickerMessage: settings?.salesTickerMessage || '',
       salesTickerSpeed: Number(settings?.salesTickerSpeed || 18),
+      flatSalePercent: Number(settings?.flatSalePercent || 0),
       updatedAt: settings?.updatedAt || null,
     },
     'Sales timer updated successfully'
