@@ -4,7 +4,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 
 // Product Type
 export interface SizeStock {
-  size: string;
+  size: string | number;
   quantity: number;
   color?: string;
 }
@@ -21,7 +21,7 @@ export interface Product {
   category: string;
   subcategory?: string;
   brand?: string;
-  sizes?: string[];
+  sizes?: Array<string | number>;
   colors?: string[];
   description?: string;
   rating?: number;

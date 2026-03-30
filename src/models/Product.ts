@@ -26,6 +26,11 @@ export interface IProduct extends Document {
   inStock: boolean;
   stock: number;
   sold: number;
+  sizeStock?: Array<{
+    size: number;
+    quantity: number;
+    color?: string;
+  }>;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -162,6 +167,23 @@ const ProductSchema = new Schema<IProduct>(
       default: 0,
       min: [0, 'Sold count cannot be negative'],
     },
+    sizeStock: [
+      {
+        size: {
+          type: Number,
+          required: true,
+        },
+        quantity: {
+          type: Number,
+          default: 0,
+          min: [0, 'Size stock cannot be negative'],
+        },
+        color: {
+          type: String,
+          default: '',
+        },
+      },
+    ],
   },
   {
     timestamps: true,

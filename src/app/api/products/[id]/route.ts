@@ -2,6 +2,18 @@ import { NextResponse } from 'next/server';
 import { dbConnect } from '@/lib/dbService';
 import { Product } from '@/models';
 
+function formatProduct(product: any) {
+  if (!product) return null;
+
+  const obj = typeof product.toObject === 'function' ? product.toObject() : product;
+
+  return {
+    ...obj,
+    id: product._id?.toString?.() || obj.id,
+    sizeStock: obj.sizeStock || [],
+  };
+}
+
 // GET - Fetch single product by ID
 export async function GET(
   request: Request,
@@ -24,7 +36,7 @@ export async function GET(
 
     return NextResponse.json({
       success: true,
-      data: product,
+      data: formatProduct(product),
     });
   } catch (error: any) {
     return NextResponse.json(
@@ -70,7 +82,7 @@ export async function PUT(
     return NextResponse.json({
       success: true,
       message: 'Product updated successfully',
-      data: product,
+      data: formatProduct(product),
     });
   } catch (error: any) {
     return NextResponse.json(

@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
-import { ArrowUpRight, Sparkles, Tag, Grid } from 'lucide-react'
+import { Sparkles, Tag, Grid } from 'lucide-react'
 
 const items = [
   {
@@ -101,20 +101,7 @@ export default function Curated() {
                     transition={{ duration: 8, repeat: shouldReduceMotion ? 0 : Infinity, ease: 'easeInOut' }}
                     className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-gradient-to-br from-white/35 via-[#D4AF37]/20 to-transparent blur-3xl"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#06080F]/62 via-[#06080F]/20 to-transparent" />
-
-                  <div className="absolute left-4 sm:left-6 right-4 sm:right-6 bottom-4 sm:bottom-6">
-                    <div className="flex items-start justify-between gap-3">
-                      <p className="text-white text-sm sm:text-base md:text-lg leading-relaxed max-w-[680px]">
-                        B&B Shoes delivers premium quality with comfort that lasts all day.
-                        Discover exclusive drops, limited deals, and signature designs crafted to stand out.
-                        Shop now and upgrade every step with confidence.
-                      </p>
-                      <span className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/20 border border-white/40 flex items-center justify-center text-white group-hover:bg-white group-hover:text-[#18202B] transition-colors shrink-0 mt-0.5">
-                        <ArrowUpRight size={16} />
-                      </span>
-                    </div>
-                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#06080F]/36 via-[#06080F]/10 to-transparent" />
                 </div>
               </Link>
             </motion.div>

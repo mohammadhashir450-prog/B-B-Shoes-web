@@ -76,6 +76,7 @@ export const GET = asyncHandler(async (req: NextRequest) => {
     inStock: product.inStock,
     stock: product.stock,
     sold: product.sold,
+    sizeStock: (product as any).sizeStock || [],
   }));
 
   console.log(`✅ Fetched ${formattedProducts.length} products`);

@@ -40,9 +40,10 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
           const response = await fetch(`/api/products/${params.id}`);
           if (response.ok) {
             const data = await response.json();
-            setProduct(data.product);
-            if (data.product.colors && data.product.colors.length > 0) {
-              setSelectedColor(data.product.colors[0]);
+            const fetchedProduct = data?.data || data?.product || null;
+            setProduct(fetchedProduct);
+            if (fetchedProduct?.colors && fetchedProduct.colors.length > 0) {
+              setSelectedColor(fetchedProduct.colors[0]);
             }
           } else {
             setError('Product not found');
@@ -242,13 +243,15 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                   </div>
                   <div className="grid grid-cols-4 gap-3">
                     {product.sizes.map((size) => {
-                      const sizeStockInfo = product.sizeStock?.find(ss => ss.size === size);
-                      const isOutOfStock = !sizeStockInfo || sizeStockInfo.quantity === 0;
+                      const normalizedSize = String(size);
+                      const sizeStockInfo = product.sizeStock?.find((ss) => String(ss.size) === normalizedSize);
+                      const hasExplicitInventory = Array.isArray(product.sizeStock) && product.sizeStock.length > 0;
+                      const isOutOfStock = hasExplicitInventory && (sizeStockInfo?.quantity || 0) === 0;
                       
                       return (
                         <button
-                          key={size}
-                          onClick={() => !isOutOfStock && setSelectedSize(size)}
+                          key={normalizedSize}
+                          onClick={() => !isOutOfStock && setSelectedSize(normalizedSize)}
                           disabled={isOutOfStock}
                           className={`py-3 rounded-lg font-semibold border-2 transition-all relative ${
                             selectedSize === size
@@ -258,7 +261,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                               : 'border-white/20 hover:border-[#D4AF37] hover:bg-[#D4AF37]/10'
                           }`}
                         >
-                          {size}
+                          {normalizedSize}
                           {isOutOfStock && (
                             <div className="absolute inset-0 flex items-center justify-center">
                               <div className="w-full h-0.5 bg-red-500 rotate-45"></div>
@@ -271,20 +274,25 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                   {product.sizeStock && (
                     <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
                       {product.sizes.map((size) => {
-                        const sizeStockInfo = product.sizeStock?.find(ss => ss.size === size);
-                        const quantity = sizeStockInfo?.quantity || 0;
-                        const isLowStock = quantity > 0 && quantity <= 3;
+                        const normalizedSize = String(size);
+                        const sizeStockInfo = product.sizeStock?.find((ss) => String(ss.size) === normalizedSize);
+                        const hasExplicitInventory = Array.isArray(product.sizeStock) && product.sizeStock.length > 0;
+                        const quantity = hasExplicitInventory ? (sizeStockInfo?.quantity || 0) : null;
+                        const isLowStock = quantity !== null && quantity > 0 && quantity <= 3;
                         const isOutOfStock = quantity === 0;
                         
                         return (
-                          <div key={size} className={`px-2 py-1.5 rounded text-center font-semibold ${
+                          <div key={normalizedSize} className={`px-2 py-1.5 rounded text-center font-semibold ${
+                            quantity === null
+                              ? 'bg-blue-100 text-blue-700'
+                              :
                             isOutOfStock 
                               ? 'bg-red-100 text-red-700'
                               : isLowStock
                               ? 'bg-yellow-100 text-yellow-700'
                               : 'bg-green-100 text-green-700'
                           }`}>
-                            {size}: {quantity > 0 ? quantity : 'Out'}
+                            {normalizedSize}: {quantity === null ? 'In Stock' : quantity > 0 ? quantity : 'Out'}
                           </div>
                         );
                       })}
