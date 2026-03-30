@@ -254,11 +254,11 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                           onClick={() => !isOutOfStock && setSelectedSize(normalizedSize)}
                           disabled={isOutOfStock}
                           className={`py-3 rounded-lg font-semibold border-2 transition-all relative ${
-                            selectedSize === size
+                            selectedSize === normalizedSize
                               ? 'bg-[#D4AF37] text-black border-[#D4AF37]'
                               : isOutOfStock
                               ? 'border-red-400/50 bg-red-50/30 text-red-500 cursor-not-allowed opacity-60'
-                              : 'border-white/20 hover:border-[#D4AF37] hover:bg-[#D4AF37]/10'
+                              : 'bg-white text-black border-gray-300 hover:border-[#D4AF37] hover:bg-[#FFF7D9]'
                           }`}
                         >
                           {normalizedSize}
