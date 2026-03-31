@@ -925,11 +925,7 @@ export default function AdminPanel() {
     }
 
     if (!response.ok || !result?.success || !result?.data?.imageUrl) {
-      return {
-        imageUrl: secureUrl,
-        logoApplied: false,
-        watermarkMode: 'none',
-      };
+      throw new Error(result?.message || 'Failed to process image with white background + logo');
     }
 
     return {
@@ -1073,7 +1069,7 @@ export default function AdminPanel() {
                   <div className="grid lg:grid-cols-2 gap-8">
                     <div>
                       <p className="text-white/70 text-xs font-bold tracking-[0.18em] uppercase mb-3">Primary Image</p>
-                      <div className="w-full h-48 bg-[#0B101E] rounded-2xl border-2 border-dashed border-white/20 flex items-center justify-center overflow-hidden relative shadow-lg group">
+                      <div className="w-full h-48 bg-white rounded-2xl border-2 border-dashed border-white/20 flex items-center justify-center overflow-hidden relative shadow-lg group">
                         {currentProduct.image ? (
                           <Image 
                             src={currentProduct.image}
@@ -1118,9 +1114,7 @@ export default function AdminPanel() {
                               setImageUploadStatus(
                                 processed.watermarkMode === 'logo'
                                   ? '✓ Primary image uploaded with white background + B&B logo'
-                                  : processed.watermarkMode === 'text'
-                                    ? '✓ Primary image uploaded with white background + B&B watermark'
-                                    : '✓ Primary image uploaded (processing skipped)'
+                                  : '✓ Primary image uploaded with white background + B&B logo'
                               );
                               setTimeout(() => setImageUploadStatus(''), 3000);
 
@@ -1169,7 +1163,7 @@ export default function AdminPanel() {
 
                     <div>
                       <p className="text-white/70 text-xs font-bold tracking-[0.18em] uppercase mb-3">Hover Image (Desktop)</p>
-                      <div className="w-full h-48 bg-[#0B101E] rounded-2xl border-2 border-dashed border-white/20 flex items-center justify-center overflow-hidden relative shadow-lg group">
+                      <div className="w-full h-48 bg-white rounded-2xl border-2 border-dashed border-white/20 flex items-center justify-center overflow-hidden relative shadow-lg group">
                         {currentProduct.secondaryImage ? (
                           <Image
                             src={currentProduct.secondaryImage}
@@ -1217,9 +1211,7 @@ export default function AdminPanel() {
                               setSecondaryImageUploadStatus(
                                 processed.watermarkMode === 'logo'
                                   ? '✓ Secondary image uploaded with white background + B&B logo'
-                                  : processed.watermarkMode === 'text'
-                                    ? '✓ Secondary image uploaded with white background + B&B watermark'
-                                    : '✓ Secondary image uploaded (processing skipped)'
+                                  : '✓ Secondary image uploaded with white background + B&B logo'
                               );
                               setTimeout(() => setSecondaryImageUploadStatus(''), 3000);
 

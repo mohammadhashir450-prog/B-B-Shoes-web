@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { v2 as cloudinary } from 'cloudinary';
-import { access } from 'node:fs/promises';
+import { access, readFile } from 'node:fs/promises';
 import path from 'node:path';
 
 const BRAND_LOGO_PUBLIC_ID = 'bb_brand_logo_main';
@@ -45,23 +45,52 @@ const parsePublicIdFromSecureUrl = (secureUrl: string): string | null => {
   }
 };
 
-const ensureBrandLogoAsset = async () => {
-  try {
-    await cloudinary.api.resource(BRAND_LOGO_PUBLIC_ID);
-    return;
-  } catch {
-    const localLogoPath = path.join(process.cwd(), 'public', 'logo.png');
-    await access(localLogoPath);
+const uploadBrandLogoUnsigned = async (cloudName: string): Promise<string> => {
+  const localLogoPath = path.join(process.cwd(), 'public', 'logo.png');
+  await access(localLogoPath);
+  const fileBuffer = await readFile(localLogoPath);
 
-    await cloudinary.uploader.upload(localLogoPath, {
-      public_id: BRAND_LOGO_PUBLIC_ID,
-      overwrite: true,
-      resource_type: 'image',
-      folder: '',
-      use_filename: false,
-      unique_filename: false,
-    });
+  const formData = new FormData();
+  formData.append('file', new Blob([fileBuffer], { type: 'image/png' }), 'logo.png');
+  formData.append('upload_preset', 'bb_web');
+  formData.append('public_id', BRAND_LOGO_PUBLIC_ID);
+  formData.append('overwrite', 'true');
+
+  const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+    method: 'POST',
+    body: formData,
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to upload logo via unsigned preset');
   }
+
+  const result = await response.json();
+  return String(result?.public_id || BRAND_LOGO_PUBLIC_ID);
+};
+
+const ensureBrandLogoAsset = async (cloudName: string, hasApiCredentials: boolean): Promise<string> => {
+  const localLogoPath = path.join(process.cwd(), 'public', 'logo.png');
+  await access(localLogoPath);
+
+  if (hasApiCredentials) {
+    try {
+      await cloudinary.api.resource(BRAND_LOGO_PUBLIC_ID);
+      return BRAND_LOGO_PUBLIC_ID;
+    } catch {
+      await cloudinary.uploader.upload(localLogoPath, {
+        public_id: BRAND_LOGO_PUBLIC_ID,
+        overwrite: true,
+        resource_type: 'image',
+        folder: '',
+        use_filename: false,
+        unique_filename: false,
+      });
+      return BRAND_LOGO_PUBLIC_ID;
+    }
+  }
+
+  return uploadBrandLogoUnsigned(cloudName);
 };
 
 export async function POST(req: NextRequest) {
@@ -105,17 +134,12 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    let watermarkMode: 'logo' | 'text' = 'text';
-
-    if (hasApiCredentials) {
-      await ensureBrandLogoAsset();
-      watermarkMode = 'logo';
-    }
+    const overlayPublicId = await ensureBrandLogoAsset(cloudName, hasApiCredentials);
 
     const transformation: Array<Record<string, any>> = [
       {
-        // Try to isolate product by removing dominant background before white fill.
-        effect: 'make_transparent:35',
+        // Remove background around product so only outside area becomes white.
+        effect: 'background_removal',
       },
       {
         width: 1200,
@@ -123,38 +147,20 @@ export async function POST(req: NextRequest) {
         crop: 'pad',
         background: 'white',
       },
-    ];
-
-    if (watermarkMode === 'logo') {
-      transformation.push({
-        overlay: BRAND_LOGO_PUBLIC_ID,
+      {
+        overlay: overlayPublicId,
         gravity: 'north_east',
         x: 24,
         y: 24,
-        width: 150,
+        width: 180,
         crop: 'fit',
         opacity: 100,
-      });
-    } else {
-      transformation.push({
-        overlay: {
-          font_family: 'Arial',
-          font_size: 74,
-          font_weight: 'bold',
-          text: 'B&B',
-        },
-        color: '#1A1A1A',
-        gravity: 'north_east',
-        x: 24,
-        y: 24,
-        opacity: 65,
-      });
-    }
-
-    transformation.push({
+      },
+      {
       fetch_format: 'auto',
       quality: 'auto',
-    });
+      },
+    ];
 
     const transformedUrl = cloudinary.url(publicId, {
       secure: true,
@@ -166,12 +172,10 @@ export async function POST(req: NextRequest) {
       data: {
         imageUrl: transformedUrl,
         publicId,
-        logoApplied: watermarkMode === 'logo',
-        watermarkMode,
+        logoApplied: true,
+        watermarkMode: 'logo',
       },
-      message: watermarkMode === 'logo'
-        ? 'Image processed with white background and B&B logo'
-        : 'Image processed with white background and B&B watermark',
+      message: 'Image processed with white background and B&B logo',
     });
   } catch (error: any) {
     return NextResponse.json(
