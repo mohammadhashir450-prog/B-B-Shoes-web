@@ -4,13 +4,20 @@ import { access } from 'node:fs/promises';
 import path from 'node:path';
 
 const BRAND_LOGO_PUBLIC_ID = 'bb_brand_logo';
+const FALLBACK_CLOUD_NAME = 'dt2ikjlfc';
 
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-  secure: true,
-});
+const parseCloudNameFromSecureUrl = (secureUrl: string): string | null => {
+  try {
+    const parsed = new URL(secureUrl);
+    const parts = parsed.pathname.split('/').filter(Boolean);
+    if (parts.length < 1) return null;
+
+    // URL format: /<cloud_name>/image/upload/...
+    return parts[0] || null;
+  } catch {
+    return null;
+  }
+};
 
 const parsePublicIdFromSecureUrl = (secureUrl: string): string | null => {
   try {
@@ -62,12 +69,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
-      return NextResponse.json(
-        { success: false, message: 'Cloudinary environment variables are not configured' },
-        { status: 500 }
-      );
-    }
+    const cloudName =
+      process.env.CLOUDINARY_CLOUD_NAME ||
+      parseCloudNameFromSecureUrl(secureUrl) ||
+      FALLBACK_CLOUD_NAME;
+
+    const hasApiCredentials = Boolean(process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET);
+
+    cloudinary.config({
+      cloud_name: cloudName,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET,
+      secure: true,
+    });
 
     const publicId = inputPublicId || parsePublicIdFromSecureUrl(secureUrl);
     if (!publicId) {
@@ -77,31 +91,42 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    await ensureBrandLogoAsset();
+    let logoApplied = false;
+
+    if (hasApiCredentials) {
+      await ensureBrandLogoAsset();
+      logoApplied = true;
+    }
+
+    const transformation: Array<Record<string, any>> = [
+      {
+        width: 1200,
+        height: 1200,
+        crop: 'pad',
+        background: 'white',
+      },
+    ];
+
+    if (logoApplied) {
+      transformation.push({
+        overlay: BRAND_LOGO_PUBLIC_ID,
+        gravity: 'north_east',
+        x: 24,
+        y: 24,
+        width: 150,
+        crop: 'fit',
+        opacity: 100,
+      });
+    }
+
+    transformation.push({
+      fetch_format: 'auto',
+      quality: 'auto',
+    });
 
     const transformedUrl = cloudinary.url(publicId, {
       secure: true,
-      transformation: [
-        {
-          width: 1200,
-          height: 1200,
-          crop: 'pad',
-          background: 'white',
-        },
-        {
-          overlay: BRAND_LOGO_PUBLIC_ID,
-          gravity: 'north_east',
-          x: 24,
-          y: 24,
-          width: 150,
-          crop: 'fit',
-          opacity: 100,
-        },
-        {
-          fetch_format: 'auto',
-          quality: 'auto',
-        },
-      ],
+      transformation,
     });
 
     return NextResponse.json({
@@ -109,8 +134,11 @@ export async function POST(req: NextRequest) {
       data: {
         imageUrl: transformedUrl,
         publicId,
+        logoApplied,
       },
-      message: 'Image processed with white background and B&B logo',
+      message: logoApplied
+        ? 'Image processed with white background and B&B logo'
+        : 'Image processed with white background (logo skipped: Cloudinary API keys missing)',
     });
   } catch (error: any) {
     return NextResponse.json(
