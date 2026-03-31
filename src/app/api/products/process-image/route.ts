@@ -5,7 +5,6 @@ import path from 'node:path';
 
 const BRAND_LOGO_PUBLIC_ID = 'bb_brand_logo_main';
 const FALLBACK_CLOUD_NAME = 'dt2ikjlfc';
-const LOGO_FETCH_FALLBACK_URL = 'https://raw.githubusercontent.com/mohammadhashir450-prog/B-B-Shoes-web/main/public/logo.png';
 
 const parseCloudNameFromSecureUrl = (secureUrl: string): string | null => {
   try {
@@ -54,34 +53,14 @@ const toBase64Url = (value: string): string => {
     .replace(/=+$/g, '');
 };
 
-const buildTransformedUrl = (
-  cloudName: string,
-  publicId: string,
-  overlay: { type: 'public_id' | 'fetch_url'; value: string }
-): string => {
-  const encodedPublicId = encodeURIComponent(publicId).replace(/%2F/g, '/');
-  const overlayLayer = overlay.type === 'public_id'
-    ? `l_${encodeURIComponent(overlay.value).replace(/%2F/g, ':')}`
-    : `l_fetch:${toBase64Url(overlay.value)}`;
-
-  const transformations = [
-    'e_make_transparent:12',
-    'c_pad,w_1200,h_1200,b_white',
-    `${overlayLayer},g_north_east,x_24,y_24,w_180,c_fit,o_100/fl_layer_apply`,
-    'f_auto,q_auto',
-  ];
-
-  return `https://res.cloudinary.com/${cloudName}/image/upload/${transformations.join('/')}/${encodedPublicId}`;
-};
-
-const ensureBrandLogoAsset = async (hasApiCredentials: boolean): Promise<boolean> => {
+const ensureBrandLogoAsset = async (hasApiCredentials: boolean): Promise<string | null> => {
   const localLogoPath = path.join(process.cwd(), 'public', 'logo.png');
   await access(localLogoPath);
 
   if (hasApiCredentials) {
     try {
       await cloudinary.api.resource(BRAND_LOGO_PUBLIC_ID);
-      return true;
+      return BRAND_LOGO_PUBLIC_ID;
     } catch {
       await cloudinary.uploader.upload(localLogoPath, {
         public_id: BRAND_LOGO_PUBLIC_ID,
@@ -91,11 +70,29 @@ const ensureBrandLogoAsset = async (hasApiCredentials: boolean): Promise<boolean
         use_filename: false,
         unique_filename: false,
       });
-      return true;
+      return BRAND_LOGO_PUBLIC_ID;
     }
   }
 
-  return false;
+  return null;
+};
+
+const isImageUrlReachable = async (url: string): Promise<boolean> => {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+
+    const response = await fetch(url, {
+      method: 'GET',
+      signal: controller.signal,
+      cache: 'no-store',
+    });
+
+    clearTimeout(timeout);
+    return response.ok;
+  } catch {
+    return false;
+  }
 };
 
 export async function POST(req: NextRequest) {
@@ -139,19 +136,55 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const logoInCloudinary = await ensureBrandLogoAsset(hasApiCredentials);
+    const logoPublicId = await ensureBrandLogoAsset(hasApiCredentials);
+
+    const transformation: Array<Record<string, any>> = [
+      {
+        width: 1200,
+        height: 1200,
+        crop: 'pad',
+        background: 'white',
+      },
+    ];
+
     const requestOrigin = req.nextUrl.origin;
     const logoFetchUrl = requestOrigin.includes('localhost')
-      ? LOGO_FETCH_FALLBACK_URL
+      ? 'https://raw.githubusercontent.com/mohammadhashir450-prog/B-B-Shoes-web/main/public/logo.png'
       : `${requestOrigin}/logo.png`;
 
-    const transformedUrl = buildTransformedUrl(
-      cloudName,
-      publicId,
-      logoInCloudinary
-        ? { type: 'public_id', value: BRAND_LOGO_PUBLIC_ID }
-        : { type: 'fetch_url', value: logoFetchUrl }
-    );
+    transformation.push({
+      overlay: logoPublicId || `fetch:${toBase64Url(logoFetchUrl)}`,
+      gravity: 'north_east',
+      x: 24,
+      y: 24,
+      width: 180,
+      crop: 'fit',
+      opacity: 100,
+    });
+
+    transformation.push({
+      fetch_format: 'auto',
+      quality: 'auto',
+    });
+
+    const transformedUrl = cloudinary.url(publicId, {
+      secure: true,
+      transformation,
+    });
+
+    const transformedReachable = await isImageUrlReachable(transformedUrl);
+    if (!transformedReachable) {
+      return NextResponse.json({
+        success: true,
+        data: {
+          imageUrl: secureUrl,
+          publicId,
+          logoApplied: false,
+          watermarkMode: 'none',
+        },
+        message: 'Image uploaded successfully (using original due to transformation fetch issue)',
+      });
+    }
 
     return NextResponse.json({
       success: true,

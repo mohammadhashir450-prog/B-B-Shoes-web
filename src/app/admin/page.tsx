@@ -1114,7 +1114,9 @@ export default function AdminPanel() {
                               setImageUploadStatus(
                                 processed.watermarkMode === 'logo'
                                   ? '✓ Primary image uploaded with white background + B&B logo'
-                                  : '✓ Primary image uploaded with white background + B&B logo'
+                                  : processed.watermarkMode === 'none'
+                                    ? '✓ Primary image uploaded (fallback/original used)'
+                                    : '✓ Primary image uploaded with white background'
                               );
                               setTimeout(() => setImageUploadStatus(''), 3000);
 
@@ -1211,7 +1213,9 @@ export default function AdminPanel() {
                               setSecondaryImageUploadStatus(
                                 processed.watermarkMode === 'logo'
                                   ? '✓ Secondary image uploaded with white background + B&B logo'
-                                  : '✓ Secondary image uploaded with white background + B&B logo'
+                                  : processed.watermarkMode === 'none'
+                                    ? '✓ Secondary image uploaded (fallback/original used)'
+                                    : '✓ Secondary image uploaded with white background'
                               );
                               setTimeout(() => setSecondaryImageUploadStatus(''), 3000);
 
