@@ -3,7 +3,7 @@ import { v2 as cloudinary } from 'cloudinary';
 import { access } from 'node:fs/promises';
 import path from 'node:path';
 
-const BRAND_LOGO_PUBLIC_ID = 'bb_brand_logo';
+const BRAND_LOGO_PUBLIC_ID = 'bb_brand_logo_main';
 const FALLBACK_CLOUD_NAME = 'dt2ikjlfc';
 
 const parseCloudNameFromSecureUrl = (secureUrl: string): string | null => {
@@ -50,7 +50,7 @@ const ensureBrandLogoAsset = async () => {
     await cloudinary.api.resource(BRAND_LOGO_PUBLIC_ID);
     return;
   } catch {
-    const localLogoPath = path.join(process.cwd(), 'public', 'images', 'logo.jpg');
+    const localLogoPath = path.join(process.cwd(), 'public', 'logo.png');
     await access(localLogoPath);
 
     await cloudinary.uploader.upload(localLogoPath, {
@@ -113,6 +113,10 @@ export async function POST(req: NextRequest) {
     }
 
     const transformation: Array<Record<string, any>> = [
+      {
+        // Try to isolate product by removing dominant background before white fill.
+        effect: 'make_transparent:35',
+      },
       {
         width: 1200,
         height: 1200,
