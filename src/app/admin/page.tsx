@@ -917,14 +917,25 @@ export default function AdminPanel() {
       body: JSON.stringify({ secureUrl, publicId }),
     });
 
-    const result = await response.json();
+    let result: any = null;
+    try {
+      result = await response.json();
+    } catch {
+      result = null;
+    }
+
     if (!response.ok || !result?.success || !result?.data?.imageUrl) {
-      throw new Error(result?.message || 'Failed to apply premium image processing');
+      return {
+        imageUrl: secureUrl,
+        logoApplied: false,
+        watermarkMode: 'none',
+      };
     }
 
     return {
       imageUrl: String(result.data.imageUrl),
       logoApplied: Boolean(result?.data?.logoApplied),
+      watermarkMode: String(result?.data?.watermarkMode || 'text'),
     };
   };
 
@@ -1105,9 +1116,11 @@ export default function AdminPanel() {
 
                               setImageUploadError('');
                               setImageUploadStatus(
-                                processed.logoApplied
+                                processed.watermarkMode === 'logo'
                                   ? '✓ Primary image uploaded with white background + B&B logo'
-                                  : '✓ Primary image uploaded with white background (logo skipped: missing Cloudinary API keys)'
+                                  : processed.watermarkMode === 'text'
+                                    ? '✓ Primary image uploaded with white background + B&B watermark'
+                                    : '✓ Primary image uploaded (processing skipped)'
                               );
                               setTimeout(() => setImageUploadStatus(''), 3000);
 
@@ -1202,9 +1215,11 @@ export default function AdminPanel() {
 
                               setSecondaryImageUploadError('');
                               setSecondaryImageUploadStatus(
-                                processed.logoApplied
+                                processed.watermarkMode === 'logo'
                                   ? '✓ Secondary image uploaded with white background + B&B logo'
-                                  : '✓ Secondary image uploaded with white background (logo skipped: missing Cloudinary API keys)'
+                                  : processed.watermarkMode === 'text'
+                                    ? '✓ Secondary image uploaded with white background + B&B watermark'
+                                    : '✓ Secondary image uploaded (processing skipped)'
                               );
                               setTimeout(() => setSecondaryImageUploadStatus(''), 3000);
 
@@ -1643,17 +1658,18 @@ export default function AdminPanel() {
 
                       const hasAnyAvailableSize = sizeStockPayload.some((entry) => entry.quantity > 0);
                       const computedStock = sizeStockPayload.reduce((sum, entry) => sum + entry.quantity, 0);
+                      const shouldUseSizeInventory = hasAnyAvailableSize;
 
                       const body = {
                         ...currentProduct, 
                         brand: 'B&B', 
                         sizes: normalizedSizes.map((entry) => entry.numeric), 
                         colors: normalizedColors, 
-                        sizeStock: sizeStockPayload,
+                        sizeStock: shouldUseSizeInventory ? sizeStockPayload : [],
                         isOnSale: saleActive,
                         isNewArrival: activeTab === 'newarrivals' || showAddNewArrivalForm,
-                        inStock: currentProduct.inStock === false ? false : (sizeStockPayload.length > 0 ? hasAnyAvailableSize : true),
-                        stock: sizeStockPayload.length > 0 ? computedStock : Number(currentProduct.stock || 0),
+                        inStock: currentProduct.inStock === false ? false : true,
+                        stock: shouldUseSizeInventory ? computedStock : Number(currentProduct.stock || 0),
                         discount: saleActive ? Number(currentProduct.discount) : 0,
                         originalPrice: saleActive ? Number(currentProduct.originalPrice) : 0,
                         price: saleActive
@@ -1698,7 +1714,7 @@ export default function AdminPanel() {
                 setNewProduct({
                   id: '', name: '', price: 0, originalPrice: 0, discount: 0, image: '', secondaryImage: '', sizeColorImages: [],
                   category: 'Men', subcategory: '', brand: 'B&B', sizes: [], colors: [], description: '',
-                  rating: 4.5, reviews: 0, inStock: true, isOnSale: false, isNewArrival: false
+                  rating: 4.5, reviews: 0, inStock: true, stock: 100, sold: 0, isOnSale: false, isNewArrival: false
                 });
                 setSelectedSizes(DEFAULT_SIZES); setSelectedColors(DEFAULT_COLORS); setSizeInventory(buildInventoryMap(DEFAULT_SIZES, DEFAULT_COLORS));
               }} 
@@ -2185,7 +2201,7 @@ export default function AdminPanel() {
                 setNewProduct({
                   id: '', name: '', price: 0, originalPrice: 0, discount: 0, image: '', secondaryImage: '', sizeColorImages: [],
                   category: 'Men', subcategory: '', brand: 'B&B', sizes: [], colors: [], description: '',
-                  rating: 4.5, reviews: 0, inStock: true, isOnSale: true, isNewArrival: false
+                  rating: 4.5, reviews: 0, inStock: true, stock: 100, sold: 0, isOnSale: true, isNewArrival: false
                 });
                 setSelectedSizes(DEFAULT_SIZES); setSelectedColors(DEFAULT_COLORS); setSizeInventory(buildInventoryMap(DEFAULT_SIZES, DEFAULT_COLORS));
               }} 
@@ -2274,7 +2290,7 @@ export default function AdminPanel() {
                 setNewProduct({
                   id: '', name: '', price: 0, originalPrice: 0, discount: 0, image: '', secondaryImage: '', sizeColorImages: [],
                   category: 'Men', subcategory: '', brand: 'B&B', sizes: [], colors: [], description: '',
-                  rating: 4.5, reviews: 0, inStock: true, isOnSale: false, isNewArrival: true
+                  rating: 4.5, reviews: 0, inStock: true, stock: 100, sold: 0, isOnSale: false, isNewArrival: true
                 });
                 setSelectedSizes(DEFAULT_SIZES); setSelectedColors(DEFAULT_COLORS); setSizeInventory(buildInventoryMap(DEFAULT_SIZES, DEFAULT_COLORS));
               }} 

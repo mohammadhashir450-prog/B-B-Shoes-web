@@ -26,12 +26,20 @@ const parsePublicIdFromSecureUrl = (secureUrl: string): string | null => {
     if (markerIndex === -1) return null;
 
     const afterUpload = secureUrl.slice(markerIndex + marker.length);
-    const withoutVersion = afterUpload.replace(/^v\d+\//, '');
-    const withoutTransform = withoutVersion.includes('/') ? withoutVersion : withoutVersion;
-    const lastDot = withoutTransform.lastIndexOf('.');
+    const segments = afterUpload.split('/').filter(Boolean);
+    if (segments.length === 0) return null;
 
-    if (lastDot === -1) return withoutTransform;
-    return withoutTransform.slice(0, lastDot);
+    // Cloudinary delivery URL often contains transformations before version.
+    // Keep everything after version segment (v123...) as public_id path.
+    const versionIndex = segments.findIndex((segment) => /^v\d+$/.test(segment));
+    const publicIdSegments = versionIndex >= 0 ? segments.slice(versionIndex + 1) : segments;
+    if (publicIdSegments.length === 0) return null;
+
+    const withExt = publicIdSegments.join('/');
+    const lastDot = withExt.lastIndexOf('.');
+
+    if (lastDot === -1) return withExt;
+    return withExt.slice(0, lastDot);
   } catch {
     return null;
   }
@@ -85,17 +93,23 @@ export async function POST(req: NextRequest) {
 
     const publicId = inputPublicId || parsePublicIdFromSecureUrl(secureUrl);
     if (!publicId) {
-      return NextResponse.json(
-        { success: false, message: 'Could not determine Cloudinary public_id from upload result' },
-        { status: 400 }
-      );
+      return NextResponse.json({
+        success: true,
+        data: {
+          imageUrl: secureUrl,
+          publicId: null,
+          logoApplied: false,
+          watermarkMode: 'none',
+        },
+        message: 'Image uploaded successfully (processing skipped: public_id not detected)',
+      });
     }
 
-    let logoApplied = false;
+    let watermarkMode: 'logo' | 'text' = 'text';
 
     if (hasApiCredentials) {
       await ensureBrandLogoAsset();
-      logoApplied = true;
+      watermarkMode = 'logo';
     }
 
     const transformation: Array<Record<string, any>> = [
@@ -107,7 +121,7 @@ export async function POST(req: NextRequest) {
       },
     ];
 
-    if (logoApplied) {
+    if (watermarkMode === 'logo') {
       transformation.push({
         overlay: BRAND_LOGO_PUBLIC_ID,
         gravity: 'north_east',
@@ -116,6 +130,20 @@ export async function POST(req: NextRequest) {
         width: 150,
         crop: 'fit',
         opacity: 100,
+      });
+    } else {
+      transformation.push({
+        overlay: {
+          font_family: 'Arial',
+          font_size: 74,
+          font_weight: 'bold',
+          text: 'B&B',
+        },
+        color: '#1A1A1A',
+        gravity: 'north_east',
+        x: 24,
+        y: 24,
+        opacity: 65,
       });
     }
 
@@ -134,11 +162,12 @@ export async function POST(req: NextRequest) {
       data: {
         imageUrl: transformedUrl,
         publicId,
-        logoApplied,
+        logoApplied: watermarkMode === 'logo',
+        watermarkMode,
       },
-      message: logoApplied
+      message: watermarkMode === 'logo'
         ? 'Image processed with white background and B&B logo'
-        : 'Image processed with white background (logo skipped: Cloudinary API keys missing)',
+        : 'Image processed with white background and B&B watermark',
     });
   } catch (error: any) {
     return NextResponse.json(
