@@ -860,6 +860,28 @@ export default function AdminPanel() {
     }
   };
 
+  const processUploadedImageForStorefront = async (uploadInfo: any) => {
+    const secureUrl = String(uploadInfo?.secure_url || '').trim();
+    const publicId = String(uploadInfo?.public_id || '').trim();
+
+    if (!secureUrl && !publicId) {
+      throw new Error('Image upload succeeded but file metadata is missing');
+    }
+
+    const response = await fetch('/api/products/process-image', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ secureUrl, publicId }),
+    });
+
+    const result = await response.json();
+    if (!response.ok || !result?.success || !result?.data?.imageUrl) {
+      throw new Error(result?.message || 'Failed to apply premium image processing');
+    }
+
+    return String(result.data.imageUrl);
+  };
+
   const currentProduct = editingProduct || editingSaleProduct || editingNewArrival || newProduct;
   const isSaleWorkflow = activeTab === 'sales' || showAddSaleForm || Boolean(editingSaleProduct);
 
@@ -993,29 +1015,33 @@ export default function AdminPanel() {
                             clientAllowedFormats: ['png', 'jpg', 'jpeg', 'webp'],
                             folder: 'bb_shoes'
                           }}
-                          onSuccess={(result: any) => {
+                          onSuccess={async (result: any) => {
                             try {
-                              const url = result?.info?.secure_url;
-                              if (!url) {
+                              const uploadInfo = result?.info;
+                              if (!uploadInfo) {
                                 setImageUploadError('Image upload failed: No URL returned');
                                 return;
                               }
 
+                              setImageUploadStatus('Processing premium finish...');
+                              const processedUrl = await processUploadedImageForStorefront(uploadInfo);
+
                               setImageUploadError('');
-                              setImageUploadStatus('✓ Primary image uploaded');
+                              setImageUploadStatus('✓ Primary image uploaded with white background + B&B logo');
                               setTimeout(() => setImageUploadStatus(''), 3000);
 
                               if (editingProduct) {
-                                setEditingProduct((prev) => (prev ? { ...prev, image: url } : prev));
+                                setEditingProduct((prev) => (prev ? { ...prev, image: processedUrl } : prev));
                               } else if (editingSaleProduct) {
-                                setEditingSaleProduct((prev) => (prev ? { ...prev, image: url } : prev));
+                                setEditingSaleProduct((prev) => (prev ? { ...prev, image: processedUrl } : prev));
                               } else if (editingNewArrival) {
-                                setEditingNewArrival((prev) => (prev ? { ...prev, image: url } : prev));
+                                setEditingNewArrival((prev) => (prev ? { ...prev, image: processedUrl } : prev));
                               } else {
-                                setNewProduct((prev) => ({ ...prev, image: url }));
+                                setNewProduct((prev) => ({ ...prev, image: processedUrl }));
                               }
-                            } catch {
-                              setImageUploadError('Failed to process upload');
+                            } catch (error: any) {
+                              setImageUploadStatus('');
+                              setImageUploadError(error?.message || 'Failed to process upload');
                             }
                           }}
                           onError={(error: any) => {
@@ -1082,29 +1108,33 @@ export default function AdminPanel() {
                             clientAllowedFormats: ['png', 'jpg', 'jpeg', 'webp'],
                             folder: 'bb_shoes'
                           }}
-                          onSuccess={(result: any) => {
+                          onSuccess={async (result: any) => {
                             try {
-                              const url = result?.info?.secure_url;
-                              if (!url) {
+                              const uploadInfo = result?.info;
+                              if (!uploadInfo) {
                                 setSecondaryImageUploadError('Secondary upload failed: No URL returned');
                                 return;
                               }
 
+                              setSecondaryImageUploadStatus('Processing premium finish...');
+                              const processedUrl = await processUploadedImageForStorefront(uploadInfo);
+
                               setSecondaryImageUploadError('');
-                              setSecondaryImageUploadStatus('✓ Secondary image uploaded');
+                              setSecondaryImageUploadStatus('✓ Secondary image uploaded with white background + B&B logo');
                               setTimeout(() => setSecondaryImageUploadStatus(''), 3000);
 
                               if (editingProduct) {
-                                setEditingProduct((prev) => (prev ? { ...prev, secondaryImage: url } : prev));
+                                setEditingProduct((prev) => (prev ? { ...prev, secondaryImage: processedUrl } : prev));
                               } else if (editingSaleProduct) {
-                                setEditingSaleProduct((prev) => (prev ? { ...prev, secondaryImage: url } : prev));
+                                setEditingSaleProduct((prev) => (prev ? { ...prev, secondaryImage: processedUrl } : prev));
                               } else if (editingNewArrival) {
-                                setEditingNewArrival((prev) => (prev ? { ...prev, secondaryImage: url } : prev));
+                                setEditingNewArrival((prev) => (prev ? { ...prev, secondaryImage: processedUrl } : prev));
                               } else {
-                                setNewProduct((prev) => ({ ...prev, secondaryImage: url }));
+                                setNewProduct((prev) => ({ ...prev, secondaryImage: processedUrl }));
                               }
-                            } catch {
-                              setSecondaryImageUploadError('Failed to process secondary upload');
+                            } catch (error: any) {
+                              setSecondaryImageUploadStatus('');
+                              setSecondaryImageUploadError(error?.message || 'Failed to process secondary upload');
                             }
                           }}
                           onError={(error: any) => {
@@ -1137,6 +1167,7 @@ export default function AdminPanel() {
                     </div>
                   </div>
                   <p className="text-[10px] tracking-wide text-white/30 uppercase mt-5">Recommended: 800x800px PNG/WEBP/JPG for smooth hover transitions</p>
+                  <p className="text-[10px] tracking-wide text-[#D4AF37]/80 uppercase mt-2">Auto processing: White background + B&B logo watermark (top-right)</p>
                 </div>
 
                 {/* Form Fields Grid */}

@@ -5,6 +5,7 @@ export interface ISiteSettings extends Document {
   salesEndsAt?: Date | null;
   salesTickerMessage?: string;
   salesTickerSpeed?: number;
+  flatSalePercent?: number;
   updatedBy?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -34,6 +35,12 @@ const SiteSettingsSchema = new Schema<ISiteSettings>(
       default: 18,
       min: 6,
       max: 45,
+    },
+    flatSalePercent: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 100,
     },
     updatedBy: {
       type: String,
