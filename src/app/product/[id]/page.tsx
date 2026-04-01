@@ -48,6 +48,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
     rating: 5,
     comment: '',
   });
+  const normalizeColor = (value: unknown) => String(value || '').trim().toLowerCase();
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -140,7 +141,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
       price: product.price,
       image: selectedDisplayImage || product.image,
       size: selectedSize,
-      color: selectedColor || 'Default',
+      color: selectedColorLabel || 'Default',
       category: product.category
     });
 
@@ -165,7 +166,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
     }
 
     if (selectedColor) {
-      const exact = bySize.find((ss) => String(ss.color || '').toLowerCase() === selectedColor.toLowerCase());
+      const exact = bySize.find((ss) => normalizeColor(ss.color) === normalizeColor(selectedColor));
       return exact ? Number(exact.quantity || 0) : 0;
     }
 
@@ -181,26 +182,34 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
     }
   }, [selectedColor, selectedSize, product]);
 
+  const normalizedColorOptions = useMemo(() => {
+    if (!product || !Array.isArray(product.colors)) return [] as Array<{ key: string; label: string }>;
+
+    const map = new Map<string, string>();
+    product.colors.forEach((color) => {
+      const label = String(color || '').trim();
+      const key = normalizeColor(label);
+      if (!key || map.has(key)) return;
+      map.set(key, label);
+    });
+
+    return Array.from(map.entries()).map(([key, label]) => ({ key, label }));
+  }, [product]);
+
+  const selectedColorKey = normalizeColor(selectedColor);
+
   useEffect(() => {
-    if (!product?.colors || product.colors.length === 0) return;
-    if (!selectedColor) {
-      setSelectedColor(product.colors[0]);
-      return;
-    }
+    if (normalizedColorOptions.length === 0) return;
 
-    const selectedExists = product.colors.some(
-      (color) => String(color).trim().toLowerCase() === String(selectedColor).trim().toLowerCase()
-    );
-
+    const selectedExists = normalizedColorOptions.some((entry) => entry.key === selectedColorKey);
     if (!selectedExists) {
-      setSelectedColor(product.colors[0]);
+      setSelectedColor(normalizedColorOptions[0].label);
     }
-  }, [product, selectedColor]);
+  }, [normalizedColorOptions, selectedColorKey]);
 
   const colorImageMap = useMemo(() => {
     if (!product) return new Map<string, string>();
 
-    const normalize = (value: unknown) => String(value || '').trim().toLowerCase();
     const fallback = String(product.image || '').trim();
     const map = new Map<string, string>();
     const variantImages = Array.isArray(product.sizeColorImages) ? product.sizeColorImages : [];
@@ -214,7 +223,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
     // Prefer selected-size specific image first when available.
     if (selectedSize) {
       variantImages.forEach((entry: any) => {
-        const colorKey = normalize(entry?.color);
+        const colorKey = normalizeColor(entry?.color);
         if (!colorKey) return;
 
         const entrySize = String(entry?.size ?? '').trim();
@@ -226,23 +235,21 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
 
     // Fallback to any image for the same color.
     variantImages.forEach((entry: any) => {
-      const colorKey = normalize(entry?.color);
+      const colorKey = normalizeColor(entry?.color);
       if (!colorKey) return;
       assignIfMissing(colorKey, String(entry?.image || ''));
     });
 
-    if (Array.isArray(product.colors)) {
-      product.colors.forEach((color) => {
-        const colorKey = normalize(color);
-        if (!colorKey) return;
-        if (!map.has(colorKey) && fallback) {
-          map.set(colorKey, fallback);
-        }
-      });
-    }
+    normalizedColorOptions.forEach((entry) => {
+      if (!map.has(entry.key) && fallback) {
+        map.set(entry.key, fallback);
+      }
+    });
 
     return map;
-  }, [product, selectedSize]);
+  }, [product, selectedSize, normalizedColorOptions]);
+
+  const selectedColorLabel = normalizedColorOptions.find((entry) => entry.key === selectedColorKey)?.label || selectedColor || 'Select';
 
   const selectedDisplayImage = useMemo(() => {
     if (!product) return '';
@@ -250,21 +257,21 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
     const fallback = String(product.image || '').trim();
     if (!selectedColor) return fallback;
 
-    const colorKey = String(selectedColor).trim().toLowerCase();
+    const colorKey = selectedColorKey;
     return colorImageMap.get(colorKey) || fallback;
-  }, [product, selectedColor, colorImageMap]);
+  }, [product, selectedColorKey, colorImageMap]);
 
   const colorImageOptions = useMemo(() => {
-    if (!product || !Array.isArray(product.colors)) return [];
+    if (!product) return [];
 
-    return product.colors.map((color) => {
-      const colorKey = String(color).trim().toLowerCase();
+    return normalizedColorOptions.map((entry) => {
       return {
-        color,
-        image: String(colorImageMap.get(colorKey) || product.image || '').trim(),
+        key: entry.key,
+        color: entry.label,
+        image: String(colorImageMap.get(entry.key) || product.image || '').trim(),
       };
     }).filter((entry) => entry.image);
-  }, [product, colorImageMap]);
+  }, [product, colorImageMap, normalizedColorOptions]);
 
   const handleSubmitReview = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -404,11 +411,11 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                 <div className="grid grid-cols-4 gap-3">
                   {colorImageOptions.map((entry) => (
                     <button
-                      key={entry.color}
+                      key={entry.key}
                       type="button"
                       onClick={() => setSelectedColor(entry.color)}
                       className={`rounded-xl overflow-hidden border-2 transition-all ${
-                        selectedColor === entry.color
+                        selectedColorKey === entry.key
                           ? 'border-[#D4AF37] shadow-[0_0_0_1px_rgba(212,175,55,0.4)]'
                           : 'border-gray-200 hover:border-[#0B101E]/50'
                       }`}
@@ -483,21 +490,21 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                 <div className="mb-8">
                   <div className="flex items-center justify-between mb-4">
                     <label className="text-sm font-semibold tracking-wider uppercase text-gray-700">
-                      COLOR: <span className="text-[#D4AF37]">{selectedColor || 'Select'}</span>
+                      COLOR: <span className="text-[#D4AF37]">{selectedColorLabel}</span>
                     </label>
                   </div>
                   <div className="flex gap-3 flex-wrap">
-                    {product.colors.map((color) => (
+                    {normalizedColorOptions.map((colorOption) => (
                       <button
-                        key={color}
-                        onClick={() => setSelectedColor(color)}
+                        key={colorOption.key}
+                        onClick={() => setSelectedColor(colorOption.label)}
                         className={`px-4 py-2 rounded-lg border-2 transition-all ${
-                          selectedColor === color 
+                          selectedColorKey === colorOption.key
                             ? 'border-[#0B101E] bg-[#0B101E] text-white shadow-sm' 
                             : 'bg-white text-[#0B101E] border-gray-300 hover:border-[#0B101E]'
                         }`}
                       >
-                        {color}
+                        {colorOption.label}
                       </button>
                     ))}
                   </div>
@@ -745,6 +752,27 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                 </div>
               </div>
 
+              {reviewSummary ? (
+                <div className="mb-6 rounded-2xl border border-gray-200 bg-[#FAFAFA] p-4">
+                  {[5, 4, 3, 2, 1].map((star) => {
+                    const count = Number(reviewSummary.ratingBreakdown[star as 1 | 2 | 3 | 4 | 5] || 0);
+                    const percentage = reviewSummary.totalReviews > 0
+                      ? Math.round((count / reviewSummary.totalReviews) * 100)
+                      : 0;
+
+                    return (
+                      <div key={star} className="flex items-center gap-3 mb-2 last:mb-0">
+                        <span className="w-8 text-xs font-semibold text-gray-600">{star}★</span>
+                        <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                          <div className="h-full bg-[#D4AF37] rounded-full" style={{ width: `${percentage}%` }} />
+                        </div>
+                        <span className="w-12 text-right text-xs text-gray-500">{count}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : null}
+
               {reviewsLoading ? (
                 <div className="py-12 flex items-center justify-center text-gray-500">
                   <Loader2 className="w-5 h-5 animate-spin mr-2" />
@@ -794,7 +822,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
             </div>
             <div>
               <p className="font-semibold text-sm">{product.name}</p>
-              <p className="text-gray-500 text-xs">{selectedColor || 'Color'} / Size {selectedSize || '-'}</p>
+              <p className="text-gray-500 text-xs">{selectedColorLabel || 'Color'} / Size {selectedSize || '-'}</p>
             </div>
           </div>
           <div className="flex items-center gap-6">
