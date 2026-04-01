@@ -153,7 +153,7 @@ export default function Products() {
                       secondaryImage={product.secondaryImage}
                       alt={product.name}
                       sizes="(max-width: 768px) 80vw, (max-width: 1200px) 45vw, 340px"
-                      fitClassName="object-cover object-center group-hover:scale-105 transition-transform duration-600 ease-out"
+                      fitClassName="object-contain object-center group-hover:scale-[1.03] transition-transform duration-600 ease-out"
                     />
                     
                     {/* Wishlist Button (Stop propagation to avoid triggering link) */}
