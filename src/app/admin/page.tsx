@@ -343,19 +343,6 @@ export default function AdminPanel() {
   const [imageUploadStatus, setImageUploadStatus] = useState('');
   const [secondaryImageUploadError, setSecondaryImageUploadError] = useState('');
   const [secondaryImageUploadStatus, setSecondaryImageUploadStatus] = useState('');
-  const [cloudinaryHealth, setCloudinaryHealth] = useState<{
-    loading: boolean;
-    uploadWidgetReady: boolean;
-    logoWatermarkReady: boolean;
-    apiReachable: boolean | null;
-    message: string;
-  }>({
-    loading: true,
-    uploadWidgetReady: false,
-    logoWatermarkReady: false,
-    apiReachable: null,
-    message: 'Checking Cloudinary health...',
-  });
   
   const [newProduct, setNewProduct] = useState<Product>({
     id: '',
@@ -464,36 +451,6 @@ export default function AdminPanel() {
       };
 
       fetchOrders();
-
-      const fetchCloudinaryHealth = async () => {
-        try {
-          setCloudinaryHealth((prev) => ({ ...prev, loading: true }));
-          const response = await fetch('/api/health/cloudinary', { cache: 'no-store' });
-          if (!response.ok) {
-            throw new Error('Failed to fetch Cloudinary health');
-          }
-
-          const result = await response.json();
-          const data = result?.data;
-          setCloudinaryHealth({
-            loading: false,
-            uploadWidgetReady: Boolean(data?.uploadWidgetReady),
-            logoWatermarkReady: Boolean(data?.logoWatermarkReady),
-            apiReachable: data?.apiReachable === true ? true : data?.apiReachable === false ? false : null,
-            message: String(data?.message || 'Cloudinary health status loaded.'),
-          });
-        } catch {
-          setCloudinaryHealth({
-            loading: false,
-            uploadWidgetReady: false,
-            logoWatermarkReady: false,
-            apiReachable: null,
-            message: 'Cloudinary health check failed.',
-          });
-        }
-      };
-
-      fetchCloudinaryHealth();
 
       const fetchSalesTimer = async () => {
         try {
@@ -903,38 +860,6 @@ export default function AdminPanel() {
     }
   };
 
-  const processUploadedImageForStorefront = async (uploadInfo: any) => {
-    const secureUrl = String(uploadInfo?.secure_url || '').trim();
-    const publicId = String(uploadInfo?.public_id || '').trim();
-
-    if (!secureUrl && !publicId) {
-      throw new Error('Image upload succeeded but file metadata is missing');
-    }
-
-    const response = await fetch('/api/products/process-image', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ secureUrl, publicId }),
-    });
-
-    let result: any = null;
-    try {
-      result = await response.json();
-    } catch {
-      result = null;
-    }
-
-    if (!response.ok || !result?.success || !result?.data?.imageUrl) {
-      throw new Error(result?.message || 'Failed to process image with white background + logo');
-    }
-
-    return {
-      imageUrl: String(result.data.imageUrl),
-      logoApplied: Boolean(result?.data?.logoApplied),
-      watermarkMode: String(result?.data?.watermarkMode || 'text'),
-    };
-  };
-
   const currentProduct = editingProduct || editingSaleProduct || editingNewArrival || newProduct;
   const isSaleWorkflow = activeTab === 'sales' || showAddSaleForm || Boolean(editingSaleProduct);
 
@@ -1036,36 +961,12 @@ export default function AdminPanel() {
                 <div className="mb-10 p-8 bg-white/5 rounded-2xl border border-white/5">
                   <div className="flex items-center justify-between gap-3 mb-4">
                     <label className="block text-white/50 text-[10px] tracking-[0.2em] uppercase font-bold">Product Visuals</label>
-                    <span
-                      className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-[9px] font-bold tracking-[0.12em] uppercase border ${
-                        cloudinaryHealth.loading
-                          ? 'bg-white/10 text-white/70 border-white/20'
-                          : cloudinaryHealth.logoWatermarkReady && cloudinaryHealth.apiReachable !== false
-                            ? 'bg-emerald-500/15 text-emerald-300 border-emerald-400/40'
-                            : cloudinaryHealth.uploadWidgetReady
-                              ? 'bg-amber-500/15 text-amber-300 border-amber-400/40'
-                              : 'bg-red-500/15 text-red-300 border-red-400/40'
-                      }`}
-                    >
-                      <span className={`w-1.5 h-1.5 rounded-full ${
-                        cloudinaryHealth.loading
-                          ? 'bg-white/70'
-                          : cloudinaryHealth.logoWatermarkReady && cloudinaryHealth.apiReachable !== false
-                            ? 'bg-emerald-300'
-                            : cloudinaryHealth.uploadWidgetReady
-                              ? 'bg-amber-300'
-                              : 'bg-red-300'
-                      }`} />
-                      {cloudinaryHealth.loading
-                        ? 'Checking'
-                        : cloudinaryHealth.logoWatermarkReady && cloudinaryHealth.apiReachable !== false
-                          ? 'Premium Ready'
-                          : cloudinaryHealth.uploadWidgetReady
-                            ? 'Upload Ready'
-                            : 'Not Ready'}
+                    <span className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-[9px] font-bold tracking-[0.12em] uppercase border bg-emerald-500/15 text-emerald-300 border-emerald-400/40">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-300" />
+                      Upload Ready
                     </span>
                   </div>
-                  <p className="text-[10px] tracking-wide text-white/45 uppercase mb-5">{cloudinaryHealth.message}</p>
+                  <p className="text-[10px] tracking-wide text-white/45 uppercase mb-5">Uploaded image will be saved as-is.</p>
                   <div className="grid lg:grid-cols-2 gap-8">
                     <div>
                       <p className="text-white/70 text-xs font-bold tracking-[0.18em] uppercase mb-3">Primary Image</p>
@@ -1102,36 +1003,32 @@ export default function AdminPanel() {
                           onSuccess={async (result: any) => {
                             try {
                               const uploadInfo = result?.info;
+                              const imageUrl = String(uploadInfo?.secure_url || '').trim();
                               if (!uploadInfo) {
                                 setImageUploadError('Image upload failed: No URL returned');
                                 return;
                               }
-
-                              setImageUploadStatus('Processing premium finish...');
-                              const processed = await processUploadedImageForStorefront(uploadInfo);
+                              if (!imageUrl) {
+                                setImageUploadError('Image upload failed: Invalid image URL');
+                                return;
+                              }
 
                               setImageUploadError('');
-                              setImageUploadStatus(
-                                processed.watermarkMode === 'logo'
-                                  ? '✓ Primary image uploaded with white background + B&B logo'
-                                  : processed.watermarkMode === 'none'
-                                    ? '✓ Primary image uploaded (fallback/original used)'
-                                    : '✓ Primary image uploaded with white background'
-                              );
+                              setImageUploadStatus('✓ Primary image uploaded successfully');
                               setTimeout(() => setImageUploadStatus(''), 3000);
 
                               if (editingProduct) {
-                                setEditingProduct((prev) => (prev ? { ...prev, image: processed.imageUrl } : prev));
+                                setEditingProduct((prev) => (prev ? { ...prev, image: imageUrl } : prev));
                               } else if (editingSaleProduct) {
-                                setEditingSaleProduct((prev) => (prev ? { ...prev, image: processed.imageUrl } : prev));
+                                setEditingSaleProduct((prev) => (prev ? { ...prev, image: imageUrl } : prev));
                               } else if (editingNewArrival) {
-                                setEditingNewArrival((prev) => (prev ? { ...prev, image: processed.imageUrl } : prev));
+                                setEditingNewArrival((prev) => (prev ? { ...prev, image: imageUrl } : prev));
                               } else {
-                                setNewProduct((prev) => ({ ...prev, image: processed.imageUrl }));
+                                setNewProduct((prev) => ({ ...prev, image: imageUrl }));
                               }
                             } catch (error: any) {
                               setImageUploadStatus('');
-                              setImageUploadError(error?.message || 'Failed to process upload');
+                              setImageUploadError(error?.message || 'Failed to upload image');
                             }
                           }}
                           onError={(error: any) => {
@@ -1201,36 +1098,32 @@ export default function AdminPanel() {
                           onSuccess={async (result: any) => {
                             try {
                               const uploadInfo = result?.info;
+                              const imageUrl = String(uploadInfo?.secure_url || '').trim();
                               if (!uploadInfo) {
                                 setSecondaryImageUploadError('Secondary upload failed: No URL returned');
                                 return;
                               }
-
-                              setSecondaryImageUploadStatus('Processing premium finish...');
-                              const processed = await processUploadedImageForStorefront(uploadInfo);
+                              if (!imageUrl) {
+                                setSecondaryImageUploadError('Secondary upload failed: Invalid image URL');
+                                return;
+                              }
 
                               setSecondaryImageUploadError('');
-                              setSecondaryImageUploadStatus(
-                                processed.watermarkMode === 'logo'
-                                  ? '✓ Secondary image uploaded with white background + B&B logo'
-                                  : processed.watermarkMode === 'none'
-                                    ? '✓ Secondary image uploaded (fallback/original used)'
-                                    : '✓ Secondary image uploaded with white background'
-                              );
+                              setSecondaryImageUploadStatus('✓ Secondary image uploaded successfully');
                               setTimeout(() => setSecondaryImageUploadStatus(''), 3000);
 
                               if (editingProduct) {
-                                setEditingProduct((prev) => (prev ? { ...prev, secondaryImage: processed.imageUrl } : prev));
+                                setEditingProduct((prev) => (prev ? { ...prev, secondaryImage: imageUrl } : prev));
                               } else if (editingSaleProduct) {
-                                setEditingSaleProduct((prev) => (prev ? { ...prev, secondaryImage: processed.imageUrl } : prev));
+                                setEditingSaleProduct((prev) => (prev ? { ...prev, secondaryImage: imageUrl } : prev));
                               } else if (editingNewArrival) {
-                                setEditingNewArrival((prev) => (prev ? { ...prev, secondaryImage: processed.imageUrl } : prev));
+                                setEditingNewArrival((prev) => (prev ? { ...prev, secondaryImage: imageUrl } : prev));
                               } else {
-                                setNewProduct((prev) => ({ ...prev, secondaryImage: processed.imageUrl }));
+                                setNewProduct((prev) => ({ ...prev, secondaryImage: imageUrl }));
                               }
                             } catch (error: any) {
                               setSecondaryImageUploadStatus('');
-                              setSecondaryImageUploadError(error?.message || 'Failed to process secondary upload');
+                              setSecondaryImageUploadError(error?.message || 'Failed to upload secondary image');
                             }
                           }}
                           onError={(error: any) => {
