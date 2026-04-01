@@ -181,46 +181,90 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
     }
   }, [selectedColor, selectedSize, product]);
 
+  useEffect(() => {
+    if (!product?.colors || product.colors.length === 0) return;
+    if (!selectedColor) {
+      setSelectedColor(product.colors[0]);
+      return;
+    }
+
+    const selectedExists = product.colors.some(
+      (color) => String(color).trim().toLowerCase() === String(selectedColor).trim().toLowerCase()
+    );
+
+    if (!selectedExists) {
+      setSelectedColor(product.colors[0]);
+    }
+  }, [product, selectedColor]);
+
+  const colorImageMap = useMemo(() => {
+    if (!product) return new Map<string, string>();
+
+    const normalize = (value: unknown) => String(value || '').trim().toLowerCase();
+    const fallback = String(product.image || '').trim();
+    const map = new Map<string, string>();
+    const variantImages = Array.isArray(product.sizeColorImages) ? product.sizeColorImages : [];
+
+    const assignIfMissing = (colorKey: string, image: string) => {
+      const cleanImage = String(image || '').trim();
+      if (!cleanImage || map.has(colorKey)) return;
+      map.set(colorKey, cleanImage);
+    };
+
+    // Prefer selected-size specific image first when available.
+    if (selectedSize) {
+      variantImages.forEach((entry: any) => {
+        const colorKey = normalize(entry?.color);
+        if (!colorKey) return;
+
+        const entrySize = String(entry?.size ?? '').trim();
+        if (entrySize === String(selectedSize)) {
+          assignIfMissing(colorKey, String(entry?.image || ''));
+        }
+      });
+    }
+
+    // Fallback to any image for the same color.
+    variantImages.forEach((entry: any) => {
+      const colorKey = normalize(entry?.color);
+      if (!colorKey) return;
+      assignIfMissing(colorKey, String(entry?.image || ''));
+    });
+
+    if (Array.isArray(product.colors)) {
+      product.colors.forEach((color) => {
+        const colorKey = normalize(color);
+        if (!colorKey) return;
+        if (!map.has(colorKey) && fallback) {
+          map.set(colorKey, fallback);
+        }
+      });
+    }
+
+    return map;
+  }, [product, selectedSize]);
+
   const selectedDisplayImage = useMemo(() => {
     if (!product) return '';
 
     const fallback = String(product.image || '').trim();
-    const variantImages = Array.isArray(product.sizeColorImages) ? product.sizeColorImages : [];
-    if (!selectedColor || variantImages.length === 0) return fallback;
+    if (!selectedColor) return fallback;
 
-    const normalize = (value: unknown) => String(value || '').trim().toLowerCase();
-    const targetColor = normalize(selectedColor);
-
-    if (selectedSize) {
-      const exactBySizeAndColor = variantImages.find((entry: any) => {
-        const entryColor = normalize(entry?.color);
-        const entrySize = String(entry?.size ?? '').trim();
-        return entryColor === targetColor && entrySize === String(selectedSize);
-      });
-
-      const exactImage = String(exactBySizeAndColor?.image || '').trim();
-      if (exactImage) return exactImage;
-    }
-
-    const byColor = variantImages.find((entry: any) => normalize(entry?.color) === targetColor);
-    const colorImage = String(byColor?.image || '').trim();
-    return colorImage || fallback;
-  }, [product, selectedColor, selectedSize]);
+    const colorKey = String(selectedColor).trim().toLowerCase();
+    return colorImageMap.get(colorKey) || fallback;
+  }, [product, selectedColor, colorImageMap]);
 
   const colorImageOptions = useMemo(() => {
     if (!product || !Array.isArray(product.colors)) return [];
 
-    const variantImages = Array.isArray(product.sizeColorImages) ? product.sizeColorImages : [];
-    const normalize = (value: unknown) => String(value || '').trim().toLowerCase();
-
     return product.colors.map((color) => {
-      const found = variantImages.find((entry: any) => normalize(entry?.color) === normalize(color) && String(entry?.image || '').trim());
+      const colorKey = String(color).trim().toLowerCase();
       return {
         color,
-        image: String(found?.image || product.image || '').trim(),
+        image: String(colorImageMap.get(colorKey) || product.image || '').trim(),
       };
     }).filter((entry) => entry.image);
-  }, [product]);
+  }, [product, colorImageMap]);
 
   const handleSubmitReview = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
