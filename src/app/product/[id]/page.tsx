@@ -58,9 +58,6 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
         
         if (contextProduct) {
           setProduct(contextProduct);
-          if (contextProduct.colors && contextProduct.colors.length > 0) {
-            setSelectedColor(contextProduct.colors[0]);
-          }
           setLoading(false);
         } else if (!contextLoading) {
           // If not in context and context is loaded, fetch from API
@@ -69,9 +66,6 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
             const data = await response.json();
             const fetchedProduct = data?.data || data?.product || null;
             setProduct(fetchedProduct);
-            if (fetchedProduct?.colors && fetchedProduct.colors.length > 0) {
-              setSelectedColor(fetchedProduct.colors[0]);
-            }
           } else {
             setError('Product not found');
           }
