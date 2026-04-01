@@ -904,12 +904,40 @@ export default function AdminPanel() {
   };
 
   const setColorImage = (color: string, imageUrl: string) => {
-    const next = currentColorImages.filter(
-      (entry: any) => String(entry?.color || '').toLowerCase() !== color.toLowerCase()
-    );
+    const normalize = (value: unknown) => String(value || '').trim().toLowerCase();
 
-    next.push({ size: 0, color, image: imageUrl });
-    assignProductValue({ sizeColorImages: next as any });
+    const applyFor = (productState: Product | null) => {
+      if (!productState) return productState;
+
+      const existing = Array.isArray((productState as any).sizeColorImages)
+        ? (productState as any).sizeColorImages
+        : [];
+
+      const next = existing.filter(
+        (entry: any) => normalize(entry?.color) !== normalize(color)
+      );
+
+      next.push({ size: 0, color: String(color).trim(), image: String(imageUrl).trim() });
+      return { ...productState, sizeColorImages: next as any };
+    };
+
+    if (editingProduct) {
+      setEditingProduct((prev) => applyFor(prev));
+      return;
+    }
+    if (editingSaleProduct) {
+      setEditingSaleProduct((prev) => applyFor(prev));
+      return;
+    }
+    if (editingNewArrival) {
+      setEditingNewArrival((prev) => applyFor(prev));
+      return;
+    }
+
+    setNewProduct((prev) => {
+      const updated = applyFor(prev as Product | null);
+      return (updated || prev) as Product;
+    });
   };
 
   return (
