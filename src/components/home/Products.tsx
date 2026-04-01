@@ -147,13 +147,13 @@ export default function Products() {
                 <Link href={`/product/${product.id}`} className="h-full flex flex-col">
                   
                   {/* Image Section */}
-                  <div className="relative h-[195px] sm:h-[230px] lg:h-[245px] bg-[#FAF9F7] overflow-hidden p-3 rounded-xl border border-[#06080F]/45 shadow-[0_12px_24px_-18px_rgba(6,8,15,0.5)] transition-all duration-400 group-hover:border-[#06080F]/70">
+                  <div className="relative h-[195px] sm:h-[230px] lg:h-[245px] bg-[#FAF9F7] overflow-hidden rounded-xl border border-[#06080F]/45 shadow-[0_12px_24px_-18px_rgba(6,8,15,0.5)] transition-all duration-400 group-hover:border-[#06080F]/70">
                     <HoverSwapImage
                       primaryImage={product.image}
                       secondaryImage={product.secondaryImage}
                       alt={product.name}
                       sizes="(max-width: 768px) 80vw, (max-width: 1200px) 45vw, 340px"
-                      fitClassName="object-contain p-3 group-hover:scale-105 transition-transform duration-600 ease-out"
+                      fitClassName="object-cover object-center group-hover:scale-105 transition-transform duration-600 ease-out"
                     />
                     
                     {/* Wishlist Button (Stop propagation to avoid triggering link) */}

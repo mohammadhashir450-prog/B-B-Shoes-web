@@ -66,12 +66,12 @@ export default function WishlistPage() {
                   key={product.id}
                   className="group rounded-3xl overflow-hidden border border-white/10 bg-[#121A2F]/60 hover:border-[#D4AF37]/40 transition-all"
                 >
-                  <Link href={`/product/${product.id}`} className="block relative aspect-square bg-[#0B101E] p-6">
+                  <Link href={`/product/${product.id}`} className="block relative aspect-square bg-[#0B101E] overflow-hidden">
                     <Image
                       src={product.image || '/images/placeholder.jpg'}
                       alt={product.name}
                       fill
-                      className="object-contain p-4 group-hover:scale-105 transition-transform duration-500"
+                      className="object-cover object-center group-hover:scale-105 transition-transform duration-500"
                       unoptimized={Boolean(product.image?.includes('cloudinary'))}
                     />
                   </Link>
