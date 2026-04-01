@@ -158,6 +158,45 @@ export function validateOrder(order: any): {
 }
 
 /**
+ * Product Review Validation
+ */
+export function validateReview(review: any): {
+  isValid: boolean;
+  errors: string[];
+} {
+  const errors: string[] = [];
+  const name = String(review?.customerName || '').trim();
+  const email = String(review?.customerEmail || '').trim();
+  const comment = String(review?.comment || '').trim();
+  const rating = Number(review?.rating);
+
+  if (!name) {
+    errors.push('Customer name is required');
+  } else if (name.length < 2 || name.length > 80) {
+    errors.push('Customer name must be between 2 and 80 characters');
+  }
+
+  if (!email || !isValidEmail(email)) {
+    errors.push('Valid customer email is required');
+  }
+
+  if (!Number.isFinite(rating) || rating < 1 || rating > 5) {
+    errors.push('Rating must be between 1 and 5');
+  }
+
+  if (!comment) {
+    errors.push('Review comment is required');
+  } else if (comment.length < 10 || comment.length > 500) {
+    errors.push('Review comment must be between 10 and 500 characters');
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+  };
+}
+
+/**
  * User Registration Validation
  */
 export function validateRegistration(data: any): {

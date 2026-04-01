@@ -10,6 +10,21 @@ import { ChevronRight, ChevronDown, Star, Heart, ShoppingBag, Check, Loader2 } f
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 
+interface ProductReview {
+  id: string;
+  customerName: string;
+  rating: number;
+  comment: string;
+  isVerified: boolean;
+  createdAt: string;
+}
+
+interface ReviewSummary {
+  totalReviews: number;
+  averageRating: number;
+  ratingBreakdown: Record<1 | 2 | 3 | 4 | 5, number>;
+}
+
 export default function ProductDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
   const { addToCart } = useCart();
@@ -22,6 +37,17 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [reviews, setReviews] = useState<ProductReview[]>([]);
+  const [reviewSummary, setReviewSummary] = useState<ReviewSummary | null>(null);
+  const [reviewsLoading, setReviewsLoading] = useState(true);
+  const [reviewError, setReviewError] = useState('');
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
+  const [reviewForm, setReviewForm] = useState({
+    customerName: '',
+    customerEmail: '',
+    rating: 5,
+    comment: '',
+  });
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -59,6 +85,51 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
     
     fetchProduct();
   }, [params.id, getProductById, contextLoading]);
+
+  useEffect(() => {
+    const cachedName = typeof window !== 'undefined' ? localStorage.getItem('bb_review_name') : '';
+    const cachedEmail = typeof window !== 'undefined' ? localStorage.getItem('bb_review_email') : '';
+
+    setReviewForm((prev) => ({
+      ...prev,
+      customerName: cachedName || prev.customerName,
+      customerEmail: cachedEmail || prev.customerEmail,
+    }));
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchReviews = async () => {
+      try {
+        setReviewsLoading(true);
+        setReviewError('');
+
+        const response = await fetch(`/api/products/${params.id}/reviews`, { cache: 'no-store' });
+        const result = await response.json();
+
+        if (!response.ok || !result?.success) {
+          throw new Error(result?.message || 'Failed to fetch reviews');
+        }
+
+        if (!isMounted) return;
+        setReviews(Array.isArray(result?.data?.reviews) ? result.data.reviews : []);
+        setReviewSummary(result?.data?.summary || null);
+      } catch (err: any) {
+        if (!isMounted) return;
+        setReviewError(err?.message || 'Unable to load reviews right now');
+      } finally {
+        if (isMounted) {
+          setReviewsLoading(false);
+        }
+      }
+    };
+
+    fetchReviews();
+    return () => {
+      isMounted = false;
+    };
+  }, [params.id]);
 
   const handleAddToCart = () => {
     if (!selectedSize || !product) return;
@@ -151,6 +222,66 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
     }).filter((entry) => entry.image);
   }, [product]);
 
+  const handleSubmitReview = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!product) return;
+
+    try {
+      setReviewSubmitting(true);
+      setReviewError('');
+
+      const response = await fetch(`/api/products/${product.id}/reviews`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(reviewForm),
+      });
+
+      const result = await response.json();
+      if (!response.ok || !result?.success) {
+        const firstValidationError = Array.isArray(result?.errors) && result.errors.length > 0
+          ? String(result.errors[0])
+          : '';
+        throw new Error(firstValidationError || result?.message || 'Failed to submit review');
+      }
+
+      const createdReview = result?.data?.review;
+      const summary = result?.data?.summary;
+
+      if (createdReview) {
+        setReviews((prev) => [createdReview, ...prev]);
+      }
+
+      if (summary) {
+        setReviewSummary(summary);
+        setProduct((prev) => (
+          prev
+            ? {
+                ...prev,
+                rating: Number(summary.averageRating || 0),
+                reviews: Number(summary.totalReviews || 0),
+              }
+            : prev
+        ));
+      }
+
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('bb_review_name', reviewForm.customerName.trim());
+        localStorage.setItem('bb_review_email', reviewForm.customerEmail.trim());
+      }
+
+      setReviewForm((prev) => ({
+        ...prev,
+        rating: 5,
+        comment: '',
+      }));
+    } catch (err: any) {
+      setReviewError(err?.message || 'Failed to submit review');
+    } finally {
+      setReviewSubmitting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-white text-[#0B101E]">
@@ -188,6 +319,8 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
   const hasDiscountPricing = Boolean(product.originalPrice && product.originalPrice > product.price);
   const formattedOriginalPrice = hasDiscountPricing ? `PKR ${Number(product.originalPrice).toLocaleString()}` : '';
   const serialNumber = String(product.id || '').slice(-8).toUpperCase();
+  const displayedRating = reviewSummary?.averageRating ?? Number(product.rating || 0);
+  const displayedReviewCount = reviewSummary?.totalReviews ?? Number(product.reviews || 0);
 
   return (
     <div className="min-h-screen bg-white text-[#0B101E] relative overflow-hidden">
@@ -279,11 +412,11 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                     <Star
                       key={i}
                       size={18}
-                      className={i < (product.rating || 0) ? 'fill-[#D4AF37] text-[#D4AF37]' : 'fill-gray-300 text-gray-300'}
+                      className={i < displayedRating ? 'fill-[#D4AF37] text-[#D4AF37]' : 'fill-gray-300 text-gray-300'}
                     />
                   ))}
                 </div>
-                <span className="text-gray-500 text-sm">({product.reviews || 0} reviews)</span>
+                <span className="text-gray-500 text-sm">({displayedReviewCount} reviews)</span>
               </div>
 
               {/* Price */}
@@ -473,6 +606,138 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
             </div>
           </div>
 
+          <div className="grid lg:grid-cols-5 gap-8">
+            <div className="lg:col-span-2 bg-white rounded-3xl border border-gray-200 p-6 md:p-8 shadow-sm">
+              <h2 className="text-xl font-bold mb-2">Share Your Experience</h2>
+              <p className="text-sm text-gray-600 mb-6">Aapka honest review doosray buyers ko behtar decision lene me help karta hai.</p>
+
+              <form onSubmit={handleSubmitReview} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold tracking-wide uppercase text-gray-700 mb-2">Your Name</label>
+                  <input
+                    type="text"
+                    value={reviewForm.customerName}
+                    onChange={(e) => setReviewForm((prev) => ({ ...prev, customerName: e.target.value }))}
+                    maxLength={80}
+                    required
+                    className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#D4AF37]"
+                    placeholder="Enter your name"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold tracking-wide uppercase text-gray-700 mb-2">Email</label>
+                  <input
+                    type="email"
+                    value={reviewForm.customerEmail}
+                    onChange={(e) => setReviewForm((prev) => ({ ...prev, customerEmail: e.target.value }))}
+                    required
+                    className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#D4AF37]"
+                    placeholder="you@example.com"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold tracking-wide uppercase text-gray-700 mb-2">Rating</label>
+                  <div className="flex items-center gap-1">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        type="button"
+                        onClick={() => setReviewForm((prev) => ({ ...prev, rating: star }))}
+                        className="p-1"
+                        aria-label={`Rate ${star} stars`}
+                      >
+                        <Star
+                          className={star <= reviewForm.rating ? 'fill-[#D4AF37] text-[#D4AF37]' : 'text-gray-300'}
+                          size={22}
+                        />
+                      </button>
+                    ))}
+                    <span className="text-sm text-gray-500 ml-2">{reviewForm.rating}/5</span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold tracking-wide uppercase text-gray-700 mb-2">Review</label>
+                  <textarea
+                    value={reviewForm.comment}
+                    onChange={(e) => setReviewForm((prev) => ({ ...prev, comment: e.target.value }))}
+                    minLength={10}
+                    maxLength={500}
+                    required
+                    rows={5}
+                    className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm resize-none focus:outline-none focus:border-[#D4AF37]"
+                    placeholder="Fit, comfort, quality aur overall experience share karein..."
+                  />
+                  <p className="text-xs text-gray-500 mt-2">{reviewForm.comment.length}/500</p>
+                </div>
+
+                {reviewError ? (
+                  <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                    {reviewError}
+                  </div>
+                ) : null}
+
+                <button
+                  type="submit"
+                  disabled={reviewSubmitting}
+                  className="w-full bg-[#0B101E] text-white rounded-xl py-3.5 font-semibold tracking-wide disabled:opacity-60 disabled:cursor-not-allowed hover:bg-black transition-colors"
+                >
+                  {reviewSubmitting ? 'Submitting Review...' : 'Submit Review'}
+                </button>
+              </form>
+            </div>
+
+            <div className="lg:col-span-3 bg-white rounded-3xl border border-gray-200 p-6 md:p-8 shadow-sm">
+              <div className="flex items-center justify-between gap-4 mb-6">
+                <div>
+                  <h2 className="text-xl font-bold">Customer Reviews</h2>
+                  <p className="text-sm text-gray-600">Real feedback from people who explored this product.</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-3xl font-bold text-[#D4AF37]">{displayedRating.toFixed(1)}</p>
+                  <p className="text-xs text-gray-500 uppercase tracking-wide">Based on {displayedReviewCount} reviews</p>
+                </div>
+              </div>
+
+              {reviewsLoading ? (
+                <div className="py-12 flex items-center justify-center text-gray-500">
+                  <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                  Loading reviews...
+                </div>
+              ) : reviews.length === 0 ? (
+                <div className="py-12 text-center border border-dashed border-gray-300 rounded-2xl text-gray-600">
+                  <p className="font-semibold mb-2">No reviews yet</p>
+                  <p className="text-sm">Be the first one to share your experience.</p>
+                </div>
+              ) : (
+                <div className="space-y-4 max-h-[520px] overflow-y-auto pr-1">
+                  {reviews.map((review) => (
+                    <div key={review.id} className="border border-gray-200 rounded-2xl p-4 md:p-5">
+                      <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
+                        <div>
+                          <p className="font-semibold text-[#0B101E]">{review.customerName}</p>
+                          <p className="text-xs text-gray-500">{new Date(review.createdAt).toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          {[...Array(5)].map((_, index) => (
+                            <Star
+                              key={index}
+                              size={14}
+                              className={index < review.rating ? 'fill-[#D4AF37] text-[#D4AF37]' : 'text-gray-300'}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                      <p className="text-sm leading-relaxed text-gray-700">{review.comment}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -481,7 +746,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 bg-[#F5F5F5] rounded-lg overflow-hidden border border-gray-200">
-              <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+              <img src={selectedDisplayImage || product.image} alt={product.name} className="w-full h-full object-cover" />
             </div>
             <div>
               <p className="font-semibold text-sm">{product.name}</p>
