@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
@@ -67,7 +67,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
       id: `${product.id}-${selectedSize}-${selectedColor}`,
       name: product.name,
       price: product.price,
-      image: product.image,
+      image: selectedDisplayImage || product.image,
       size: selectedSize,
       color: selectedColor || 'Default',
       category: product.category
@@ -109,6 +109,47 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
       setSelectedSize(null);
     }
   }, [selectedColor, selectedSize, product]);
+
+  const selectedDisplayImage = useMemo(() => {
+    if (!product) return '';
+
+    const fallback = String(product.image || '').trim();
+    const variantImages = Array.isArray(product.sizeColorImages) ? product.sizeColorImages : [];
+    if (!selectedColor || variantImages.length === 0) return fallback;
+
+    const normalize = (value: unknown) => String(value || '').trim().toLowerCase();
+    const targetColor = normalize(selectedColor);
+
+    if (selectedSize) {
+      const exactBySizeAndColor = variantImages.find((entry: any) => {
+        const entryColor = normalize(entry?.color);
+        const entrySize = String(entry?.size ?? '').trim();
+        return entryColor === targetColor && entrySize === String(selectedSize);
+      });
+
+      const exactImage = String(exactBySizeAndColor?.image || '').trim();
+      if (exactImage) return exactImage;
+    }
+
+    const byColor = variantImages.find((entry: any) => normalize(entry?.color) === targetColor);
+    const colorImage = String(byColor?.image || '').trim();
+    return colorImage || fallback;
+  }, [product, selectedColor, selectedSize]);
+
+  const colorImageOptions = useMemo(() => {
+    if (!product || !Array.isArray(product.colors)) return [];
+
+    const variantImages = Array.isArray(product.sizeColorImages) ? product.sizeColorImages : [];
+    const normalize = (value: unknown) => String(value || '').trim().toLowerCase();
+
+    return product.colors.map((color) => {
+      const found = variantImages.find((entry: any) => normalize(entry?.color) === normalize(color) && String(entry?.image || '').trim());
+      return {
+        color,
+        image: String(found?.image || product.image || '').trim(),
+      };
+    }).filter((entry) => entry.image);
+  }, [product]);
 
   if (loading) {
     return (
@@ -172,7 +213,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
             <div>
               <div className="bg-[#F8F8F8] rounded-3xl overflow-hidden mb-6 aspect-square relative border border-gray-200">
                 <img 
-                  src={product.image} 
+                  src={selectedDisplayImage || product.image} 
                   alt={product.name}
                   className="w-full h-full object-cover"
                 />
@@ -182,6 +223,28 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                   </div>
                 )}
               </div>
+              {colorImageOptions.length > 1 && (
+                <div className="grid grid-cols-4 gap-3">
+                  {colorImageOptions.map((entry) => (
+                    <button
+                      key={entry.color}
+                      type="button"
+                      onClick={() => setSelectedColor(entry.color)}
+                      className={`rounded-xl overflow-hidden border-2 transition-all ${
+                        selectedColor === entry.color
+                          ? 'border-[#D4AF37] shadow-[0_0_0_1px_rgba(212,175,55,0.4)]'
+                          : 'border-gray-200 hover:border-[#0B101E]/50'
+                      }`}
+                      aria-label={`Select ${entry.color} image`}
+                    >
+                      <div className="relative aspect-square">
+                        <img src={entry.image} alt={`${entry.color} preview`} className="w-full h-full object-cover" />
+                      </div>
+                      <div className="text-[10px] font-semibold uppercase tracking-wide py-2 bg-white text-[#0B101E]">{entry.color}</div>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Right Side - Details */}

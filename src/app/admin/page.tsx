@@ -747,8 +747,7 @@ export default function AdminPanel() {
                   </button>
                 </div>
               </div>
-              
-              <button 
+              <button
                 type="submit" 
                 className="w-full group relative bg-[#D4AF37] text-[#0B101E] font-black py-4 rounded-2xl transition-all duration-300 uppercase tracking-[0.2em] text-[10px] hover:bg-white overflow-hidden mt-6"
               >
@@ -820,6 +819,21 @@ export default function AdminPanel() {
       });
       return next;
     });
+
+    const pruneVariantImages = (variants: any[] | undefined) => {
+      if (!Array.isArray(variants)) return [];
+      return variants.filter((entry) => String(entry?.color || '').toLowerCase() !== color.toLowerCase());
+    };
+
+    if (editingProduct) {
+      setEditingProduct((prev) => (prev ? { ...prev, sizeColorImages: pruneVariantImages((prev as any).sizeColorImages) } : prev));
+    } else if (editingSaleProduct) {
+      setEditingSaleProduct((prev) => (prev ? { ...prev, sizeColorImages: pruneVariantImages((prev as any).sizeColorImages) } : prev));
+    } else if (editingNewArrival) {
+      setEditingNewArrival((prev) => (prev ? { ...prev, sizeColorImages: pruneVariantImages((prev as any).sizeColorImages) } : prev));
+    } else {
+      setNewProduct((prev) => ({ ...prev, sizeColorImages: pruneVariantImages((prev as any).sizeColorImages) }));
+    }
   };
 
   const handleAction = async (method: string, url: string, body: any) => {
@@ -862,6 +876,41 @@ export default function AdminPanel() {
 
   const currentProduct = editingProduct || editingSaleProduct || editingNewArrival || newProduct;
   const isSaleWorkflow = activeTab === 'sales' || showAddSaleForm || Boolean(editingSaleProduct);
+  const currentColorImages = Array.isArray((currentProduct as any)?.sizeColorImages)
+    ? (currentProduct as any).sizeColorImages
+    : [];
+
+  const assignProductValue = (updates: Partial<Product>) => {
+    if (editingProduct) {
+      setEditingProduct((prev) => (prev ? { ...prev, ...updates } : prev));
+      return;
+    }
+    if (editingSaleProduct) {
+      setEditingSaleProduct((prev) => (prev ? { ...prev, ...updates } : prev));
+      return;
+    }
+    if (editingNewArrival) {
+      setEditingNewArrival((prev) => (prev ? { ...prev, ...updates } : prev));
+      return;
+    }
+    setNewProduct((prev) => ({ ...prev, ...updates }));
+  };
+
+  const getColorImage = (color: string) => {
+    const found = currentColorImages.find(
+      (entry: any) => String(entry?.color || '').toLowerCase() === color.toLowerCase() && String(entry?.image || '').trim()
+    );
+    return String(found?.image || '').trim();
+  };
+
+  const setColorImage = (color: string, imageUrl: string) => {
+    const next = currentColorImages.filter(
+      (entry: any) => String(entry?.color || '').toLowerCase() !== color.toLowerCase()
+    );
+
+    next.push({ size: 0, color, image: imageUrl });
+    assignProductValue({ sizeColorImages: next as any });
+  };
 
   return (
     <div className="min-h-screen bg-[#0B101E] text-white selection:bg-[#D4AF37]/30 selection:text-white relative overflow-x-hidden">
@@ -1016,16 +1065,7 @@ export default function AdminPanel() {
                               setImageUploadError('');
                               setImageUploadStatus('✓ Primary image uploaded successfully');
                               setTimeout(() => setImageUploadStatus(''), 3000);
-
-                              if (editingProduct) {
-                                setEditingProduct((prev) => (prev ? { ...prev, image: imageUrl } : prev));
-                              } else if (editingSaleProduct) {
-                                setEditingSaleProduct((prev) => (prev ? { ...prev, image: imageUrl } : prev));
-                              } else if (editingNewArrival) {
-                                setEditingNewArrival((prev) => (prev ? { ...prev, image: imageUrl } : prev));
-                              } else {
-                                setNewProduct((prev) => ({ ...prev, image: imageUrl }));
-                              }
+                              assignProductValue({ image: imageUrl });
                             } catch (error: any) {
                               setImageUploadStatus('');
                               setImageUploadError(error?.message || 'Failed to upload image');
@@ -1111,16 +1151,7 @@ export default function AdminPanel() {
                               setSecondaryImageUploadError('');
                               setSecondaryImageUploadStatus('✓ Secondary image uploaded successfully');
                               setTimeout(() => setSecondaryImageUploadStatus(''), 3000);
-
-                              if (editingProduct) {
-                                setEditingProduct((prev) => (prev ? { ...prev, secondaryImage: imageUrl } : prev));
-                              } else if (editingSaleProduct) {
-                                setEditingSaleProduct((prev) => (prev ? { ...prev, secondaryImage: imageUrl } : prev));
-                              } else if (editingNewArrival) {
-                                setEditingNewArrival((prev) => (prev ? { ...prev, secondaryImage: imageUrl } : prev));
-                              } else {
-                                setNewProduct((prev) => ({ ...prev, secondaryImage: imageUrl }));
-                              }
+                              assignProductValue({ secondaryImage: imageUrl });
                             } catch (error: any) {
                               setSecondaryImageUploadStatus('');
                               setSecondaryImageUploadError(error?.message || 'Failed to upload secondary image');
@@ -1155,8 +1186,78 @@ export default function AdminPanel() {
                       </div>
                     </div>
                   </div>
+                  {selectedColors.length > 0 && (
+                    <div className="mt-8 border-t border-white/10 pt-6">
+                      <label className="block text-white/50 text-[10px] tracking-[0.2em] uppercase font-bold mb-4">Color Variant Images</label>
+                      <p className="text-[10px] tracking-wide text-white/40 uppercase mb-5">Upload a dedicated image for each color. Product page switches image when user selects color.</p>
+                      <div className="grid md:grid-cols-2 gap-4">
+                        {selectedColors.map((color) => {
+                          const colorImage = getColorImage(color);
+                          return (
+                            <div key={color} className="p-4 bg-white/5 border border-white/10 rounded-xl">
+                              <div className="flex items-center justify-between mb-3">
+                                <p className="text-sm font-bold text-white">{color}</p>
+                                {colorImage ? <span className="text-[10px] text-emerald-300 uppercase tracking-[0.14em]">Assigned</span> : <span className="text-[10px] text-white/40 uppercase tracking-[0.14em]">Not assigned</span>}
+                              </div>
+                              <div className="w-full h-32 rounded-lg border border-white/10 bg-white overflow-hidden relative mb-3">
+                                {colorImage ? (
+                                  <Image
+                                    src={colorImage}
+                                    alt={`${color} variant`}
+                                    fill
+                                    className="object-cover"
+                                    unoptimized={colorImage.includes('cloudinary')}
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center text-xs text-black/50">No image</div>
+                                )}
+                              </div>
+                              <CldUploadWidget
+                                uploadPreset="bb_web"
+                                options={{
+                                  cloudName: 'dt2ikjlfc',
+                                  sources: ['local', 'url', 'camera'],
+                                  multiple: false,
+                                  maxFiles: 1,
+                                  maxFileSize: 5000000,
+                                  clientAllowedFormats: ['png', 'jpg', 'jpeg', 'webp'],
+                                  folder: 'bb_shoes'
+                                }}
+                                onSuccess={async (result: any) => {
+                                  const uploadInfo = result?.info;
+                                  const imageUrl = String(uploadInfo?.secure_url || '').trim();
+
+                                  if (!imageUrl) {
+                                    setImageUploadError(`Variant upload failed for ${color}`);
+                                    return;
+                                  }
+
+                                  setColorImage(color, imageUrl);
+                                  setImageUploadError('');
+                                  setImageUploadStatus(`✓ ${color} variant image uploaded`);
+                                  setTimeout(() => setImageUploadStatus(''), 3000);
+                                }}
+                                onError={(error: any) => {
+                                  setImageUploadError(`Upload failed for ${color}: ${error?.message || 'Unknown error'}`);
+                                }}
+                              >
+                                {({ open }) => (
+                                  <button
+                                    type="button"
+                                    onClick={() => open()}
+                                    className="w-full bg-white/10 border border-white/20 text-white px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-[0.12em] hover:bg-white/20 transition-all"
+                                  >
+                                    Upload {color} Image
+                                  </button>
+                                )}
+                              </CldUploadWidget>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                   <p className="text-[10px] tracking-wide text-white/30 uppercase mt-5">Recommended: 800x800px PNG/WEBP/JPG for smooth hover transitions</p>
-                  <p className="text-[10px] tracking-wide text-[#D4AF37]/80 uppercase mt-2">Auto processing: White background + B&B logo watermark (top-right)</p>
                 </div>
 
                 {/* Form Fields Grid */}
@@ -1545,6 +1646,24 @@ export default function AdminPanel() {
                         }))
                       ));
 
+                      const variantMap = new Map<string, { size: number; color: string; image: string }>();
+                      const rawVariantImages = Array.isArray((currentProduct as any).sizeColorImages)
+                        ? (currentProduct as any).sizeColorImages
+                        : [];
+
+                      rawVariantImages.forEach((entry: any) => {
+                        const color = String(entry?.color || '').trim();
+                        const image = String(entry?.image || '').trim();
+                        if (!color || !image) return;
+                        if (!normalizedColors.some((existing) => existing.toLowerCase() === color.toLowerCase())) return;
+
+                        variantMap.set(color.toLowerCase(), {
+                          size: Number(entry?.size) || 0,
+                          color,
+                          image,
+                        });
+                      });
+
                       const hasAnyAvailableSize = sizeStockPayload.some((entry) => entry.quantity > 0);
                       const computedStock = sizeStockPayload.reduce((sum, entry) => sum + entry.quantity, 0);
                       const shouldUseSizeInventory = hasAnyAvailableSize;
@@ -1554,6 +1673,7 @@ export default function AdminPanel() {
                         brand: 'B&B', 
                         sizes: normalizedSizes.map((entry) => entry.numeric), 
                         colors: normalizedColors, 
+                        sizeColorImages: Array.from(variantMap.values()),
                         sizeStock: shouldUseSizeInventory ? sizeStockPayload : [],
                         isOnSale: saleActive,
                         isNewArrival: activeTab === 'newarrivals' || showAddNewArrivalForm,
@@ -1699,8 +1819,9 @@ export default function AdminPanel() {
                         <button 
                           onClick={() => {
                             setEditingProduct(p);
-                            setSelectedSizes((p.sizes || []).map((s) => String(s))); setSelectedColors(p.colors || []);
-                            setSizeInventory(buildInventoryMap((p.sizes || []).map((s) => String(s)), (p.colors || DEFAULT_COLORS), (p as any).sizeStock));
+                            const safeColors = (p.colors || []).length > 0 ? (p.colors || []) : DEFAULT_COLORS;
+                            setSelectedSizes((p.sizes || []).map((s) => String(s))); setSelectedColors(safeColors);
+                            setSizeInventory(buildInventoryMap((p.sizes || []).map((s) => String(s)), safeColors, (p as any).sizeStock));
                           }} 
                           className="flex-1 bg-white/5 border border-white/10 text-white/70 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all flex items-center justify-center gap-2"
                         >
@@ -2146,8 +2267,9 @@ export default function AdminPanel() {
                         <button 
                           onClick={() => {
                             setEditingSaleProduct(p);
-                            setSelectedSizes((p.sizes || []).map((s) => String(s))); setSelectedColors(p.colors || []);
-                            setSizeInventory(buildInventoryMap((p.sizes || []).map((s) => String(s)), (p.colors || DEFAULT_COLORS), (p as any).sizeStock));
+                            const safeColors = (p.colors || []).length > 0 ? (p.colors || []) : DEFAULT_COLORS;
+                            setSelectedSizes((p.sizes || []).map((s) => String(s))); setSelectedColors(safeColors);
+                            setSizeInventory(buildInventoryMap((p.sizes || []).map((s) => String(s)), safeColors, (p as any).sizeStock));
                           }} 
                           className="flex-1 bg-white/5 border border-white/10 text-white/70 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all flex items-center justify-center gap-2"
                         >
@@ -2235,8 +2357,9 @@ export default function AdminPanel() {
                         <button 
                           onClick={() => {
                             setEditingNewArrival(p);
-                            setSelectedSizes((p.sizes || []).map((s) => String(s))); setSelectedColors(p.colors || []);
-                            setSizeInventory(buildInventoryMap((p.sizes || []).map((s) => String(s)), (p.colors || DEFAULT_COLORS), (p as any).sizeStock));
+                            const safeColors = (p.colors || []).length > 0 ? (p.colors || []) : DEFAULT_COLORS;
+                            setSelectedSizes((p.sizes || []).map((s) => String(s))); setSelectedColors(safeColors);
+                            setSizeInventory(buildInventoryMap((p.sizes || []).map((s) => String(s)), safeColors, (p as any).sizeStock));
                           }} 
                           className="flex-1 bg-white/5 border border-white/10 text-white/70 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all flex items-center justify-center gap-2"
                         >
