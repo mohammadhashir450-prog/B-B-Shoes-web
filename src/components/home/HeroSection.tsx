@@ -77,12 +77,13 @@ export default function HeroSection() {
                 className="w-full h-full"
               >
                 <Image
-                  src="https://images.pexels.com/photos/27100515/pexels-photo-27100515.jpeg?auto=compress&cs=tinysrgb&w=1800"
-                alt="B&B Premium Shoes"
+                  src="https://res.cloudinary.com/dt2ikjlfc/image/upload/v1775127417/bb-shoes/hero/hero-purple-sandals.jpg"
+                  alt="B&B Premium Stylish Sandals"
                   fill
                   priority
                   sizes="100vw"
-                  className="object-cover object-center grayscale contrast-125 brightness-95"
+                  className="object-cover object-center"
+                  unoptimized
                 />
               </motion.div>
             </div>
