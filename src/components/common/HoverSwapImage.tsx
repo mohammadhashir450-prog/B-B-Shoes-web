@@ -1,3 +1,6 @@
+'use client'
+
+import { useEffect, useState } from 'react'
 import Image from 'next/image'
 
 type HoverSwapImageProps = {
@@ -19,6 +22,58 @@ export default function HoverSwapImage({
 }: HoverSwapImageProps) {
   const primary = primaryImage || '/images/placeholder.jpg'
   const secondary = secondaryImage && secondaryImage.trim() !== '' ? secondaryImage : null
+  const [isMobilePreviewVisible, setIsMobilePreviewVisible] = useState(false)
+
+  useEffect(() => {
+    if (!secondary || typeof window === 'undefined') {
+      return
+    }
+
+    const mediaQuery = window.matchMedia('(max-width: 767px)')
+    let intervalId: number | null = null
+
+    const stopPreviewLoop = () => {
+      if (intervalId !== null) {
+        window.clearInterval(intervalId)
+        intervalId = null
+      }
+    }
+
+    const startPreviewLoop = () => {
+      stopPreviewLoop()
+
+      if (!mediaQuery.matches) {
+        setIsMobilePreviewVisible(false)
+        return
+      }
+
+      setIsMobilePreviewVisible(false)
+      intervalId = window.setInterval(() => {
+        setIsMobilePreviewVisible((prev) => !prev)
+      }, 2000)
+    }
+
+    const handleMediaChange = () => {
+      startPreviewLoop()
+    }
+
+    startPreviewLoop()
+
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', handleMediaChange)
+    } else {
+      mediaQuery.addListener(handleMediaChange)
+    }
+
+    return () => {
+      stopPreviewLoop()
+      if (mediaQuery.removeEventListener) {
+        mediaQuery.removeEventListener('change', handleMediaChange)
+      } else {
+        mediaQuery.removeListener(handleMediaChange)
+      }
+    }
+  }, [secondary])
 
   const wrapperClassName = className
     ? `relative block w-full h-full overflow-hidden ${className}`
@@ -31,7 +86,7 @@ export default function HoverSwapImage({
         alt={alt}
         fill
         sizes={sizes}
-        className={`${fitClassName} transition-opacity duration-500 ${secondary ? 'md:group-hover:opacity-0 md:mobile-primary-swap' : ''}`}
+        className={`${fitClassName} transition-opacity duration-500 ${secondary ? 'md:group-hover:opacity-0' : ''} ${secondary && isMobilePreviewVisible ? 'opacity-0' : 'opacity-100'}`}
         unoptimized={primary.includes('cloudinary')}
         onError={(e) => {
           const target = e.target as HTMLImageElement
@@ -45,54 +100,13 @@ export default function HoverSwapImage({
           alt={`${alt} alternate view`}
           fill
           sizes={sizes}
-          className={`${fitClassName} opacity-0 md:block md:opacity-0 md:group-hover:opacity-100 md:mobile-secondary-swap transition-opacity duration-500`}
+          className={`${fitClassName} transition-opacity duration-500 opacity-0 md:block md:opacity-0 md:group-hover:opacity-100 ${isMobilePreviewVisible ? 'opacity-100' : 'opacity-0'}`}
           unoptimized={secondary.includes('cloudinary')}
           onError={(e) => {
             const target = e.target as HTMLImageElement
             target.src = primary
           }}
         />
-      ) : null}
-
-      {secondary ? (
-        <style jsx>{`
-          .mobile-primary-swap {
-            animation: primarySwap 4.8s ease-in-out infinite;
-          }
-
-          .mobile-secondary-swap {
-            animation: secondarySwap 4.8s ease-in-out infinite;
-          }
-
-          @media (min-width: 768px) {
-            .mobile-primary-swap,
-            .mobile-secondary-swap {
-              animation: none;
-            }
-          }
-
-          @keyframes primarySwap {
-            0%,
-            44% {
-              opacity: 1;
-            }
-            56%,
-            100% {
-              opacity: 0;
-            }
-          }
-
-          @keyframes secondarySwap {
-            0%,
-            44% {
-              opacity: 0;
-            }
-            56%,
-            100% {
-              opacity: 1;
-            }
-          }
-        `}</style>
       ) : null}
     </div>
   )
