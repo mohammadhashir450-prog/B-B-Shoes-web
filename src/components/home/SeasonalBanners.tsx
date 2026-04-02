@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -24,40 +24,63 @@ export default function SeasonalBanners() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [loading, setLoading] = useState(true)
   const sliderRef = useRef<HTMLDivElement>(null)
+  const refreshTimerRef = useRef<number | null>(null)
+  const fetchBannersRef = useRef<() => void>(() => {})
+  const scheduleRefreshRef = useRef<(items: ISeasonalBanner[]) => void>(() => {})
+
+  const clearRefreshTimer = () => {
+    if (refreshTimerRef.current !== null) {
+      window.clearTimeout(refreshTimerRef.current)
+      refreshTimerRef.current = null
+    }
+  }
 
   useEffect(() => {
-    let isMounted = true
+    scheduleRefreshRef.current = (items: ISeasonalBanner[]) => {
+      clearRefreshTimer()
 
-    const fetchBanners = async () => {
-      try {
-        const response = await fetch('/api/settings/seasonal-banners', { cache: 'no-store' })
-        const result = await response.json()
-        if (!isMounted) {
-          return
-        }
+      const now = Date.now()
+      const activeEndTimes = items
+        .map((item) => new Date(item.endDate).getTime())
+        .filter((endTime) => Number.isFinite(endTime) && endTime > now)
 
-        setBanners(result?.data || [])
-      } catch (error) {
-        console.error('Failed to fetch seasonal banners:', error)
-        if (isMounted) {
-          setBanners([])
-        }
-      } finally {
-        if (isMounted) {
-          setLoading(false)
-        }
-      }
-    }
+      const nextRefreshAt = activeEndTimes.length > 0 ? Math.min(...activeEndTimes) + 1000 : now + 30000
+      const delay = Math.max(5000, nextRefreshAt - now)
 
-    fetchBanners()
-
-    const refreshTimer = setInterval(fetchBanners, 60000)
-
-    return () => {
-      isMounted = false
-      clearInterval(refreshTimer)
+      refreshTimerRef.current = window.setTimeout(() => {
+        fetchBannersRef.current()
+      }, delay)
     }
   }, [])
+
+  const fetchBanners = useCallback(async () => {
+    try {
+      const response = await fetch('/api/settings/seasonal-banners', { cache: 'no-store' })
+      const result = await response.json()
+      const nextBanners = result?.data || []
+      setBanners(nextBanners)
+      setCurrentIndex((prev) => (nextBanners.length ? Math.min(prev, nextBanners.length - 1) : 0))
+      scheduleRefreshRef.current(nextBanners)
+    } catch (error) {
+      console.error('Failed to fetch seasonal banners:', error)
+      setBanners([])
+      scheduleRefreshRef.current([])
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchBannersRef.current = fetchBanners
+  }, [fetchBanners])
+
+  useEffect(() => {
+    fetchBanners()
+
+    return () => {
+      clearRefreshTimer()
+    }
+  }, [fetchBanners])
 
   // Auto-rotate banners
   useEffect(() => {

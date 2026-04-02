@@ -11,6 +11,7 @@ interface SeasonalBannerSummary {
   season: 'Summer' | 'Winter' | 'Spring' | 'Fall'
   title: string
   description?: string
+  endDate?: string
 }
 
 export default function HeroSection() {
@@ -24,6 +25,30 @@ export default function HeroSection() {
 
   useEffect(() => {
     let isMounted = true
+    let refreshTimer: number | null = null
+
+    const clearRefreshTimer = () => {
+      if (refreshTimer !== null) {
+        window.clearTimeout(refreshTimer)
+        refreshTimer = null
+      }
+    }
+
+    const scheduleRefresh = (items: SeasonalBannerSummary[]) => {
+      clearRefreshTimer()
+
+      const now = Date.now()
+      const activeEndTimes = items
+        .map((item) => item.endDate ? new Date(item.endDate).getTime() : NaN)
+        .filter((endTime) => Number.isFinite(endTime) && endTime > now)
+
+      const nextRefreshAt = activeEndTimes.length > 0 ? Math.min(...activeEndTimes) + 1000 : now + 30000
+      const delay = Math.max(5000, nextRefreshAt - now)
+
+      refreshTimer = window.setTimeout(() => {
+        fetchFeaturedBanner()
+      }, delay)
+    }
 
     const fetchFeaturedBanner = async () => {
       try {
@@ -36,19 +61,20 @@ export default function HeroSection() {
         }
 
         setFeaturedBanner(banners[0] || null)
+        scheduleRefresh(banners)
       } catch {
         if (isMounted) {
           setFeaturedBanner(null)
+          scheduleRefresh([])
         }
       }
     }
 
     fetchFeaturedBanner()
-    const timer = window.setInterval(fetchFeaturedBanner, 60000)
 
     return () => {
       isMounted = false
-      window.clearInterval(timer)
+      clearRefreshTimer()
     }
   }, [])
 
