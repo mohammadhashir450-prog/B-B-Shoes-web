@@ -8,6 +8,7 @@ import { Package, ShoppingCart, Users, Plus, Edit2, Trash2, X, Save, Camera, Upl
 import { CldUploadWidget } from 'next-cloudinary';
 import { useProducts, Product } from '@/context/ProductContext';
 import StockControl from '@/components/admin/StockControl';
+import AdminSeasonalBanners from '@/components/admin/AdminSeasonalBanners';
 
 interface Order {
   id: string;
@@ -976,6 +977,7 @@ export default function AdminPanel() {
             { key: 'products', label: 'Portfolio', icon: Package },
             { key: 'stock', label: 'Stock Control', icon: PackageCheck },
             { key: 'sales', label: 'Sales Event', icon: Tag },
+            { key: 'seasonal-banners', label: 'Seasonal', icon: Sparkles },
             { key: 'newarrivals', label: 'New Drops', icon: Sparkles },
             { key: 'orders', label: 'Concierge (Orders)', icon: ShoppingCart },
             { key: 'analytics', label: 'Analytics', icon: BarChart3 }
@@ -2463,6 +2465,13 @@ export default function AdminPanel() {
                 ))}
               </div>
             )}
+          </motion.div>
+        )}
+
+        {/* --- SEASONAL BANNERS TAB --- */}
+        {activeTab === 'seasonal-banners' && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }} className="space-y-6">
+            <AdminSeasonalBanners />
           </motion.div>
         )}
 
