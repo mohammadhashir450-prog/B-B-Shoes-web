@@ -83,6 +83,30 @@ export default function AdminSeasonalBanners() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setMessage('')
+
+    if (!formData.title?.trim()) {
+      setMessage('❌ Title is required')
+      return
+    }
+
+    if (!formData.bannerImage) {
+      setMessage('❌ Banner image is required')
+      return
+    }
+
+    if (!formData.startDate || !formData.endDate) {
+      setMessage('❌ Start date and end date are required')
+      return
+    }
+
+    const start = new Date(formData.startDate)
+    const end = new Date(formData.endDate)
+    if (start >= end) {
+      setMessage('❌ End date must be after start date')
+      return
+    }
+
     setSaving(true)
 
     try {
@@ -113,6 +137,27 @@ export default function AdminSeasonalBanners() {
     } finally {
       setSaving(false)
     }
+  }
+
+  const toInputDateTime = (date: Date) => {
+    const pad = (value: number) => value.toString().padStart(2, '0')
+    const year = date.getFullYear()
+    const month = pad(date.getMonth() + 1)
+    const day = pad(date.getDate())
+    const hours = pad(date.getHours())
+    const minutes = pad(date.getMinutes())
+    return `${year}-${month}-${day}T${hours}:${minutes}`
+  }
+
+  const applyQuickSchedule = (days: number) => {
+    const now = new Date()
+    const end = new Date(now.getTime() + days * 24 * 60 * 60 * 1000)
+    setFormData((prev) => ({
+      ...prev,
+      startDate: toInputDateTime(now),
+      endDate: toInputDateTime(end),
+      isActive: true,
+    }))
   }
 
   const handleDelete = async (id: string) => {
@@ -184,6 +229,13 @@ export default function AdminSeasonalBanners() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="rounded-xl border border-[#D4AF37]/25 bg-[#D4AF37]/5 p-4">
+                <p className="text-xs text-[#F5E7B8] tracking-wide">
+                  Easy setup: 1) Choose season 2) Add title 3) Upload image 4) Set dates 5) Save.
+                  Banner will auto show/hide based on date timer.
+                </p>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Season */}
                 <div>
@@ -198,6 +250,7 @@ export default function AdminSeasonalBanners() {
                     <option value="Spring">Spring</option>
                     <option value="Fall">Fall</option>
                   </select>
+                  <p className="text-[11px] text-white/40 mt-1">This season name appears in hero section (e.g., Summer Collection).</p>
                 </div>
 
                 {/* Title */}
@@ -207,9 +260,10 @@ export default function AdminSeasonalBanners() {
                     type="text"
                     value={formData.title || ''}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    placeholder="e.g., Summer Clearance Sale"
+                    placeholder="e.g., Summer Collection 2026"
                     className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white placeholder-white/30 focus:outline-none focus:border-[#D4AF37]"
                   />
+                  <p className="text-[11px] text-white/40 mt-1">Short and clear title is best.</p>
                 </div>
 
                 {/* Description */}
@@ -235,6 +289,7 @@ export default function AdminSeasonalBanners() {
                     max="100"
                     className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[#D4AF37]"
                   />
+                  <p className="text-[11px] text-white/40 mt-1">Set 0 if this is a collection banner without discount.</p>
                 </div>
 
                 {/* Link URL */}
@@ -247,6 +302,7 @@ export default function AdminSeasonalBanners() {
                     placeholder="/collections"
                     className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white placeholder-white/30 focus:outline-none focus:border-[#D4AF37]"
                   />
+                  <p className="text-[11px] text-white/40 mt-1">Where user goes after clicking banner. Example: /collections or /sales</p>
                 </div>
 
                 {/* Start Date */}
@@ -269,6 +325,40 @@ export default function AdminSeasonalBanners() {
                     onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                     className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[#D4AF37]"
                   />
+                </div>
+
+                <div className="md:col-span-2">
+                  <p className="text-xs text-white/60 mb-2">Quick Timer Presets</p>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => applyQuickSchedule(7)}
+                      className="px-3 py-1.5 rounded-full text-[10px] tracking-[0.12em] uppercase border border-white/15 text-white/70 hover:border-[#D4AF37] hover:text-[#D4AF37] transition-all"
+                    >
+                      7 Days
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => applyQuickSchedule(15)}
+                      className="px-3 py-1.5 rounded-full text-[10px] tracking-[0.12em] uppercase border border-white/15 text-white/70 hover:border-[#D4AF37] hover:text-[#D4AF37] transition-all"
+                    >
+                      15 Days
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => applyQuickSchedule(30)}
+                      className="px-3 py-1.5 rounded-full text-[10px] tracking-[0.12em] uppercase border border-white/15 text-white/70 hover:border-[#D4AF37] hover:text-[#D4AF37] transition-all"
+                    >
+                      30 Days
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => applyQuickSchedule(60)}
+                      className="px-3 py-1.5 rounded-full text-[10px] tracking-[0.12em] uppercase border border-white/15 text-white/70 hover:border-[#D4AF37] hover:text-[#D4AF37] transition-all"
+                    >
+                      60 Days
+                    </button>
+                  </div>
                 </div>
 
                 {/* Display Order */}
@@ -322,6 +412,7 @@ export default function AdminSeasonalBanners() {
                     </button>
                   )}
                 </CldUploadWidget>
+                <p className="text-[11px] text-white/40 mt-1">Recommended size: 1400x600 or larger.</p>
                 {formData.bannerImage && (
                   <div className="mt-4 relative h-40 rounded-lg overflow-hidden border border-white/10">
                     <Image
