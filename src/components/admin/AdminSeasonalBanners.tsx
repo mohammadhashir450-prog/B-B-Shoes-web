@@ -21,6 +21,7 @@ interface ISeasonalBanner {
 }
 
 export default function AdminSeasonalBanners() {
+  const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'bb_web'
   const [banners, setBanners] = useState<ISeasonalBanner[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
@@ -299,9 +300,13 @@ export default function AdminSeasonalBanners() {
               <div>
                 <label className="text-sm text-white/70 font-bold mb-2 block">Banner Image</label>
                 <CldUploadWidget
-                  uploadPreset="bb_shoes_banner"
+                  uploadPreset={uploadPreset}
                   onSuccess={(result: any) => {
                     setFormData({ ...formData, bannerImage: result.info.secure_url })
+                    setMessage('✅ Banner image uploaded successfully')
+                  }}
+                  onError={() => {
+                    setMessage(`❌ Upload failed. Check Cloudinary upload preset: ${uploadPreset}`)
                   }}
                 >
                   {({ open }) => (
