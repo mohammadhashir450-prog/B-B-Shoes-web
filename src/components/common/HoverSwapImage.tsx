@@ -10,6 +10,8 @@ type HoverSwapImageProps = {
   sizes: string
   className?: string
   fitClassName?: string
+  priority?: boolean
+  quality?: number
 }
 
 export default function HoverSwapImage({
@@ -19,6 +21,8 @@ export default function HoverSwapImage({
   sizes,
   className,
   fitClassName = 'object-cover',
+  priority = false,
+  quality = 85,
 }: HoverSwapImageProps) {
   const primary = primaryImage || '/images/placeholder.jpg'
   const secondary = secondaryImage && secondaryImage.trim() !== '' ? secondaryImage : null
@@ -86,8 +90,9 @@ export default function HoverSwapImage({
         alt={alt}
         fill
         sizes={sizes}
+        priority={priority}
+        quality={quality}
         className={`${fitClassName} transition-opacity duration-500 ${secondary ? 'md:group-hover:opacity-0' : ''} ${secondary && isMobilePreviewVisible ? 'opacity-0' : 'opacity-100'}`}
-        unoptimized={primary.includes('cloudinary')}
         onError={(e) => {
           const target = e.target as HTMLImageElement
           target.src = '/images/placeholder.jpg'
@@ -100,8 +105,8 @@ export default function HoverSwapImage({
           alt={`${alt} alternate view`}
           fill
           sizes={sizes}
+          quality={quality}
           className={`${fitClassName} transition-opacity duration-500 opacity-0 md:block md:opacity-0 md:group-hover:opacity-100 ${isMobilePreviewVisible ? 'opacity-100' : 'opacity-0'}`}
-          unoptimized={secondary.includes('cloudinary')}
           onError={(e) => {
             const target = e.target as HTMLImageElement
             target.src = primary

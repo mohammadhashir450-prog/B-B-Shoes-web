@@ -94,6 +94,8 @@ export default function SeasonalBanners() {
                       src={currentBanner.bannerImage}
                       alt={currentBanner.title}
                       fill
+                      priority
+                      quality={90}
                       sizes="(max-width: 768px) 100vw, 45vw"
                       className="object-cover group-hover:scale-105 transition-transform duration-700"
                     />

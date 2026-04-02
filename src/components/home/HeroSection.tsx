@@ -81,9 +81,9 @@ export default function HeroSection() {
                   alt="B&B Premium Stylish Sandals"
                   fill
                   priority
+                  quality={90}
                   sizes="100vw"
                   className="object-cover object-center"
-                  unoptimized
                 />
               </motion.div>
             </div>

@@ -493,7 +493,7 @@ export default function Navbar() {
           {/* Center: Logo */}
           <div className="absolute inset-x-0 flex justify-center pointer-events-none z-10">
             <Link href="/" className="pointer-events-auto flex items-center justify-center group">
-              <Image src="/logo.png" alt="Logo" width={100} height={40} priority className="w-[82px] sm:w-[94px] md:w-[100px] h-auto" />
+              <Image src="/logo.png" alt="Logo" width={100} height={40} priority loading="eager" className="w-[82px] sm:w-[94px] md:w-[100px] h-auto" />
             </Link>
           </div>
 

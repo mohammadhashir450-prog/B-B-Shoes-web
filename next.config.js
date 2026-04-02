@@ -1,5 +1,21 @@
 /** @type {import('next').NextConfig} */
 
+// Cloudinary image loader for optimized delivery
+const cloudinaryLoader = ({ src, width, quality }) => {
+  if (!src.includes('cloudinary')) {
+    return src;
+  }
+  
+  const params = [
+    'f_auto', // Auto-detect best format (WebP, AVIF, etc.)
+    'q_auto', // Auto-detect best quality
+    `c_limit`, // Limit dimensions
+    `w_${width}`, // Set width
+  ];
+  
+  return `${src}?${params.join('&')}`;
+};
+
 const nextConfig = {
 
   // Image Optimization
@@ -60,11 +76,14 @@ const nextConfig = {
 
     // Use WebP format for better performance
 
-    formats: ['image/webp'],
+    formats: ['image/webp', 'image/avif'],
 
-    // Cache optimized images for 60 seconds minimum
+    // Cache optimized images for longer period (7 days)
 
-    minimumCacheTTL: 60,
+    minimumCacheTTL: 604800,
+
+    // Custom Cloudinary loader for optimization
+    loader: cloudinaryLoader,
 
     // Enable image optimization
 

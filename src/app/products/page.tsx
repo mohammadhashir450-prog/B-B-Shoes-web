@@ -105,6 +105,8 @@ export default function ProductsPage() {
                           alt={product.name}
                           sizes="(max-width: 768px) 80vw, (max-width: 1200px) 45vw, 340px"
                           fitClassName="object-contain object-center group-hover:scale-[1.03] transition-transform duration-600 ease-out"
+                          priority={index < 8}
+                          quality={85}
                         />
 
                         {/* Wishlist Button */}
