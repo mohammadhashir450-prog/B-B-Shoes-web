@@ -1,10 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, Edit2, Trash2, X, Save, Camera, Check } from 'lucide-react'
-import { CldUploadWidget } from 'next-cloudinary'
+import { Plus, Edit2, Trash2, X, Save, Camera, Check, Upload } from 'lucide-react'
 
 interface ISeasonalBanner {
   _id: string;
@@ -21,7 +20,8 @@ interface ISeasonalBanner {
 }
 
 export default function AdminSeasonalBanners() {
-  const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'bb_web'
+  const bannerFileInputRef = useRef<HTMLInputElement | null>(null)
+  const [uploadingBanner, setUploadingBanner] = useState(false)
   const [banners, setBanners] = useState<ISeasonalBanner[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
@@ -176,6 +176,48 @@ export default function AdminSeasonalBanners() {
     } catch (error) {
       setMessage('❌ Error deleting banner')
       console.error(error)
+    }
+  }
+
+  const uploadBannerImage = async (file: File) => {
+    if (!file) {
+      return
+    }
+
+    setMessage('')
+    setUploadingBanner(true)
+
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('folder', 'bb_shoes/seasonal-banners')
+
+      const response = await fetch('/api/uploads/cloudinary', {
+        method: 'POST',
+        body: formData,
+      })
+
+      const result = await response.json()
+
+      if (!response.ok || !result?.success) {
+        throw new Error(result?.message || 'Upload failed')
+      }
+
+      const uploadedUrl = result?.data?.secureUrl || result?.data?.secure_url
+
+      if (!uploadedUrl) {
+        throw new Error('Upload did not return a valid image URL')
+      }
+
+      setFormData((prev) => ({ ...prev, bannerImage: uploadedUrl }))
+      setMessage('✅ Banner image uploaded successfully')
+    } catch (error) {
+      setMessage(error instanceof Error ? `❌ ${error.message}` : '❌ Upload failed')
+    } finally {
+      setUploadingBanner(false)
+      if (bannerFileInputRef.current) {
+        bannerFileInputRef.current.value = ''
+      }
     }
   }
 
@@ -389,29 +431,38 @@ export default function AdminSeasonalBanners() {
               {/* Banner Image Upload */}
               <div>
                 <label className="text-sm text-white/70 font-bold mb-2 block">Banner Image</label>
-                <CldUploadWidget
-                  uploadPreset={uploadPreset}
-                  onSuccess={(result: any) => {
-                    setFormData({ ...formData, bannerImage: result.info.secure_url })
-                    setMessage('✅ Banner image uploaded successfully')
+                <input
+                  ref={bannerFileInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/jpg,image/webp"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file) {
+                      void uploadBannerImage(file)
+                    }
                   }}
-                  onError={() => {
-                    setMessage(`❌ Upload failed. Check Cloudinary upload preset: ${uploadPreset}`)
-                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => bannerFileInputRef.current?.click()}
+                  disabled={uploadingBanner}
+                  className="w-full p-6 border-2 border-dashed border-[#D4AF37]/30 rounded-lg hover:border-[#D4AF37] transition-colors flex items-center justify-center gap-2 bg-white/5 disabled:opacity-60"
                 >
-                  {({ open }) => (
-                    <button
-                      type="button"
-                      onClick={() => open()}
-                      className="w-full p-6 border-2 border-dashed border-[#D4AF37]/30 rounded-lg hover:border-[#D4AF37] transition-colors flex items-center justify-center gap-2 bg-white/5"
-                    >
+                  {uploadingBanner ? (
+                    <>
+                      <Upload size={18} className="text-[#D4AF37] animate-pulse" />
+                      <span className="text-white/70 text-sm">Uploading banner image...</span>
+                    </>
+                  ) : (
+                    <>
                       <Camera size={18} className="text-[#D4AF37]" />
                       <span className="text-white/70 text-sm">
                         {formData.bannerImage ? 'Change Image' : 'Upload Banner Image'}
                       </span>
-                    </button>
+                    </>
                   )}
-                </CldUploadWidget>
+                </button>
                 <p className="text-[11px] text-white/40 mt-1">Recommended size: 1400x600 or larger.</p>
                 {formData.bannerImage && (
                   <div className="mt-4 relative h-40 rounded-lg overflow-hidden border border-white/10">
