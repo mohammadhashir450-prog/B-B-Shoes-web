@@ -8,19 +8,19 @@ import { useProducts } from '@/context/ProductContext'
 import { useWishlist } from '@/context/WishlistContext'
 import HoverSwapImage from '@/components/common/HoverSwapImage'
 
-export default function Products() {
+export default function WomenSection() {
   const { allProducts, loading } = useProducts()
   const { isWishlisted, toggleWishlist } = useWishlist()
   const shouldReduceMotion = useReducedMotion()
   const sliderRef = useRef<HTMLDivElement>(null)
   const [showSwipeHint, setShowSwipeHint] = useState(true)
 
-  // Get men's products (not on sale, not new arrivals)
-  const regularProducts = useMemo(() => {
-    return allProducts.filter((p) => p.category === 'Men' && !p.isOnSale && !p.isNewArrival)
+  // Get women's products (not on sale, not new arrivals)
+  const womenProducts = useMemo(() => {
+    return allProducts.filter((p) => p.category === 'Women' && !p.isOnSale && !p.isNewArrival)
   }, [allProducts])
 
-  const displayedProducts = regularProducts.slice(0, 4)
+  const displayedProducts = womenProducts.slice(0, 4)
 
   const scrollSlider = (direction: 'left' | 'right') => {
     if (!sliderRef.current) return
@@ -48,7 +48,7 @@ export default function Products() {
   }
 
   // Premium Empty State
-  if (regularProducts.length === 0 && !loading) {
+  if (womenProducts.length === 0 && !loading) {
     return (
       <section className="relative bg-white py-32 overflow-hidden min-h-[50vh] flex items-center justify-center">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-white/5 blur-[120px] rounded-full pointer-events-none" />
@@ -84,18 +84,18 @@ export default function Products() {
             <div className="flex items-center gap-3 md:gap-4 mb-4 md:mb-6">
               <div className="w-12 h-[1px] bg-[#D4AF37]"></div>
               <p className="text-[#D4AF37] text-[10px] tracking-[0.3em] uppercase font-bold flex items-center gap-2">
-                <Sparkles size={12} /> Exclusives
+                <Sparkles size={12} /> Curated for You
               </p>
             </div>
             <h2 className="text-[30px] md:text-4xl lg:text-5xl font-serif font-black text-[#18202B] leading-tight mb-2 md:mb-3">
-              The Gold Edition - Men
+              The Women Collection
             </h2>
             <p className="text-[#4F5A69] text-sm max-w-[420px] leading-relaxed">
-              Premium picks for the modern man, curated for style and comfort.
+              Premium picks designed for modern women, curated for style and comfort.
             </p>
           </motion.div>
           
-          {/* Subtle Navigation UI (If you expand to a slider later, these are ready) */}
+          {/* Subtle Navigation UI */}
           <motion.div 
             initial={shouldReduceMotion ? false : { opacity: 0, x: 30 }}
             whileInView={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, x: 0 }}
@@ -119,7 +119,7 @@ export default function Products() {
             </button>
 
             <Link
-              href="/men"
+              href="/women"
               className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-full border border-[#DCCFB6] bg-white/90 text-[#253041] text-[10px] sm:text-[11px] font-bold tracking-[0.14em] uppercase hover:border-[#D4AF37] hover:bg-[#D4AF37] transition-all duration-300"
             >
               See More
@@ -215,7 +215,7 @@ export default function Products() {
             className="md:hidden mt-3 flex items-center justify-center"
           >
             <Link
-              href="/men"
+              href="/women"
               className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#F5EFE1] border border-[#E2D6BF] text-[#6A7483] text-[10px] tracking-[0.14em] uppercase font-bold hover:bg-[#EEDED4] transition-all duration-300"
             >
               <span>See More Products</span>

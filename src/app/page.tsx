@@ -3,7 +3,7 @@ import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import HeroSection from '@/components/home/HeroSection'
 
-const Curated = dynamic(() => import('@/components/home/Curated'), {
+const WomenSection = dynamic(() => import('@/components/home/WomenSection'), {
   loading: () => <div className="home-section-skeleton" aria-hidden />,
 })
 
@@ -22,7 +22,7 @@ export default function HomePage() {
       <main className="min-h-screen">
         <HeroSection />
         <div className="home-deferred-section">
-          <Curated />
+          <WomenSection />
         </div>
         <div className="home-deferred-section">
           <Products />
