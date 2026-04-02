@@ -41,6 +41,44 @@ export default function AdminSeasonalBanners() {
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
 
+  const seasonalTemplates: Array<{
+    label: string
+    season: ISeasonalBanner['season']
+    title: string
+    description: string
+    discountPercent: number
+    linkUrl: string
+    scheduleDays: number
+  }> = [
+    {
+      label: 'Summer Sale',
+      season: 'Summer',
+      title: 'Summer Sale Collection',
+      description: 'Fresh lightweight shoes for hot days and summer style.',
+      discountPercent: 20,
+      linkUrl: '/sales',
+      scheduleDays: 30,
+    },
+    {
+      label: 'Winter Collection',
+      season: 'Winter',
+      title: 'Winter Collection',
+      description: 'Warm, premium footwear for the cold season.',
+      discountPercent: 15,
+      linkUrl: '/collections?season=winter',
+      scheduleDays: 45,
+    },
+    {
+      label: 'Spring Collection',
+      season: 'Spring',
+      title: 'Spring Collection',
+      description: 'Light and elegant styles for the new season.',
+      discountPercent: 10,
+      linkUrl: '/collections?season=spring',
+      scheduleDays: 21,
+    },
+  ]
+
   // Fetch banners
   useEffect(() => {
     fetchBanners()
@@ -160,6 +198,25 @@ export default function AdminSeasonalBanners() {
     }))
   }
 
+  const applyTemplate = (template: typeof seasonalTemplates[number]) => {
+    const now = new Date()
+    const end = new Date(now.getTime() + template.scheduleDays * 24 * 60 * 60 * 1000)
+
+    setFormData((prev) => ({
+      ...prev,
+      season: template.season,
+      title: template.title,
+      description: template.description,
+      discountPercent: template.discountPercent,
+      linkUrl: template.linkUrl,
+      startDate: toInputDateTime(now),
+      endDate: toInputDateTime(end),
+      isActive: true,
+    }))
+
+    setMessage(`✅ ${template.label} template applied`)
+  }
+
   const handleDelete = async (id: string) => {
     if (!confirm('Delete this banner?')) return
 
@@ -276,6 +333,22 @@ export default function AdminSeasonalBanners() {
                   Easy setup: 1) Choose season 2) Add title 3) Upload image 4) Set dates 5) Save.
                   Banner will auto show/hide based on date timer.
                 </p>
+              </div>
+
+              <div>
+                <p className="text-xs text-white/60 mb-3">One-click Templates</p>
+                <div className="flex flex-wrap gap-2">
+                  {seasonalTemplates.map((template) => (
+                    <button
+                      key={template.label}
+                      type="button"
+                      onClick={() => applyTemplate(template)}
+                      className="px-4 py-2 rounded-full bg-white/5 border border-white/10 text-white/75 text-[10px] font-bold tracking-[0.14em] uppercase hover:border-[#D4AF37] hover:text-[#D4AF37] transition-all"
+                    >
+                      {template.label}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
