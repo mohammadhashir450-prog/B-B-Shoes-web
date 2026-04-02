@@ -11,14 +11,39 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 const manrope = Manrope({ subsets: ['latin'], weight: ['300', '400', '600', '700', '800'], variable: '--font-manrope' })
 const playfair = Playfair_Display({ subsets: ['latin'], weight: ['700', '900'], variable: '--font-playfair' })
 
-// Metadata ko naye tareeqe se define karna (SEO Friendly)
+// High-Performance SEO Metadata for B&B Shoes
 export const metadata: Metadata = {
+  metadataBase: new URL('https://bnbshoes.online'), // Google Indexing ke liye lazmi
   title: 'B&B Shoes | Premium Experience',
   description: "BRANDS YOU LIKE! Discover Pakistan's finest collection of premium footwear. From formal elegance to casual comfort - we've got your perfect match.",
-  keywords: "shoes, footwear, B&B Shoes, premium shoes, Pakistan shoes, online shoe store",
+  keywords: ["shoes", "footwear", "B&B Shoes", "premium shoes", "Pakistan shoes", "online shoe store", "sneakers", "leather boots"],
   authors: [{ name: "B&B Shoes" }],
   icons: {
     icon: "/favicon.ico",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  openGraph: {
+    title: 'B&B Shoes | Premium Experience',
+    description: "Discover Pakistan's finest collection of premium footwear. Shop online for the best quality shoes.",
+    url: 'https://bnbshoes.online',
+    siteName: 'B&B Shoes',
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'B&B Shoes | Premium Experience',
+    description: "Discover Pakistan's finest collection of premium footwear.",
   },
 }
 
