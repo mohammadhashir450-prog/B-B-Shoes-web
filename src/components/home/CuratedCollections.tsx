@@ -1,0 +1,286 @@
+'use client'
+
+import { useMemo, useRef, useState } from 'react'
+import Link from 'next/link'
+import { motion, useReducedMotion } from 'framer-motion'
+import { Heart, ChevronLeft, ChevronRight, ShoppingBag, Sparkles } from 'lucide-react'
+import { useProducts } from '@/context/ProductContext'
+import { useWishlist } from '@/context/WishlistContext'
+import HoverSwapImage from '@/components/common/HoverSwapImage'
+
+type CategoryType = 'Women' | 'Kids' | 'Accessories'
+
+export default function CuratedCollections() {
+  const { allProducts, loading } = useProducts()
+  const { isWishlisted, toggleWishlist } = useWishlist()
+  const shouldReduceMotion = useReducedMotion()
+  const [activeCategory, setActiveCategory] = useState<CategoryType>('Women')
+  const sliderRef = useRef<HTMLDivElement>(null)
+  const [showSwipeHint, setShowSwipeHint] = useState(true)
+
+  const categories: Array<{ key: CategoryType; label: string; route: string }> = [
+    { key: 'Women', label: 'Women', route: '/women' },
+    { key: 'Kids', label: 'Kids', route: '/kids' },
+    { key: 'Accessories', label: 'Accessories', route: '/accessories' },
+  ]
+
+  // Get products for all three categories (not on sale, not new arrivals)
+  const categoryProducts = useMemo(() => {
+    return {
+      Women: allProducts.filter((p) => p.category === 'Women' && !p.isOnSale && !p.isNewArrival),
+      Kids: allProducts.filter((p) => p.category === 'Kids' && !p.isOnSale && !p.isNewArrival),
+      Accessories: allProducts.filter((p) => p.category === 'Accessories' && !p.isOnSale && !p.isNewArrival),
+    }
+  }, [allProducts])
+
+  const displayedProducts = categoryProducts[activeCategory].slice(0, 4)
+  const currentRouteLink = categories.find(c => c.key === activeCategory)?.route || '/women'
+
+  const scrollSlider = (direction: 'left' | 'right') => {
+    if (!sliderRef.current) return
+    const cardWidth = 360
+    sliderRef.current.scrollBy({
+      left: direction === 'left' ? -cardWidth : cardWidth,
+      behavior: 'smooth',
+    })
+  }
+
+  // Premium Loading State
+  if (loading) {
+    return (
+      <section className="relative bg-white py-32 overflow-hidden min-h-[50vh] flex items-center justify-center">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-[#D4AF37]/10 blur-[100px] rounded-full pointer-events-none" />
+        <div className="relative z-10 flex flex-col items-center space-y-6">
+          <div className="w-12 h-12 border-2 border-[#D4AF37]/20 border-t-[#D4AF37] rounded-full animate-spin" />
+          <p className="text-[#D4AF37] text-[10px] tracking-[0.3em] uppercase font-bold animate-pulse">
+            Curating Collection
+          </p>
+        </div>
+      </section>
+    )
+  }
+
+  // Check if any category has products
+  const hasAnyProducts = Object.values(categoryProducts).some(products => products.length > 0)
+
+  // Premium Empty State
+  if (!hasAnyProducts) {
+    return (
+      <section className="relative bg-white py-32 overflow-hidden min-h-[50vh] flex items-center justify-center">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-white/5 blur-[120px] rounded-full pointer-events-none" />
+        <div className="relative z-10 text-center max-w-lg mx-auto px-6">
+          <div className="w-24 h-24 mx-auto bg-white/5 border border-white/10 backdrop-blur-md rounded-full flex items-center justify-center mb-8 shadow-2xl">
+            <ShoppingBag className="w-10 h-10 text-[#4F5A69]" strokeWidth={1} />
+          </div>
+          <h3 className="text-3xl md:text-4xl font-serif font-bold text-[#18202B] mb-4">The Vault is Empty</h3>
+          <p className="text-[#4F5A69] text-sm leading-relaxed font-light">
+            Our artisans are currently crafting new pieces. Please return shortly to view the latest exclusive additions to this collection.
+          </p>
+        </div>
+      </section>
+    )
+  }
+
+  // If current category is empty, switch to first available category
+  const validCategory = displayedProducts.length > 0 ? activeCategory : (
+    Object.entries(categoryProducts).find(([_, products]) => products.length > 0)?.[0] as CategoryType
+  ) || 'Women'
+
+  const finalProducts = categoryProducts[validCategory].slice(0, 4)
+
+  return (
+    <section className="relative bg-[#FCFBF8] py-12 md:py-20 overflow-hidden">
+      {/* Cinematic Ambient Glow */}
+      <div className="absolute top-0 left-0 w-[520px] h-[520px] bg-[#D4AF37]/5 rounded-full blur-[140px] pointer-events-none" />
+
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-10 relative z-10">
+        
+        {/* Cinematic Section Header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-7 md:mb-10 gap-4 md:gap-5">
+          <motion.div 
+            initial={shouldReduceMotion ? false : { opacity: 0, x: -30 }}
+            whileInView={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: shouldReduceMotion ? 0.2 : 0.8, ease: "easeOut" }}
+          >
+            <div className="flex items-center gap-3 md:gap-4 mb-4 md:mb-6">
+              <div className="w-12 h-[1px] bg-[#D4AF37]"></div>
+              <p className="text-[#D4AF37] text-[10px] tracking-[0.3em] uppercase font-bold flex items-center gap-2">
+                <Sparkles size={12} /> Featured Collections
+              </p>
+            </div>
+            <h2 className="text-[30px] md:text-4xl lg:text-5xl font-serif font-black text-[#18202B] leading-tight mb-4 md:mb-6">
+              Curated for Every Style
+            </h2>
+          </motion.div>
+        </div>
+
+        {/* Category Tabs */}
+        <div className="flex gap-2 md:gap-4 mb-8 md:mb-10 overflow-x-auto pb-2">
+          {categories.map((category) => {
+            const isActive = validCategory === category.key
+            const productCount = categoryProducts[category.key].length
+            
+            return (
+              <button
+                key={category.key}
+                onClick={() => setActiveCategory(category.key)}
+                disabled={productCount === 0}
+                className={`flex-shrink-0 px-4 md:px-6 py-2.5 md:py-3 rounded-full text-[11px] md:text-[12px] font-bold tracking-[0.15em] uppercase transition-all relative group ${
+                  isActive
+                    ? 'bg-[#D4AF37] text-[#18202B] shadow-[0_8px_24px_rgba(212,175,55,0.3)]'
+                    : productCount === 0
+                    ? 'bg-white/20 text-white/40 cursor-not-allowed'
+                    : 'bg-white/5 text-[#374151] hover:bg-white/10 border border-white/10 hover:border-[#D4AF37]/30'
+                }`}
+              >
+                {category.label}
+                {productCount > 0 && !isActive && (
+                  <span className="ml-2 text-[10px] text-white/50">•</span>
+                )}
+              </button>
+            )
+          })}
+        </div>
+
+        {/* Products Section */}
+        <motion.div
+          key={validCategory}
+          initial={shouldReduceMotion ? false : { opacity: 0, y: 10 }}
+          animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
+          transition={{ duration: shouldReduceMotion ? 0.2 : 0.4 }}
+        >
+          {/* Navigation and More Button */}
+          <div className="flex items-center justify-between mb-6 md:mb-8">
+            <motion.div 
+              initial={shouldReduceMotion ? false : { opacity: 0, x: 30 }}
+              whileInView={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: shouldReduceMotion ? 0.2 : 0.8, ease: "easeOut" }}
+              className="flex items-center gap-2 sm:gap-3 md:gap-4 ml-auto"
+            >
+              <button
+                onClick={() => scrollSlider('left')}
+                className="w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full backdrop-blur-md border border-[#DCCFB6] bg-white/90 flex items-center justify-center text-[#253041] hover:border-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#18202B] transition-all duration-300"
+                aria-label="Scroll products left"
+              >
+                <ChevronLeft size={16} strokeWidth={1.5} />
+              </button>
+              <button
+                onClick={() => scrollSlider('right')}
+                className="w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full backdrop-blur-md border border-[#DCCFB6] bg-white/90 flex items-center justify-center text-[#253041] hover:border-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#18202B] transition-all duration-300"
+                aria-label="Scroll products right"
+              >
+                <ChevronRight size={16} strokeWidth={1.5} />
+              </button>
+
+              <Link
+                href={`${currentRouteLink}?category=${validCategory.toLowerCase()}`}
+                className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-full border border-[#DCCFB6] bg-white/90 text-[#253041] text-[10px] sm:text-[11px] font-bold tracking-[0.14em] uppercase hover:border-[#D4AF37] hover:bg-[#D4AF37] transition-all duration-300"
+              >
+                See More
+              </Link>
+            </motion.div>
+          </div>
+
+          {/* Product Rail */}
+          <div className="relative -mx-4 px-4 sm:mx-0 sm:px-0">
+            <div
+              ref={sliderRef}
+              onScroll={() => setShowSwipeHint(false)}
+              onTouchStart={() => setShowSwipeHint(false)}
+              className="flex gap-4 sm:gap-5 lg:gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-3 scroll-px-4 sm:scroll-px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              {finalProducts.map((product, index) => (
+                <motion.div
+                  key={product.id}
+                  initial={shouldReduceMotion ? false : { opacity: 0, y: 30 }}
+                  whileInView={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
+                  transition={{ duration: shouldReduceMotion ? 0.2 : 0.6, delay: shouldReduceMotion ? 0 : index * 0.06 }}
+                  viewport={{ once: true, margin: "-50px" }}
+                  className="group relative shrink-0 w-[84vw] max-w-[300px] sm:w-[300px] lg:w-[320px] snap-start bg-white border border-[#E7E0D1] rounded-2xl overflow-hidden transition-all duration-400 hover:border-[#D4AF37]/45 hover:shadow-[0_18px_34px_-18px_rgba(24,32,43,0.22)]"
+                >
+                  <Link href={`/product/${product.id}`} className="h-full flex flex-col">
+                    
+                    {/* Image Section */}
+                    <div className="relative h-[195px] sm:h-[230px] lg:h-[245px] bg-[#FAF9F7] overflow-hidden rounded-xl border border-[#06080F]/45 shadow-[0_12px_24px_-18px_rgba(6,8,15,0.5)] transition-all duration-400 group-hover:border-[#06080F]/70">
+                      <HoverSwapImage
+                        primaryImage={product.image}
+                        secondaryImage={product.secondaryImage}
+                        alt={product.name}
+                        sizes="(max-width: 768px) 80vw, (max-width: 1200px) 45vw, 340px"
+                        fitClassName="object-contain object-center group-hover:scale-[1.03] transition-transform duration-600 ease-out"
+                      />
+                      
+                      {/* Wishlist Button */}
+                      <button 
+                        onClick={(e) => {
+                          e.preventDefault()
+                          toggleWishlist(product.id)
+                        }}
+                        className={`absolute top-4 right-4 w-9 h-9 backdrop-blur-md border rounded-full flex items-center justify-center transition-all duration-300 z-20 ${
+                          isWishlisted(product.id)
+                            ? 'bg-[#FDECEC] border-red-300 text-red-500'
+                            : 'bg-[#F9F8F6]/85 border-[#E0D4BF] text-[#4F5A69] hover:text-red-500 hover:bg-[#F9F8F6] hover:border-red-300'
+                        }`}
+                      >
+                        <Heart size={16} strokeWidth={2} className={isWishlisted(product.id) ? 'fill-red-500' : ''} />
+                      </button>
+                    </div>
+
+                    {/* Product Info Section */}
+                    <div className="p-4 sm:p-5 md:p-6 flex flex-col flex-grow justify-between border-t border-[#ECE7DD] bg-white">
+                      <div>
+                        <p className="text-[#A97A18] text-[9px] tracking-[0.2em] uppercase mb-2 font-bold">
+                          {product.brand || 'B&B EXCLUSIVE'}
+                        </p>
+                        <h3 className="text-base sm:text-lg font-serif font-bold text-[#18202B] leading-tight mb-2 group-hover:text-[#A97A18] transition-colors line-clamp-2 min-h-[46px] sm:min-h-[52px]">
+                          {product.name}
+                        </h3>
+                      </div>
+                      
+                      <div className="flex items-center justify-between mt-4">
+                        <div>
+                          <p className="text-base font-bold text-[#D4AF37]">
+                            PKR {product.price.toLocaleString()}
+                          </p>
+                          {product.originalPrice && product.originalPrice > product.price ? (
+                            <p className="text-xs text-[#6A7483] line-through">PKR {product.originalPrice.toLocaleString()}</p>
+                          ) : null}
+                        </div>
+
+                        <span className="text-[10px] tracking-[0.14em] uppercase font-bold text-[#4F5A69]">
+                          View Product
+                        </span>
+                      </div>
+                    </div>
+                    
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
+
+            <div className="hidden sm:block pointer-events-none absolute inset-y-0 left-0 w-8 sm:w-10 bg-gradient-to-r from-[#FCFBF8] to-transparent" />
+            <div className="hidden sm:block pointer-events-none absolute inset-y-0 right-0 w-8 sm:w-10 bg-gradient-to-l from-[#FCFBF8] to-transparent" />
+          </div>
+
+          {showSwipeHint ? (
+            <motion.div
+              initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }}
+              animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
+              className="md:hidden mt-3 flex items-center justify-center"
+            >
+              <Link
+                href={`${currentRouteLink}?category=${validCategory.toLowerCase()}`}
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#F5EFE1] border border-[#E2D6BF] text-[#6A7483] text-[10px] tracking-[0.14em] uppercase font-bold hover:bg-[#EEDED4] transition-all duration-300"
+              >
+                <span>See More Products</span>
+                <span className="text-[#A97A18]">+</span>
+              </Link>
+            </motion.div>
+          ) : null}
+        </motion.div>
+      </div>
+    </section>
+  )
+}

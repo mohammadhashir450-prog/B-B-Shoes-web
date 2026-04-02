@@ -3,10 +3,7 @@ import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import HeroSection from '@/components/home/HeroSection'
 import SeasonalBanners from '@/components/home/SeasonalBanners'
-
-const WomenSection = dynamic(() => import('@/components/home/WomenSection'), {
-  loading: () => <div className="home-section-skeleton" aria-hidden />,
-})
+import CuratedCollections from '@/components/home/CuratedCollections'
 
 const Products = dynamic(() => import('@/components/home/Products'), {
   loading: () => <div className="home-section-skeleton" aria-hidden />,
@@ -24,7 +21,7 @@ export default function HomePage() {
         <HeroSection />
         <SeasonalBanners />
         <div className="home-deferred-section">
-          <WomenSection />
+          <CuratedCollections />
         </div>
         <div className="home-deferred-section">
           <Products />
