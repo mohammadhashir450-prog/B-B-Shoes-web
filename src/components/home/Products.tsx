@@ -162,7 +162,7 @@ export default function Products() {
                         e.preventDefault()
                         toggleWishlist(product.id)
                       }}
-                      className={`absolute top-4 right-4 w-9 h-9 backdrop-blur-md border rounded-full flex items-center justify-center transition-all duration-300 z-20 ${
+                      className={`absolute bottom-4 right-4 w-9 h-9 backdrop-blur-md border rounded-full flex items-center justify-center transition-all duration-300 z-20 ${
                         isWishlisted(product.id)
                           ? 'bg-[#FDECEC] border-red-300 text-red-500'
                           : 'bg-[#F9F8F6]/85 border-[#E0D4BF] text-[#4F5A69] hover:text-red-500 hover:bg-[#F9F8F6] hover:border-red-300'
