@@ -1,0 +1,7 @@
+
+> shoe-store@0.1.0 build
+> next build
+
+Invalid next.config.js options detected: 
+    Expected 'default' | 'imgix' | 'cloudinary' | 'akamai' | 'custom', received function at "images.loader"
+See more info here: https://nextjs.org/docs/messages/invalid-next-config

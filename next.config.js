@@ -1,21 +1,5 @@
 /** @type {import('next').NextConfig} */
 
-// Cloudinary image loader for optimized delivery
-const cloudinaryLoader = ({ src, width, quality }) => {
-  if (!src.includes('cloudinary')) {
-    return src;
-  }
-  
-  const params = [
-    'f_auto', // Auto-detect best format (WebP, AVIF, etc.)
-    'q_auto', // Auto-detect best quality
-    `c_limit`, // Limit dimensions
-    `w_${width}`, // Set width
-  ];
-  
-  return `${src}?${params.join('&')}`;
-};
-
 const nextConfig = {
 
   // Image Optimization
@@ -74,16 +58,13 @@ const nextConfig = {
 
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
 
-    // Use WebP format for better performance
+    // Use WebP and AVIF formats for better performance
 
     formats: ['image/webp', 'image/avif'],
 
     // Cache optimized images for longer period (7 days)
 
     minimumCacheTTL: 604800,
-
-    // Custom Cloudinary loader for optimization
-    loader: cloudinaryLoader,
 
     // Enable image optimization
 
