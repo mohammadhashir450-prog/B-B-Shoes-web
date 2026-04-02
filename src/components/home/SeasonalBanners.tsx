@@ -26,20 +26,37 @@ export default function SeasonalBanners() {
   const sliderRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
+    let isMounted = true
+
     const fetchBanners = async () => {
       try {
         const response = await fetch('/api/settings/seasonal-banners', { cache: 'no-store' })
         const result = await response.json()
+        if (!isMounted) {
+          return
+        }
+
         setBanners(result?.data || [])
       } catch (error) {
         console.error('Failed to fetch seasonal banners:', error)
-        setBanners([])
+        if (isMounted) {
+          setBanners([])
+        }
       } finally {
-        setLoading(false)
+        if (isMounted) {
+          setLoading(false)
+        }
       }
     }
 
     fetchBanners()
+
+    const refreshTimer = setInterval(fetchBanners, 60000)
+
+    return () => {
+      isMounted = false
+      clearInterval(refreshTimer)
+    }
   }, [])
 
   // Auto-rotate banners
@@ -52,6 +69,12 @@ export default function SeasonalBanners() {
 
     return () => clearInterval(timer)
   }, [banners.length])
+
+  useEffect(() => {
+    if (currentIndex >= banners.length) {
+      setCurrentIndex(0)
+    }
+  }, [currentIndex, banners.length])
 
   const nextBanner = () => {
     setCurrentIndex((prev) => (prev + 1) % banners.length)

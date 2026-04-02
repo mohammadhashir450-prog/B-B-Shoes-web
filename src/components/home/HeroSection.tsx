@@ -6,13 +6,54 @@ import Link from 'next/link'
 import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
 
+interface SeasonalBannerSummary {
+  _id: string
+  season: 'Summer' | 'Winter' | 'Spring' | 'Fall'
+  title: string
+  description?: string
+}
+
 export default function HeroSection() {
   const [mounted, setMounted] = useState(false)
+  const [featuredBanner, setFeaturedBanner] = useState<SeasonalBannerSummary | null>(null)
   const shouldReduceMotion = useReducedMotion()
 
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  useEffect(() => {
+    let isMounted = true
+
+    const fetchFeaturedBanner = async () => {
+      try {
+        const response = await fetch('/api/settings/seasonal-banners', { cache: 'no-store' })
+        const result = await response.json()
+        const banners = Array.isArray(result?.data) ? result.data : []
+
+        if (!isMounted) {
+          return
+        }
+
+        setFeaturedBanner(banners[0] || null)
+      } catch {
+        if (isMounted) {
+          setFeaturedBanner(null)
+        }
+      }
+    }
+
+    fetchFeaturedBanner()
+    const timer = window.setInterval(fetchFeaturedBanner, 60000)
+
+    return () => {
+      isMounted = false
+      window.clearInterval(timer)
+    }
+  }, [])
+
+  const heroTitle = featuredBanner ? `${featuredBanner.season} Collection.` : 'Quiet Power.'
+  const heroSubtitle = featuredBanner?.title || 'Crafted for presence.'
 
   return (
     <section className="relative min-h-screen bg-white overflow-hidden pt-24 md:pt-28 pb-16 md:pb-24" suppressHydrationWarning>
@@ -27,16 +68,16 @@ export default function HeroSection() {
         >
           <div className="inline-flex items-center px-4 py-2 rounded-full border border-[#D7DCE2] bg-white mb-10">
             <span className="text-[10px] md:text-[11px] font-bold tracking-[0.22em] text-[#111827] uppercase">
-              B&B Signature Footwear
+              {featuredBanner ? `${featuredBanner.season} Drop` : 'B&B Signature Footwear'}
             </span>
           </div>
 
           <h1 className="text-[2.35rem] sm:text-[2.8rem] md:text-[5.8rem] lg:text-[8rem] leading-[0.9] tracking-[-0.045em] font-black text-[#06080F] max-w-[1100px] mx-auto">
-            Quiet Power.
+            {heroTitle}
           </h1>
 
           <p className="mt-8 text-sm md:text-base text-[#374151] max-w-[440px] mx-auto leading-relaxed tracking-[0.08em] uppercase">
-            Crafted for presence.
+            {heroSubtitle}
           </p>
 
           <div className="mt-10 md:mt-12 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2.5 w-full max-w-[520px] mx-auto">
