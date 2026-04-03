@@ -56,7 +56,7 @@ export default function CheckoutPage() {
   const { items, totalPrice, clearCart } = useCart();
   const deliveryFee = totalPrice >= 4000 ? 0 : totalPrice > 0 ? 250 : 0;
   const orderTotal = totalPrice + deliveryFee;
-  const [selectedMethod, setSelectedMethod] = useState<string>('cod');
+  const [selectedMethod, setSelectedMethod] = useState<string>('card');
   const [showSuccess, setShowSuccess] = useState(false);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
 
@@ -69,6 +69,7 @@ export default function CheckoutPage() {
   const [cardNumber, setCardNumber] = useState('');
   const [cardExpiry, setCardExpiry] = useState('');
   const [cardCvc, setCardCvc] = useState('');
+  const [preferredCardBrand, setPreferredCardBrand] = useState<'Visa' | 'Mastercard' | ''>('');
   const [codName, setCodName] = useState('');
   const [codPhone, setCodPhone] = useState('');
   const [codAddress, setCodAddress] = useState('');
@@ -404,7 +405,9 @@ export default function CheckoutPage() {
         const finalHolder = hasSavedProfile ? savedCardProfile?.cardHolderName || cardHolderName : cardHolderName;
         const finalExpiry = hasSavedProfile ? savedCardProfile?.expiry || cardExpiry : cardExpiry;
         const [expiryMonth = '', expiryYear = ''] = finalExpiry.split('/');
-        const finalBrand = hasSavedProfile ? savedCardProfile?.cardBrand || 'Card' : detectCardBrand(cardDigits);
+        const finalBrand = hasSavedProfile
+          ? (savedCardProfile?.cardBrand || 'Card')
+          : (preferredCardBrand || detectCardBrand(cardDigits));
         const finalLast4 = hasSavedProfile ? savedCardProfile?.cardLast4 || '' : cardDigits.slice(-4);
         const finalMasked = hasSavedProfile ? savedCardProfile?.cardMasked || `**** **** **** ${finalLast4}` : maskCardNumber(cardDigits);
 
@@ -634,6 +637,30 @@ export default function CheckoutPage() {
 
                             <div className="space-y-4">
                               <div>
+                                <label className="block text-sm font-semibold mb-2">Card Type</label>
+                                <div className="grid grid-cols-2 gap-3">
+                                  <button
+                                    type="button"
+                                    onClick={(e) => { e.stopPropagation(); setPreferredCardBrand('Visa'); }}
+                                    className={`rounded-lg border px-3 py-2 text-sm font-semibold transition-colors ${
+                                      preferredCardBrand === 'Visa' ? 'border-[#D4AF37] bg-[#FFF7E3] text-[#111827]' : 'border-[#D1D5DB] bg-white text-[#4B5563]'
+                                    }`}
+                                  >
+                                    Visa
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => { e.stopPropagation(); setPreferredCardBrand('Mastercard'); }}
+                                    className={`rounded-lg border px-3 py-2 text-sm font-semibold transition-colors ${
+                                      preferredCardBrand === 'Mastercard' ? 'border-[#D4AF37] bg-[#FFF7E3] text-[#111827]' : 'border-[#D1D5DB] bg-white text-[#4B5563]'
+                                    }`}
+                                  >
+                                    Mastercard
+                                  </button>
+                                </div>
+                              </div>
+
+                              <div>
                                 <label className="block text-sm font-semibold mb-2">Card Holder Name *</label>
                                 <input
                                   type="text"
@@ -666,7 +693,12 @@ export default function CheckoutPage() {
                                     maxLength={5}
                                     placeholder="MM/YY"
                                     value={cardExpiry}
-                                    onChange={(e) => { setCardExpiry(e.target.value); setCardSaved(false); }}
+                                    onChange={(e) => {
+                                      const value = e.target.value.replace(/[^\d]/g, '').slice(0, 4);
+                                      const formatted = value.length > 2 ? `${value.slice(0, 2)}/${value.slice(2)}` : value;
+                                      setCardExpiry(formatted);
+                                      setCardSaved(false);
+                                    }}
                                     className="w-full bg-white border border-[#D1D5DB] rounded-lg px-4 py-3 text-[#111827] placeholder-gray-500 focus:border-[#D4AF37] focus:outline-none transition-colors"
                                   />
                                 </div>
@@ -678,7 +710,7 @@ export default function CheckoutPage() {
                                     maxLength={4}
                                     placeholder="***"
                                     value={cardCvc}
-                                    onChange={(e) => { setCardCvc(e.target.value); setCardSaved(false); }}
+                                    onChange={(e) => { setCardCvc(e.target.value.replace(/\D/g, '')); setCardSaved(false); }}
                                     className="w-full bg-white border border-[#D1D5DB] rounded-lg px-4 py-3 text-[#111827] placeholder-gray-500 focus:border-[#D4AF37] focus:outline-none transition-colors"
                                   />
                                 </div>
@@ -873,7 +905,7 @@ export default function CheckoutPage() {
                       placeholder="Enter your full name"
                       value={codName}
                       onChange={(e) => { setCodName(e.target.value); setCodSaved(false); }}
-                      className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-[#D4AF37] focus:outline-none transition-colors"
+                      className="w-full bg-white border border-[#D1D5DB] rounded-lg px-4 py-3 text-[#111827] placeholder-gray-500 focus:border-[#D4AF37] focus:outline-none transition-colors"
                     />
                   </div>
 
@@ -885,7 +917,7 @@ export default function CheckoutPage() {
                       value={codPhone}
                       maxLength={11}
                       onChange={(e) => { setCodPhone(e.target.value); setCodSaved(false); }}
-                      className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-[#D4AF37] focus:outline-none transition-colors"
+                      className="w-full bg-white border border-[#D1D5DB] rounded-lg px-4 py-3 text-[#111827] placeholder-gray-500 focus:border-[#D4AF37] focus:outline-none transition-colors"
                     />
                   </div>
                 </div>
@@ -898,7 +930,7 @@ export default function CheckoutPage() {
                       value={codAddress}
                       rows={3}
                       onChange={(e) => { setCodAddress(e.target.value); setCodSaved(false); }}
-                      className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-[#D4AF37] focus:outline-none transition-colors resize-none"
+                      className="w-full bg-white border border-[#D1D5DB] rounded-lg px-4 py-3 text-[#111827] placeholder-gray-500 focus:border-[#D4AF37] focus:outline-none transition-colors resize-none"
                     />
                   </div>
 
@@ -907,7 +939,7 @@ export default function CheckoutPage() {
                     <select
                       value={codCity}
                       onChange={(e) => { setCodCity(e.target.value); setCodSaved(false); }}
-                      className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-[#D4AF37] focus:outline-none transition-colors"
+                      className="w-full bg-white border border-[#D1D5DB] rounded-lg px-4 py-3 text-[#111827] focus:border-[#D4AF37] focus:outline-none transition-colors"
                     >
                       <option value="">Select your city...</option>
                       <option value="Karachi">Karachi</option>
@@ -1018,7 +1050,7 @@ export default function CheckoutPage() {
                   disabled={items.length === 0 || isPlacingOrder || status !== 'authenticated'}
                   className="w-full bg-[#D4AF37] hover:bg-[#F4CE5C] text-black font-bold py-4 rounded-full transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isPlacingOrder ? 'Placing Order...' : 'Place Order'}
+                  {isPlacingOrder ? (selectedMethod === 'card' ? 'Processing Payment...' : 'Placing Order...') : (selectedMethod === 'card' ? 'Pay Now' : 'Place Order')}
                   <ChevronRight className="w-5 h-5" />
                 </button>
               </div>
