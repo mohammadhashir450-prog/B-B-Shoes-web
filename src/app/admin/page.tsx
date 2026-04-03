@@ -38,6 +38,8 @@ interface Order {
     };
     bank?: {
       bankName?: string;
+      receiverAccountNumber?: string;
+      receiverTitle?: string;
       senderAccountNumber?: string;
       transactionId?: string;
     };
@@ -2542,6 +2544,7 @@ export default function AdminPanel() {
                             {o.paymentMethod === 'bank' ? (
                               <>
                                 <p className="text-xs text-white/50">Bank: {o.paymentDetails?.bank?.bankName || 'N/A'}</p>
+                                <p className="text-xs text-white/50">Receiver Account: {o.paymentDetails?.bank?.receiverAccountNumber || 'N/A'}</p>
                                 <p className="text-xs text-white/50">Sender Account: {o.paymentDetails?.bank?.senderAccountNumber || 'N/A'}</p>
                                 <p className="text-xs text-white/50">Transaction ID: {o.paymentDetails?.bank?.transactionId || 'N/A'}</p>
                               </>

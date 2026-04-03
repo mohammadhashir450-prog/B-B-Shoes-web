@@ -38,6 +38,8 @@ export interface IOrder extends Document {
     };
     bank?: {
       bankName?: string;
+      receiverAccountNumber?: string;
+      receiverTitle?: string;
       senderAccountNumber?: string;
       transactionId?: string;
     };
@@ -170,6 +172,8 @@ const OrderSchema = new Schema<IOrder>(
       },
       bank: {
         bankName: { type: String, trim: true },
+        receiverAccountNumber: { type: String, trim: true },
+        receiverTitle: { type: String, trim: true },
         senderAccountNumber: { type: String, trim: true },
         transactionId: { type: String, trim: true },
       },

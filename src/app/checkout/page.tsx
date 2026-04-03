@@ -9,45 +9,16 @@ import Footer from '@/components/layout/Footer';
 import { CreditCard, Smartphone, Banknote, Check, ChevronRight, Shield, AlertCircle, Save, CheckCircle2 } from 'lucide-react';
 import { maskCardNumber } from '@/lib/security';
 
-const STORE_BANKS = [
-  { name: 'HBL', account: '1234567890', title: 'B&B Shoes' },
-  { name: 'Meezan Bank', account: '0987654321', title: 'B&B Shoes' },
-  { name: 'Allied Bank', account: '1122334455', title: 'B&B Shoes' },
-  { name: 'UBL', account: '5544332211', title: 'B&B Shoes' },
-];
+const STORE_BANK_ACCOUNT = {
+  name: 'Meezan Bank',
+  account: '0987654321',
+  title: 'B&B Shoes',
+};
 
-const PAKISTAN_BANKS = [
-  'Allied Bank Limited (ABL)',
-  'Askari Bank',
-  'Bank Al Habib',
-  'Bank Alfalah',
-  'Bank of Khyber',
-  'Bank of Punjab',
-  'BankIslami Pakistan',
-  'Dubai Islamic Bank Pakistan',
-  'Faysal Bank',
-  'First Women Bank',
-  'Habib Bank Limited (HBL)',
-  'Habib Metropolitan Bank',
-  'Industrial Development Bank',
-  'JS Bank',
-  'KASB Bank',
-  'MCB Bank (Muslim Commercial Bank)',
-  'MCB Islamic Bank',
-  'Meezan Bank',
-  'National Bank of Pakistan (NBP)',
-  'NIB Bank',
-  'Pak Oman Investment Company',
-  'Samba Bank',
-  'Silk Bank',
-  'Sindh Bank',
-  'Soneri Bank',
-  'Standard Chartered Pakistan',
-  'Summit Bank',
-  'United Bank Limited (UBL)',
-  'Zarai Taraqiati Bank (ZTBL)',
-  'Al Baraka Bank Pakistan',
-];
+const STORE_JAZZCASH = {
+  number: '03XX-XXXXXXX',
+  name: 'B&B Shoes',
+};
 
 const paymentMethods = [
   {
@@ -60,14 +31,14 @@ const paymentMethods = [
     id: 'bank',
     name: 'Bank Transfer',
     icon: CreditCard,
-    description: 'Transfer to our bank account',
+    description: 'Transfer to Meezan Bank account',
   },
   {
     id: 'jazzcash',
     name: 'JazzCash',
     icon: Smartphone,
     description: 'Pay via JazzCash wallet',
-    details: { number: '03XX-XXXXXXX', name: 'B&B Shoes' }
+    details: STORE_JAZZCASH
   },
   {
     id: 'cod',
@@ -92,7 +63,6 @@ export default function CheckoutPage() {
   // Payment Form States
   const [jazzCashNumber, setJazzCashNumber] = useState('');
   const [jazzCashTransactionId, setJazzCashTransactionId] = useState('');
-  const [selectedBank, setSelectedBank] = useState('');
   const [bankTransactionId, setBankTransactionId] = useState('');
   const [senderAccountNumber, setSenderAccountNumber] = useState('');
   const [cardHolderName, setCardHolderName] = useState('');
@@ -109,6 +79,7 @@ export default function CheckoutPage() {
   const [bankSaved, setBankSaved] = useState(false);
   const [jazzCashSaved, setJazzCashSaved] = useState(false);
   const [cardSaved, setCardSaved] = useState(false);
+  const [savedCardProfile, setSavedCardProfile] = useState<{ cardHolderName: string; expiry: string; cardLast4: string; cardMasked: string; cardBrand: string } | null>(null);
   const [codSaved, setCodSaved] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
 
@@ -145,7 +116,6 @@ export default function CheckoutPage() {
       try {
         const parsed = JSON.parse(saved);
         if (parsed.bank) {
-          setSelectedBank(parsed.bank.selectedBank || '');
           setSenderAccountNumber(parsed.bank.accountNumber || '');
           setBankSaved(true);
         }
@@ -156,6 +126,13 @@ export default function CheckoutPage() {
         if (parsed.card) {
           setCardHolderName(parsed.card.cardHolderName || '');
           setCardExpiry(parsed.card.expiry || '');
+          setSavedCardProfile({
+            cardHolderName: parsed.card.cardHolderName || '',
+            expiry: parsed.card.expiry || '',
+            cardLast4: parsed.card.last4 || '',
+            cardMasked: parsed.card.cardMasked || (parsed.card.last4 ? `**** **** **** ${parsed.card.last4}` : ''),
+            cardBrand: parsed.card.brand || 'Card',
+          });
           setCardSaved(true);
         }
         if (parsed.cod) {
@@ -181,11 +158,10 @@ export default function CheckoutPage() {
   };
 
   const handleSaveBank = () => {
-    if (!selectedBank) { setFormError('Please select your bank first'); return; }
     if (!senderAccountNumber.trim()) { setFormError('Please enter your account number'); return; }
     setFormError('');
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-    saved.bank = { selectedBank, accountNumber: senderAccountNumber };
+    saved.bank = { accountNumber: senderAccountNumber };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
     setBankSaved(true);
     showTempMessage('Bank details saved!');
@@ -236,15 +212,41 @@ export default function CheckoutPage() {
 
     setFormError('');
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    const masked = maskCardNumber(digits);
+    const brand = detectCardBrand(digits);
     saved.card = {
       cardHolderName,
       expiry: cardExpiry,
       last4: digits.slice(-4),
-      brand: detectCardBrand(digits),
+      brand,
+      cardMasked: masked,
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+    setSavedCardProfile({
+      cardHolderName,
+      expiry: cardExpiry,
+      cardLast4: digits.slice(-4),
+      cardMasked: masked,
+      cardBrand: brand,
+    });
+    setCardNumber('');
+    setCardCvc('');
     setCardSaved(true);
     showTempMessage('Card details saved securely!');
+  };
+
+  const handleDeleteSavedCard = () => {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    delete saved.card;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+
+    setSavedCardProfile(null);
+    setCardSaved(false);
+    setCardHolderName('');
+    setCardNumber('');
+    setCardExpiry('');
+    setCardCvc('');
+    showTempMessage('Saved card deleted');
   };
 
   const validatePaymentDetails = () => {
@@ -283,10 +285,6 @@ export default function CheckoutPage() {
     }
 
     if (selectedMethod === 'bank') {
-      if (!selectedBank) {
-        setFormError('Please select your bank');
-        return false;
-      }
       if (!senderAccountNumber.trim()) {
         setFormError('Please enter your account number');
         return false;
@@ -299,15 +297,17 @@ export default function CheckoutPage() {
 
     if (selectedMethod === 'card') {
       const digits = cardNumber.replace(/\D/g, '');
-      if (!cardHolderName.trim()) {
+      const hasSavedProfile = Boolean(savedCardProfile);
+      if (!cardHolderName.trim() && !hasSavedProfile) {
         setFormError('Please enter card holder name');
         return false;
       }
-      if (!isValidLuhn(digits)) {
+      if (!hasSavedProfile && !isValidLuhn(digits)) {
         setFormError('Please enter a valid Visa or Mastercard number');
         return false;
       }
-      if (!/^(0[1-9]|1[0-2])\/(\d{2})$/.test(cardExpiry)) {
+      const expiryToValidate = cardExpiry || savedCardProfile?.expiry || '';
+      if (!/^(0[1-9]|1[0-2])\/(\d{2})$/.test(expiryToValidate)) {
         setFormError('Please enter expiry as MM/YY');
         return false;
       }
@@ -379,8 +379,8 @@ export default function CheckoutPage() {
           jazzcash: {
             senderNumber: jazzCashNumber,
             transactionId: jazzCashTransactionId,
-            receiverNumber: '03XX-XXXXXXX',
-            receiverName: 'B&B Shoes',
+            receiverNumber: STORE_JAZZCASH.number,
+            receiverName: STORE_JAZZCASH.name,
           },
         };
       }
@@ -389,7 +389,9 @@ export default function CheckoutPage() {
         paymentDetails = {
           ...paymentDetails,
           bank: {
-            bankName: selectedBank,
+            bankName: STORE_BANK_ACCOUNT.name,
+            receiverAccountNumber: STORE_BANK_ACCOUNT.account,
+            receiverTitle: STORE_BANK_ACCOUNT.title,
             senderAccountNumber,
             transactionId: bankTransactionId,
           },
@@ -398,14 +400,21 @@ export default function CheckoutPage() {
 
       if (selectedMethod === 'card') {
         const cardDigits = cardNumber.replace(/\D/g, '');
-        const [expiryMonth = '', expiryYear = ''] = cardExpiry.split('/');
+        const hasSavedProfile = Boolean(savedCardProfile && !cardDigits);
+        const finalHolder = hasSavedProfile ? savedCardProfile?.cardHolderName || cardHolderName : cardHolderName;
+        const finalExpiry = hasSavedProfile ? savedCardProfile?.expiry || cardExpiry : cardExpiry;
+        const [expiryMonth = '', expiryYear = ''] = finalExpiry.split('/');
+        const finalBrand = hasSavedProfile ? savedCardProfile?.cardBrand || 'Card' : detectCardBrand(cardDigits);
+        const finalLast4 = hasSavedProfile ? savedCardProfile?.cardLast4 || '' : cardDigits.slice(-4);
+        const finalMasked = hasSavedProfile ? savedCardProfile?.cardMasked || `**** **** **** ${finalLast4}` : maskCardNumber(cardDigits);
+
         paymentDetails = {
           ...paymentDetails,
           card: {
-            cardHolderName,
-            cardBrand: detectCardBrand(cardDigits),
-            cardLast4: cardDigits.slice(-4),
-            cardMasked: maskCardNumber(cardDigits),
+            cardHolderName: finalHolder,
+            cardBrand: finalBrand,
+            cardLast4: finalLast4,
+            cardMasked: finalMasked,
             expiryMonth,
             expiryYear: expiryYear.length === 2 ? `20${expiryYear}` : expiryYear,
             transactionId: `CARD-${Date.now()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`,
@@ -534,41 +543,25 @@ export default function CheckoutPage() {
 
                         {/* ── Bank Transfer Form ── */}
                         {method.id === 'bank' && isSelected && (
-                          <div className="bg-black/30 rounded-lg p-4 space-y-4" onClick={(e) => e.stopPropagation()}>
+                          <div className="bg-gradient-to-br from-[#26344F] to-[#172338] rounded-lg p-4 space-y-4 border border-[#D4AF37]/20" onClick={(e) => e.stopPropagation()}>
 
                             {/* Store bank accounts */}
                             <div>
-                              <p className="text-xs text-gray-400 uppercase tracking-wider mb-3">Our Bank Accounts (Transfer Here):</p>
-                              <div className="space-y-2 mb-1">
-                                {STORE_BANKS.map((bank) => (
-                                  <div key={bank.name} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
-                                    <div>
-                                      <p className="font-semibold text-sm">{bank.name}</p>
-                                      <p className="text-xs text-gray-400">{bank.title}</p>
-                                    </div>
-                                    <p className="text-[#D4AF37] font-mono text-sm">{bank.account}</p>
+                              <p className="text-xs text-[#F7EBC0] uppercase tracking-wider mb-3">Admin Bank Account (Transfer Here)</p>
+                              <div className="bg-[#D4AF37]/12 border border-[#D4AF37]/30 rounded-lg p-3">
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <p className="font-semibold text-sm text-white">{STORE_BANK_ACCOUNT.name}</p>
+                                    <p className="text-xs text-white/70">{STORE_BANK_ACCOUNT.title}</p>
                                   </div>
-                                ))}
+                                  <p className="text-[#F5D77A] font-mono text-sm">{STORE_BANK_ACCOUNT.account}</p>
+                                </div>
                               </div>
                             </div>
 
                             {/* User bank details */}
                             <div className="space-y-4 pt-4 border-t border-white/10">
                               <p className="text-sm font-semibold text-[#D4AF37]">Your Bank Details:</p>
-
-                              <div>
-                                <label className="block text-sm font-semibold mb-2">Select Your Bank *</label>
-                                <select
-                                  value={selectedBank}
-                                  onChange={(e) => { setSelectedBank(e.target.value); setBankSaved(false); }}
-                                  className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-[#D4AF37] focus:outline-none transition-colors"
-                                >
-                                  <option value="">Choose your bank...</option>
-                                  {PAKISTAN_BANKS.map((bank) => (
-                                    <option key={bank} value={bank}>{bank}</option>
-                                  ))}
-                                </select>
-                              </div>
 
                               <div>
                                 <label className="block text-sm font-semibold mb-2">Your Account Number *</label>
@@ -610,17 +603,34 @@ export default function CheckoutPage() {
                             </div>
 
                             <div className="bg-yellow-400/10 border border-yellow-400/20 rounded-lg p-3">
-                              <p className="text-xs text-yellow-400">📌 Complete the bank transfer first, then enter your details and transaction ID above</p>
+                              <p className="text-xs text-yellow-300">Complete transfer to Meezan account, then enter your account and transaction ID.</p>
                             </div>
                           </div>
                         )}
 
                         {/* ── Card Payment Form ── */}
                         {method.id === 'card' && isSelected && (
-                          <div className="bg-black/30 rounded-lg p-4 space-y-4" onClick={(e) => e.stopPropagation()}>
+                          <div className="bg-gradient-to-br from-[#26344F] to-[#172338] rounded-lg p-4 space-y-4 border border-[#D4AF37]/20" onClick={(e) => e.stopPropagation()}>
                             <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-3">
                               <p className="text-xs text-emerald-300">Secure Card Checkout (Visa / Mastercard). Card is processed securely and only masked details are stored.</p>
                             </div>
+
+                            {savedCardProfile && (
+                              <div className="bg-white/5 border border-white/15 rounded-lg p-3 flex items-center justify-between gap-3">
+                                <div>
+                                  <p className="text-xs text-white/60 uppercase tracking-wider">Saved Card</p>
+                                  <p className="text-sm text-white font-semibold">{savedCardProfile.cardBrand} {savedCardProfile.cardMasked}</p>
+                                  <p className="text-xs text-white/60">Expiry: {savedCardProfile.expiry}</p>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={(e) => { e.stopPropagation(); handleDeleteSavedCard(); }}
+                                  className="px-3 py-1.5 rounded-lg text-[11px] font-semibold bg-red-500/15 text-red-300 border border-red-500/30 hover:bg-red-500/25 transition-colors"
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            )}
 
                             <div className="space-y-4">
                               <div>
@@ -640,7 +650,7 @@ export default function CheckoutPage() {
                                   type="text"
                                   inputMode="numeric"
                                   maxLength={19}
-                                  placeholder="XXXX XXXX XXXX XXXX"
+                                  placeholder={savedCardProfile ? 'Leave empty to use saved card' : 'XXXX XXXX XXXX XXXX'}
                                   value={cardNumber}
                                   onChange={(e) => { setCardNumber(e.target.value); setCardSaved(false); }}
                                   className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-[#D4AF37] focus:outline-none transition-colors"
@@ -694,7 +704,7 @@ export default function CheckoutPage() {
 
                         {/* ── JazzCash Form ── */}
                         {method.id === 'jazzcash' && isSelected && method.details && (
-                          <div className="bg-black/30 rounded-lg p-4 space-y-4" onClick={(e) => e.stopPropagation()}>
+                          <div className="bg-gradient-to-br from-[#26344F] to-[#172338] rounded-lg p-4 space-y-4 border border-[#D4AF37]/20" onClick={(e) => e.stopPropagation()}>
                             <div>
                               <p className="text-xs text-gray-400 uppercase tracking-wider mb-2">Send Payment To:</p>
                               <p className="text-2xl font-bold text-[#D4AF37] mb-1">{method.details.number}</p>
@@ -746,7 +756,7 @@ export default function CheckoutPage() {
                             </div>
 
                             <div className="bg-yellow-400/10 border border-yellow-400/20 rounded-lg p-3">
-                              <p className="text-xs text-yellow-400">📌 Send payment first, then enter your number and transaction ID</p>
+                              <p className="text-xs text-yellow-300">Send payment to JazzCash first, then enter sender number and transaction ID.</p>
                             </div>
                           </div>
                         )}

@@ -173,6 +173,8 @@ export const POST = asyncHandler(async (req: NextRequest) => {
     bank: requestPaymentDetails.bank
       ? {
           bankName: String(requestPaymentDetails.bank.bankName || '').trim(),
+          receiverAccountNumber: String(requestPaymentDetails.bank.receiverAccountNumber || '').trim(),
+          receiverTitle: String(requestPaymentDetails.bank.receiverTitle || '').trim(),
           senderAccountNumber: String(requestPaymentDetails.bank.senderAccountNumber || '').trim(),
           transactionId: String(requestPaymentDetails.bank.transactionId || '').trim(),
         }
