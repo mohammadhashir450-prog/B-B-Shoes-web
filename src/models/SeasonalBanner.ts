@@ -5,6 +5,7 @@ export interface ISeasonalBanner extends Document {
   title: string;
   description?: string;
   bannerImage: string;
+  galleryImages: string[];
   linkUrl?: string;
   discountPercent?: number;
   startDate: Date;
@@ -37,6 +38,14 @@ const SeasonalBannerSchema = new Schema<ISeasonalBanner>(
     bannerImage: {
       type: String,
       required: true,
+    },
+    galleryImages: {
+      type: [String],
+      default: [],
+      validate: {
+        validator: (images: string[]) => images.length <= 2,
+        message: 'Only 2 additional images are allowed (3 total with bannerImage).',
+      },
     },
     linkUrl: {
       type: String,
