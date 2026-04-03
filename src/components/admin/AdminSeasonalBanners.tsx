@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, Edit2, Trash2, X, Save, Camera, Check, Upload } from 'lucide-react'
+import { Plus, Edit2, Trash2, X, Save, Camera, Upload } from 'lucide-react'
 
 interface ISeasonalBanner {
   _id: string;
@@ -11,6 +11,7 @@ interface ISeasonalBanner {
   title: string;
   description?: string;
   bannerImage: string;
+  galleryImages?: string[];
   linkUrl?: string;
   discountPercent?: number;
   startDate: string;
@@ -21,7 +22,9 @@ interface ISeasonalBanner {
 
 export default function AdminSeasonalBanners() {
   const bannerFileInputRef = useRef<HTMLInputElement | null>(null)
+  const additionalFileInputRef = useRef<HTMLInputElement | null>(null)
   const [uploadingBanner, setUploadingBanner] = useState(false)
+  const [uploadingAdditional, setUploadingAdditional] = useState(false)
   const [banners, setBanners] = useState<ISeasonalBanner[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
@@ -31,6 +34,7 @@ export default function AdminSeasonalBanners() {
     title: '',
     description: '',
     bannerImage: '',
+    galleryImages: [],
     linkUrl: '/collections',
     discountPercent: 0,
     startDate: '',
@@ -40,6 +44,7 @@ export default function AdminSeasonalBanners() {
   })
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
+  const [previewNow, setPreviewNow] = useState<number>(() => Date.now())
 
   const seasonalTemplates: Array<{
     label: string
@@ -84,6 +89,20 @@ export default function AdminSeasonalBanners() {
     fetchBanners()
   }, [])
 
+  useEffect(() => {
+    if (!showForm) {
+      return
+    }
+
+    const timer = window.setInterval(() => {
+      setPreviewNow(Date.now())
+    }, 1000)
+
+    return () => {
+      window.clearInterval(timer)
+    }
+  }, [showForm])
+
   const fetchBanners = async () => {
     try {
       const response = await fetch('/api/settings/seasonal-banners?all=true')
@@ -102,6 +121,7 @@ export default function AdminSeasonalBanners() {
       title: '',
       description: '',
       bannerImage: '',
+      galleryImages: [],
       linkUrl: '/collections',
       discountPercent: 0,
       startDate: '',
@@ -114,7 +134,10 @@ export default function AdminSeasonalBanners() {
   }
 
   const handleEdit = (banner: ISeasonalBanner) => {
-    setFormData(banner)
+    setFormData({
+      ...banner,
+      galleryImages: banner.galleryImages || [],
+    })
     setEditingId(banner._id)
     setShowForm(true)
   }
@@ -130,6 +153,12 @@ export default function AdminSeasonalBanners() {
 
     if (!formData.bannerImage) {
       setMessage('❌ Banner image is required')
+      return
+    }
+
+    const additionalImages = formData.galleryImages || []
+    if (additionalImages.length > 2) {
+      setMessage('❌ You can upload up to 3 images total (1 primary + 2 additional)')
       return
     }
 
@@ -186,6 +215,79 @@ export default function AdminSeasonalBanners() {
     const minutes = pad(date.getMinutes())
     return `${year}-${month}-${day}T${hours}:${minutes}`
   }
+
+  const formatDuration = (milliseconds: number) => {
+    const totalSeconds = Math.max(0, Math.floor(milliseconds / 1000))
+    const days = Math.floor(totalSeconds / 86400)
+    const hours = Math.floor((totalSeconds % 86400) / 3600)
+    const minutes = Math.floor((totalSeconds % 3600) / 60)
+    const seconds = totalSeconds % 60
+
+    const chunks: string[] = []
+    if (days > 0) chunks.push(`${days}d`)
+    if (hours > 0 || days > 0) chunks.push(`${hours}h`)
+    if (minutes > 0 || hours > 0 || days > 0) chunks.push(`${minutes}m`)
+    chunks.push(`${seconds}s`)
+
+    return chunks.slice(0, 3).join(' ')
+  }
+
+  const startTimestamp = formData.startDate ? new Date(formData.startDate).getTime() : NaN
+  const endTimestamp = formData.endDate ? new Date(formData.endDate).getTime() : NaN
+
+  const countdownPreview = (() => {
+    if (!formData.startDate || !formData.endDate) {
+      return {
+        badge: 'Set Start and End Date',
+        tone: 'text-white/70 border-white/20 bg-white/5',
+        primary: 'Select both dates to see live countdown preview.',
+        secondary: '',
+      }
+    }
+
+    if (!Number.isFinite(startTimestamp) || !Number.isFinite(endTimestamp)) {
+      return {
+        badge: 'Invalid Date',
+        tone: 'text-red-300 border-red-400/40 bg-red-500/10',
+        primary: 'Date format is invalid. Please choose valid date and time.',
+        secondary: '',
+      }
+    }
+
+    if (startTimestamp >= endTimestamp) {
+      return {
+        badge: 'Invalid Range',
+        tone: 'text-red-300 border-red-400/40 bg-red-500/10',
+        primary: 'End date must be after start date.',
+        secondary: '',
+      }
+    }
+
+    if (previewNow < startTimestamp) {
+      return {
+        badge: 'Upcoming',
+        tone: 'text-sky-200 border-sky-400/40 bg-sky-500/10',
+        primary: `Starts in ${formatDuration(startTimestamp - previewNow)}`,
+        secondary: `Duration after start: ${formatDuration(endTimestamp - startTimestamp)}`,
+      }
+    }
+
+    if (previewNow <= endTimestamp) {
+      return {
+        badge: 'Live',
+        tone: 'text-emerald-200 border-emerald-400/40 bg-emerald-500/10',
+        primary: `Expires in ${formatDuration(endTimestamp - previewNow)}`,
+        secondary: `Started ${formatDuration(previewNow - startTimestamp)} ago`,
+      }
+    }
+
+    return {
+      badge: 'Expired',
+      tone: 'text-rose-200 border-rose-400/40 bg-rose-500/10',
+      primary: `Expired ${formatDuration(previewNow - endTimestamp)} ago`,
+      secondary: 'Hero and seasonal sliders will hide this banner automatically.',
+    }
+  })()
 
   const applyQuickSchedule = (days: number) => {
     const now = new Date()
@@ -278,6 +380,64 @@ export default function AdminSeasonalBanners() {
     }
   }
 
+  const uploadAdditionalImage = async (file: File) => {
+    if (!file) {
+      return
+    }
+
+    const existing = formData.galleryImages || []
+    if (existing.length >= 2) {
+      setMessage('❌ Maximum 2 additional images allowed')
+      return
+    }
+
+    setMessage('')
+    setUploadingAdditional(true)
+
+    try {
+      const formDataPayload = new FormData()
+      formDataPayload.append('file', file)
+      formDataPayload.append('folder', 'bb_shoes/seasonal-banners')
+
+      const response = await fetch('/api/uploads/cloudinary', {
+        method: 'POST',
+        body: formDataPayload,
+      })
+
+      const result = await response.json()
+
+      if (!response.ok || !result?.success) {
+        throw new Error(result?.message || 'Upload failed')
+      }
+
+      const uploadedUrl = result?.data?.secureUrl || result?.data?.secure_url
+
+      if (!uploadedUrl) {
+        throw new Error('Upload did not return a valid image URL')
+      }
+
+      setFormData((prev) => ({
+        ...prev,
+        galleryImages: [...(prev.galleryImages || []), uploadedUrl],
+      }))
+      setMessage('✅ Additional slider image uploaded')
+    } catch (error) {
+      setMessage(error instanceof Error ? `❌ ${error.message}` : '❌ Upload failed')
+    } finally {
+      setUploadingAdditional(false)
+      if (additionalFileInputRef.current) {
+        additionalFileInputRef.current.value = ''
+      }
+    }
+  }
+
+  const removeAdditionalImage = (indexToRemove: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      galleryImages: (prev.galleryImages || []).filter((_, index) => index !== indexToRemove),
+    }))
+  }
+
   if (loading) {
     return <div className="text-center py-12 text-white/50">Loading banners...</div>
   }
@@ -330,8 +490,9 @@ export default function AdminSeasonalBanners() {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="rounded-xl border border-[#D4AF37]/25 bg-[#D4AF37]/5 p-4">
                 <p className="text-xs text-[#F5E7B8] tracking-wide">
-                  Easy setup: 1) Choose season 2) Add title 3) Upload image 4) Set dates 5) Save.
-                  Banner will auto show/hide based on date timer.
+                  Easy setup: 1) Choose season 2) Add title + description 3) Upload 2-3 images
+                  (1 primary + up to 2 slider images) 4) Set dates 5) Save.
+                  Collection auto show/hide based on date timer.
                 </p>
               </div>
 
@@ -442,6 +603,17 @@ export default function AdminSeasonalBanners() {
                   />
                 </div>
 
+                <div className={`md:col-span-2 rounded-xl border p-4 space-y-2 transition-colors ${countdownPreview.tone}`}>
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs tracking-[0.18em] uppercase font-bold">Live Countdown Preview</p>
+                    <span className="text-[10px] tracking-[0.14em] uppercase font-bold">{countdownPreview.badge}</span>
+                  </div>
+                  <p className="text-sm font-semibold">{countdownPreview.primary}</p>
+                  {countdownPreview.secondary && (
+                    <p className="text-[11px] opacity-90">{countdownPreview.secondary}</p>
+                  )}
+                </div>
+
                 <div className="md:col-span-2">
                   <p className="text-xs text-white/60 mb-2">Quick Timer Presets</p>
                   <div className="flex flex-wrap gap-2">
@@ -549,6 +721,68 @@ export default function AdminSeasonalBanners() {
                 )}
               </div>
 
+              <div>
+                <label className="text-sm text-white/70 font-bold mb-2 block">Additional Slider Images (Optional)</label>
+                <input
+                  ref={additionalFileInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/jpg,image/webp"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file) {
+                      void uploadAdditionalImage(file)
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => additionalFileInputRef.current?.click()}
+                  disabled={uploadingAdditional || (formData.galleryImages || []).length >= 2}
+                  className="w-full p-4 border-2 border-dashed border-white/20 rounded-lg hover:border-[#D4AF37] transition-colors flex items-center justify-center gap-2 bg-white/5 disabled:opacity-60"
+                >
+                  {uploadingAdditional ? (
+                    <>
+                      <Upload size={18} className="text-[#D4AF37] animate-pulse" />
+                      <span className="text-white/70 text-sm">Uploading additional image...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Camera size={18} className="text-[#D4AF37]" />
+                      <span className="text-white/70 text-sm">
+                        {(formData.galleryImages || []).length >= 2
+                          ? 'Maximum additional images reached'
+                          : 'Upload Additional Slider Image'}
+                      </span>
+                    </>
+                  )}
+                </button>
+                <p className="text-[11px] text-white/40 mt-1">Total slider images on home: up to 3.</p>
+
+                {(formData.galleryImages || []).length > 0 && (
+                  <div className="mt-4 grid grid-cols-2 gap-3">
+                    {(formData.galleryImages || []).map((image, index) => (
+                      <div key={image} className="relative h-28 rounded-lg overflow-hidden border border-white/10">
+                        <Image
+                          src={image}
+                          alt={`Additional preview ${index + 1}`}
+                          fill
+                          className="object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeAdditionalImage(index)}
+                          className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-red-500/80 transition-colors"
+                          aria-label={`Remove additional image ${index + 1}`}
+                        >
+                          <X size={12} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               {/* Actions */}
               <div className="flex gap-3 pt-4">
                 <button
@@ -596,6 +830,9 @@ export default function AdminSeasonalBanners() {
                 />
                 <div className="absolute top-3 right-3 bg-[#D4AF37] text-[#0B101E] px-3 py-1 rounded-full text-[10px] font-bold">
                   {banner.season}
+                </div>
+                <div className="absolute bottom-3 right-3 bg-black/60 text-white px-2 py-1 rounded text-[10px] font-bold">
+                  {(banner.galleryImages?.length || 0) + 1} Images
                 </div>
               </div>
 

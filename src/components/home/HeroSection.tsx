@@ -11,16 +11,32 @@ interface SeasonalBannerSummary {
   season: 'Summer' | 'Winter' | 'Spring' | 'Fall'
   title: string
   description?: string
+  bannerImage: string
+  galleryImages?: string[]
+  linkUrl?: string
+  startDate?: string
   endDate?: string
 }
 
 export default function HeroSection() {
   const [mounted, setMounted] = useState(false)
-  const [featuredBanner, setFeaturedBanner] = useState<SeasonalBannerSummary | null>(null)
+  const [featuredBanners, setFeaturedBanners] = useState<SeasonalBannerSummary[]>([])
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(0)
+  const [nowTick, setNowTick] = useState<number>(() => Date.now())
   const shouldReduceMotion = useReducedMotion()
 
   useEffect(() => {
     setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setNowTick(Date.now())
+    }, 1000)
+
+    return () => {
+      window.clearInterval(timer)
+    }
   }, [])
 
   useEffect(() => {
@@ -60,11 +76,11 @@ export default function HeroSection() {
           return
         }
 
-        setFeaturedBanner(banners[0] || null)
+        setFeaturedBanners(banners)
         scheduleRefresh(banners)
       } catch {
         if (isMounted) {
-          setFeaturedBanner(null)
+          setFeaturedBanners([])
           scheduleRefresh([])
         }
       }
@@ -78,8 +94,49 @@ export default function HeroSection() {
     }
   }, [])
 
-  const heroTitle = featuredBanner ? `${featuredBanner.season} Collection.` : 'Quiet Power.'
-  const heroSubtitle = featuredBanner?.title || 'Crafted for presence.'
+  const activeFeaturedBanners = featuredBanners.filter((banner) => {
+    const startTime = banner.startDate ? new Date(banner.startDate).getTime() : Number.NEGATIVE_INFINITY
+    const endTime = banner.endDate ? new Date(banner.endDate).getTime() : Number.POSITIVE_INFINITY
+
+    return Number.isFinite(startTime) && Number.isFinite(endTime)
+      ? startTime <= nowTick && endTime >= nowTick
+      : endTime >= nowTick
+  })
+
+  const heroSlides = activeFeaturedBanners.flatMap((banner) => {
+    const images = [banner.bannerImage, ...(banner.galleryImages || [])].filter((image) => Boolean(image?.trim()))
+
+    return images.map((image, index) => ({
+      id: `${banner._id}-${index}`,
+      image,
+      banner,
+    }))
+  })
+
+  useEffect(() => {
+    if (!heroSlides.length) {
+      setCurrentSlideIndex(0)
+      return
+    }
+
+    setCurrentSlideIndex((prev) => (prev >= heroSlides.length ? 0 : prev))
+  }, [heroSlides.length])
+
+  useEffect(() => {
+    if (!heroSlides.length || shouldReduceMotion) {
+      return
+    }
+
+    const timer = window.setInterval(() => {
+      setCurrentSlideIndex((prev) => (prev + 1) % heroSlides.length)
+    }, 4500)
+
+    return () => window.clearInterval(timer)
+  }, [heroSlides.length, shouldReduceMotion])
+
+  const currentSlide = heroSlides[currentSlideIndex] || null
+  const heroTitle = currentSlide ? `${currentSlide.banner.season} Collection.` : 'Quiet Power.'
+  const heroSubtitle = currentSlide?.banner.title || 'Crafted for presence.'
 
   return (
     <section className="relative min-h-screen bg-white overflow-hidden pt-24 md:pt-28 pb-16 md:pb-24" suppressHydrationWarning>
@@ -94,7 +151,7 @@ export default function HeroSection() {
         >
           <div className="inline-flex items-center px-4 py-2 rounded-full border border-[#D7DCE2] bg-white mb-10">
             <span className="text-[10px] md:text-[11px] font-bold tracking-[0.22em] text-[#111827] uppercase">
-              {featuredBanner ? `${featuredBanner.season} Drop` : 'B&B Signature Footwear'}
+              {currentSlide ? `${currentSlide.banner.season} Drop` : 'B&B Signature Footwear'}
             </span>
           </div>
 
@@ -108,10 +165,10 @@ export default function HeroSection() {
 
           <div className="mt-10 md:mt-12 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2.5 w-full max-w-[520px] mx-auto">
             <Link
-              href="/collections#all-products-grid"
+              href={currentSlide?.banner.linkUrl || '/collections#all-products-grid'}
               className="group inline-flex w-full sm:w-auto justify-center items-center gap-2 px-6 md:px-7 py-3 rounded-full bg-[#06080F] !text-white text-xs md:text-sm font-bold tracking-[0.14em] uppercase hover:bg-[#161B26] transition-colors"
             >
-              All Products
+              Explore Collection
               <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
             </Link>
             <Link
@@ -144,8 +201,8 @@ export default function HeroSection() {
                 className="w-full h-full"
               >
                 <Image
-                  src="https://res.cloudinary.com/dt2ikjlfc/image/upload/v1775127417/bb-shoes/hero/hero-purple-sandals.jpg"
-                  alt="B&B Premium Stylish Sandals"
+                  src={currentSlide?.image || 'https://res.cloudinary.com/dt2ikjlfc/image/upload/v1775127417/bb-shoes/hero/hero-purple-sandals.jpg'}
+                  alt={currentSlide?.banner.title || 'B&B Premium Stylish Sandals'}
                   fill
                   priority
                   quality={90}
@@ -153,6 +210,22 @@ export default function HeroSection() {
                   className="object-cover object-center"
                 />
               </motion.div>
+
+              {heroSlides.length > 1 && (
+                <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-black/20 backdrop-blur-sm px-3 py-2 rounded-full">
+                  {heroSlides.map((slide, index) => (
+                    <button
+                      key={slide.id}
+                      type="button"
+                      onClick={() => setCurrentSlideIndex(index)}
+                      className={`h-2 rounded-full transition-all ${
+                        index === currentSlideIndex ? 'w-6 bg-white' : 'w-2 bg-white/45 hover:bg-white/70'
+                      }`}
+                      aria-label={`Go to hero slide ${index + 1}`}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 

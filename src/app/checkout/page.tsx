@@ -84,15 +84,37 @@ export default function CheckoutPage() {
   const [codSaved, setCodSaved] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
 
-  const detectCardBrand = (value: string) => {
-    const digits = value.replace(/\D/g, '');
+  const normalizeDigits = (value: string) => {
+    return value
+      .replace(/[\u0660-\u0669]/g, (digit) => String(digit.charCodeAt(0) - 0x0660))
+      .replace(/[\u06F0-\u06F9]/g, (digit) => String(digit.charCodeAt(0) - 0x06F0))
+      .replace(/[\uFF10-\uFF19]/g, (digit) => String(digit.charCodeAt(0) - 0xFF10));
+  };
+
+  const toNumeric = (value: string) => normalizeDigits(value).replace(/\D/g, '');
+
+  const formatCardNumber = (value: string) => {
+    const digits = toNumeric(value).slice(0, 16);
+    return digits.replace(/(.{4})/g, '$1 ').trim();
+  };
+
+  const formatExpiry = (value: string) => {
+    const digits = toNumeric(value).slice(0, 4);
+    if (digits.length <= 2) {
+      return digits;
+    }
+    return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+  };
+
+  function detectCardBrand(value: string) {
+    const digits = toNumeric(value);
     if (/^4/.test(digits)) return 'Visa';
     if (/^(5[1-5]|2[2-7])/.test(digits)) return 'Mastercard';
     return 'Card';
-  };
+  }
 
-  const isValidLuhn = (value: string) => {
-    const digits = value.replace(/\D/g, '');
+  function isValidLuhn(value: string) {
+    const digits = toNumeric(value);
     if (digits.length < 13 || digits.length > 19) return false;
 
     let sum = 0;
@@ -108,6 +130,53 @@ export default function CheckoutPage() {
     }
 
     return sum % 10 === 0;
+  }
+
+  const cardNumberDigits = toNumeric(cardNumber);
+  const cardExpiryValue = formatExpiry(cardExpiry);
+  const cvcDigits = toNumeric(cardCvc);
+  const hasSavedCard = Boolean(savedCardProfile);
+
+  const cardFieldState = {
+    holder:
+      cardHolderName.trim().length === 0
+        ? { tone: 'text-gray-500', text: 'Enter the name exactly as shown on the card' }
+        : { tone: 'text-emerald-600', text: 'Card holder name looks good' },
+    number: (() => {
+      if (hasSavedCard && cardNumberDigits.length === 0) {
+        return { tone: 'text-sky-600', text: `Saved card ready: ${savedCardProfile?.cardMasked || 'masked card on file'}` };
+      }
+
+      if (cardNumberDigits.length === 0) {
+        return { tone: 'text-gray-500', text: 'Enter a Visa or Mastercard number' };
+      }
+
+      if (cardNumberDigits.length < 13) {
+        return { tone: 'text-amber-600', text: `${cardNumberDigits.length} digits entered, card number is incomplete` };
+      }
+
+      if (cardNumberDigits.length > 19) {
+        return { tone: 'text-red-600', text: 'Card number is too long' };
+      }
+
+      if (isValidLuhn(cardNumberDigits)) {
+        return { tone: 'text-emerald-600', text: `${detectCardBrand(cardNumberDigits)} number looks valid` };
+      }
+
+      return { tone: 'text-amber-600', text: 'Card number format is being checked' };
+    })(),
+    expiry:
+      cardExpiryValue.length === 0
+        ? { tone: 'text-gray-500', text: hasSavedCard ? `Saved expiry: ${savedCardProfile?.expiry || 'available'}` : 'Use MM/YY format' }
+        : /^(0[1-9]|1[0-2])\/\d{2}$/.test(cardExpiryValue)
+          ? { tone: 'text-emerald-600', text: 'Expiry date looks valid' }
+          : { tone: 'text-amber-600', text: 'Enter expiry in MM/YY format' },
+    cvc:
+      cvcDigits.length === 0
+        ? { tone: 'text-gray-500', text: 'Enter 3 or 4 digits' }
+        : /^\d{3,4}$/.test(cvcDigits)
+          ? { tone: 'text-emerald-600', text: 'CVC looks valid' }
+          : { tone: 'text-red-600', text: 'CVC must be 3 or 4 digits' },
   };
 
   // Load saved payment details from localStorage on mount
@@ -193,7 +262,7 @@ export default function CheckoutPage() {
   };
 
   const handleSaveCard = () => {
-    const digits = cardNumber.replace(/\D/g, '');
+    const digits = cardNumberDigits;
     if (!cardHolderName.trim()) {
       setFormError('Please enter card holder name');
       return;
@@ -202,11 +271,11 @@ export default function CheckoutPage() {
       setFormError('Please enter a valid card number');
       return;
     }
-    if (!/^(0[1-9]|1[0-2])\/(\d{2})$/.test(cardExpiry)) {
+    if (!/^(0[1-9]|1[0-2])\/(\d{2})$/.test(cardExpiryValue)) {
       setFormError('Please enter expiry as MM/YY');
       return;
     }
-    if (!/^\d{3,4}$/.test(cardCvc)) {
+    if (!/^\d{3,4}$/.test(cvcDigits)) {
       setFormError('Please enter a valid CVC (3 or 4 digits)');
       return;
     }
@@ -217,7 +286,7 @@ export default function CheckoutPage() {
     const brand = detectCardBrand(digits);
     saved.card = {
       cardHolderName,
-      expiry: cardExpiry,
+      expiry: cardExpiryValue,
       last4: digits.slice(-4),
       brand,
       cardMasked: masked,
@@ -297,8 +366,8 @@ export default function CheckoutPage() {
     }
 
     if (selectedMethod === 'card') {
-      const digits = cardNumber.replace(/\D/g, '');
-      const hasSavedProfile = Boolean(savedCardProfile);
+      const digits = cardNumberDigits;
+      const hasSavedProfile = hasSavedCard;
       if (!cardHolderName.trim() && !hasSavedProfile) {
         setFormError('Please enter card holder name');
         return false;
@@ -307,12 +376,12 @@ export default function CheckoutPage() {
         setFormError('Please enter a valid Visa or Mastercard number');
         return false;
       }
-      const expiryToValidate = cardExpiry || savedCardProfile?.expiry || '';
+      const expiryToValidate = cardExpiryValue || savedCardProfile?.expiry || '';
       if (!/^(0[1-9]|1[0-2])\/(\d{2})$/.test(expiryToValidate)) {
         setFormError('Please enter expiry as MM/YY');
         return false;
       }
-      if (!/^\d{3,4}$/.test(cardCvc)) {
+      if (!/^\d{3,4}$/.test(cvcDigits)) {
         setFormError('Please enter valid CVC');
         return false;
       }
@@ -400,10 +469,12 @@ export default function CheckoutPage() {
       }
 
       if (selectedMethod === 'card') {
-        const cardDigits = cardNumber.replace(/\D/g, '');
+        const cardDigits = cardNumberDigits;
         const hasSavedProfile = Boolean(savedCardProfile && !cardDigits);
         const finalHolder = hasSavedProfile ? savedCardProfile?.cardHolderName || cardHolderName : cardHolderName;
-        const finalExpiry = hasSavedProfile ? savedCardProfile?.expiry || cardExpiry : cardExpiry;
+        const finalExpiry = hasSavedProfile
+          ? savedCardProfile?.expiry || cardExpiryValue
+          : cardExpiryValue;
         const [expiryMonth = '', expiryYear = ''] = finalExpiry.split('/');
         const finalBrand = hasSavedProfile
           ? (savedCardProfile?.cardBrand || 'Card')
@@ -669,6 +740,7 @@ export default function CheckoutPage() {
                                   onChange={(e) => { setCardHolderName(e.target.value); setCardSaved(false); }}
                                   className="w-full bg-white border border-[#D1D5DB] rounded-lg px-4 py-3 text-[#111827] placeholder-gray-500 focus:border-[#D4AF37] focus:outline-none transition-colors"
                                 />
+                                <p className={`text-xs mt-1 ${cardFieldState.holder.tone}`}>{cardFieldState.holder.text}</p>
                               </div>
 
                               <div>
@@ -679,10 +751,10 @@ export default function CheckoutPage() {
                                   maxLength={19}
                                   placeholder={savedCardProfile ? 'Leave empty to use saved card' : 'XXXX XXXX XXXX XXXX'}
                                   value={cardNumber}
-                                  onChange={(e) => { setCardNumber(e.target.value); setCardSaved(false); }}
+                                  onChange={(e) => { setCardNumber(formatCardNumber(e.target.value)); setCardSaved(false); }}
                                   className="w-full bg-white border border-[#D1D5DB] rounded-lg px-4 py-3 text-[#111827] placeholder-gray-500 focus:border-[#D4AF37] focus:outline-none transition-colors"
                                 />
-                                <p className="text-xs text-[#6B7280] mt-1">Accepted cards: Visa, Mastercard</p>
+                                <p className={`text-xs mt-1 ${cardFieldState.number.tone}`}>{cardFieldState.number.text}</p>
                               </div>
 
                               <div className="grid grid-cols-2 gap-4">
@@ -694,13 +766,12 @@ export default function CheckoutPage() {
                                     placeholder="MM/YY"
                                     value={cardExpiry}
                                     onChange={(e) => {
-                                      const value = e.target.value.replace(/[^\d]/g, '').slice(0, 4);
-                                      const formatted = value.length > 2 ? `${value.slice(0, 2)}/${value.slice(2)}` : value;
-                                      setCardExpiry(formatted);
+                                      setCardExpiry(formatExpiry(e.target.value));
                                       setCardSaved(false);
                                     }}
                                     className="w-full bg-white border border-[#D1D5DB] rounded-lg px-4 py-3 text-[#111827] placeholder-gray-500 focus:border-[#D4AF37] focus:outline-none transition-colors"
                                   />
+                                  <p className={`text-xs mt-1 ${cardFieldState.expiry.tone}`}>{cardFieldState.expiry.text}</p>
                                 </div>
                                 <div>
                                   <label className="block text-sm font-semibold mb-2">CVC *</label>
@@ -710,9 +781,10 @@ export default function CheckoutPage() {
                                     maxLength={4}
                                     placeholder="***"
                                     value={cardCvc}
-                                    onChange={(e) => { setCardCvc(e.target.value.replace(/\D/g, '')); setCardSaved(false); }}
+                                    onChange={(e) => { setCardCvc(toNumeric(e.target.value).slice(0, 4)); setCardSaved(false); }}
                                     className="w-full bg-white border border-[#D1D5DB] rounded-lg px-4 py-3 text-[#111827] placeholder-gray-500 focus:border-[#D4AF37] focus:outline-none transition-colors"
                                   />
+                                  <p className={`text-xs mt-1 ${cardFieldState.cvc.tone}`}>{cardFieldState.cvc.text}</p>
                                 </div>
                               </div>
 

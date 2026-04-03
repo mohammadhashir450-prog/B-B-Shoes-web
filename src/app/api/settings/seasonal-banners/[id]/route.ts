@@ -23,6 +23,20 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     }
 
     const body = await request.json();
+    const additionalImages = body.galleryImages !== undefined
+      ? Array.isArray(body.galleryImages)
+        ? body.galleryImages.filter((image: unknown): image is string => typeof image === 'string' && image.trim().length > 0)
+        : null
+      : undefined;
+
+    if (additionalImages === null) {
+      return validationErrorResponse(['galleryImages must be an array of URLs']);
+    }
+
+    if (Array.isArray(additionalImages) && additionalImages.length > 2) {
+      return validationErrorResponse(['You can upload up to 3 images total (1 primary + 2 additional).']);
+    }
+
     await dbConnect();
 
     const banner = await SeasonalBanner.findById(id);
@@ -44,6 +58,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     if (body.title) banner.title = body.title;
     if (body.description !== undefined) banner.description = body.description;
     if (body.bannerImage) banner.bannerImage = body.bannerImage;
+    if (Array.isArray(additionalImages)) banner.galleryImages = additionalImages;
     if (body.linkUrl !== undefined) banner.linkUrl = body.linkUrl;
     if (body.discountPercent !== undefined) banner.discountPercent = Math.min(100, Math.max(0, body.discountPercent));
     if (body.startDate) banner.startDate = new Date(body.startDate);

@@ -45,12 +45,19 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+    const additionalImages = Array.isArray(body.galleryImages)
+      ? body.galleryImages.filter((image: unknown): image is string => typeof image === 'string' && image.trim().length > 0)
+      : [];
 
     // Validate required fields
     const { season, title, bannerImage, startDate, endDate } = body;
 
     if (!season || !title || !bannerImage || !startDate || !endDate) {
       return validationErrorResponse(['Season, title, banner image, start date, and end date are required']);
+    }
+
+    if (additionalImages.length > 2) {
+      return validationErrorResponse(['You can upload up to 3 images total (1 primary + 2 additional).']);
     }
 
     // Validate dates
@@ -68,6 +75,7 @@ export async function POST(request: NextRequest) {
       title,
       description: body.description || '',
       bannerImage,
+      galleryImages: additionalImages,
       linkUrl: body.linkUrl || '/collections',
       discountPercent: body.discountPercent || 0,
       startDate: start,
