@@ -26,25 +26,29 @@ const paymentMethods = [
     name: 'Credit / Debit Card',
     icon: CreditCard,
     description: 'Pay securely with Visa or Mastercard',
+    enabled: false,
   },
   {
     id: 'bank',
     name: 'Bank Transfer',
     icon: CreditCard,
     description: 'Transfer to Meezan Bank account',
+    enabled: false,
   },
   {
     id: 'jazzcash',
     name: 'JazzCash',
     icon: Smartphone,
     description: 'Pay via JazzCash wallet',
-    details: STORE_JAZZCASH
+    details: STORE_JAZZCASH,
+    enabled: false,
   },
   {
     id: 'cod',
     name: 'Cash on Delivery',
     icon: Banknote,
     description: 'Pay when you receive',
+    enabled: true,
   }
 ];
 
@@ -56,7 +60,7 @@ export default function CheckoutPage() {
   const { items, totalPrice, clearCart } = useCart();
   const deliveryFee = totalPrice >= 4000 ? 0 : totalPrice > 0 ? 250 : 0;
   const orderTotal = totalPrice + deliveryFee;
-  const [selectedMethod, setSelectedMethod] = useState<string>('card');
+  const [selectedMethod, setSelectedMethod] = useState<string>('cod');
   const [showSuccess, setShowSuccess] = useState(false);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
 
@@ -322,6 +326,11 @@ export default function CheckoutPage() {
   const validatePaymentDetails = () => {
     setFormError('');
 
+    if (selectedMethod !== 'cod') {
+      setFormError('Only Cash on Delivery is currently available.');
+      return false;
+    }
+
     if (!codName.trim()) {
       setFormError('Please enter your full name in delivery details');
       return false;
@@ -337,54 +346,6 @@ export default function CheckoutPage() {
     if (!codCity.trim()) {
       setFormError('Please select your delivery city');
       return false;
-    }
-
-    if (selectedMethod === 'jazzcash') {
-      if (!jazzCashNumber.trim()) {
-        setFormError('Please enter your JazzCash number');
-        return false;
-      }
-      if (!/^03\d{9}$/.test(jazzCashNumber.replace(/-/g, ''))) {
-        setFormError('Please enter a valid JazzCash number (03XXXXXXXXX)');
-        return false;
-      }
-      if (!jazzCashTransactionId.trim()) {
-        setFormError('Please enter transaction ID after payment');
-        return false;
-      }
-    }
-
-    if (selectedMethod === 'bank') {
-      if (!senderAccountNumber.trim()) {
-        setFormError('Please enter your account number');
-        return false;
-      }
-      if (!bankTransactionId.trim()) {
-        setFormError('Please enter transaction reference/ID');
-        return false;
-      }
-    }
-
-    if (selectedMethod === 'card') {
-      const digits = cardNumberDigits;
-      const hasSavedProfile = hasSavedCard;
-      if (!cardHolderName.trim() && !hasSavedProfile) {
-        setFormError('Please enter card holder name');
-        return false;
-      }
-      if (!hasSavedProfile && !isValidLuhn(digits)) {
-        setFormError('Please enter a valid Visa or Mastercard number');
-        return false;
-      }
-      const expiryToValidate = cardExpiryValue || savedCardProfile?.expiry || '';
-      if (!/^(0[1-9]|1[0-2])\/(\d{2})$/.test(expiryToValidate)) {
-        setFormError('Please enter expiry as MM/YY');
-        return false;
-      }
-      if (!/^\d{3,4}$/.test(cvcDigits)) {
-        setFormError('Please enter valid CVC');
-        return false;
-      }
     }
 
     if (selectedMethod === 'cod') {
@@ -506,7 +467,7 @@ export default function CheckoutPage() {
         subtotal: totalPrice,
         shippingFee: deliveryFee,
         total: orderTotal,
-        paymentMethod: selectedMethod,
+        paymentMethod: 'cod',
         paymentStatus: 'pending',
         paymentDetails,
       };
@@ -572,13 +533,23 @@ export default function CheckoutPage() {
               {paymentMethods.map((method) => {
                 const Icon = method.icon;
                 const isSelected = selectedMethod === method.id;
+                const isEnabled = method.enabled !== false;
 
                 return (
                   <div
                     key={method.id}
-                    onClick={() => setSelectedMethod(method.id)}
+                    onClick={() => {
+                      if (!isEnabled) {
+                        setFormError('Only Cash on Delivery is currently available.');
+                        return;
+                      }
+                      setFormError('');
+                      setSelectedMethod(method.id);
+                    }}
                     className={`bg-[#1A2435] rounded-xl p-6 border-2 cursor-pointer transition-all ${
-                      isSelected
+                      !isEnabled
+                        ? 'opacity-60 border-white/10'
+                        : isSelected
                         ? 'border-[#D4AF37] shadow-lg shadow-[#D4AF37]/20'
                         : 'border-white/10 hover:border-white/20'
                     }`}
@@ -594,6 +565,9 @@ export default function CheckoutPage() {
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-3">
                             <h3 className="text-xl font-bold">{method.name}</h3>
+                            {!isEnabled && (
+                              <span className="text-xs bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full">Disabled</span>
+                            )}
                             {method.id === 'bank' && bankSaved && (
                               <span className="text-xs bg-green-500/20 text-green-400 border border-green-500/30 px-2 py-0.5 rounded-full">Saved</span>
                             )}
@@ -966,6 +940,9 @@ export default function CheckoutPage() {
 
               {/* Delivery details are required for every payment method */}
               <div className="bg-gradient-to-r from-[#1A2435] to-[#0F1825] rounded-xl p-6 border border-white/10">
+                <div className="mb-4 bg-amber-500/10 border border-amber-500/30 rounded-lg p-3">
+                  <p className="text-xs text-amber-300">Cash on Delivery is active. Card, Bank Transfer, and JazzCash are visible for reference but currently disabled.</p>
+                </div>
                 <h3 className="text-lg font-bold mb-4">Delivery Details</h3>
                 <p className="text-sm text-gray-400 mb-4">Used for shipping regardless of payment method.</p>
 
@@ -1119,10 +1096,10 @@ export default function CheckoutPage() {
 
                 <button
                   onClick={handlePlaceOrder}
-                  disabled={items.length === 0 || isPlacingOrder || status !== 'authenticated'}
+                  disabled={items.length === 0 || isPlacingOrder || status !== 'authenticated' || selectedMethod !== 'cod'}
                   className="w-full bg-[#D4AF37] hover:bg-[#F4CE5C] text-black font-bold py-4 rounded-full transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isPlacingOrder ? (selectedMethod === 'card' ? 'Processing Payment...' : 'Placing Order...') : (selectedMethod === 'card' ? 'Pay Now' : 'Place Order')}
+                  {isPlacingOrder ? 'Placing Order...' : 'Place Order (COD)'}
                   <ChevronRight className="w-5 h-5" />
                 </button>
               </div>
