@@ -256,13 +256,27 @@ export const PATCH = asyncHandler(async (req: NextRequest) => {
 
   const body = await req.json();
   const status = String(body.status || '').trim().toLowerCase();
+  const paymentStatus = String(body.paymentStatus || '').trim().toLowerCase();
   const orderId = String(body.orderId || '').trim();
   const id = String(body.id || '').trim();
   const requestUserId = String(body.user_id || '').trim();
 
   const allowedStatuses = new Set(['pending', 'processing', 'delivered', 'cancelled']);
-  if (!allowedStatuses.has(status)) {
+  const allowedPaymentStatuses = new Set(['pending', 'paid', 'failed', 'refunded']);
+
+  const wantsStatusUpdate = Boolean(status);
+  const wantsPaymentUpdate = Boolean(paymentStatus);
+
+  if (!wantsStatusUpdate && !wantsPaymentUpdate) {
+    return validationErrorResponse(['status or paymentStatus is required']);
+  }
+
+  if (wantsStatusUpdate && !allowedStatuses.has(status)) {
     return validationErrorResponse(['Invalid status. Allowed: pending, processing, delivered, cancelled']);
+  }
+
+  if (wantsPaymentUpdate && !allowedPaymentStatuses.has(paymentStatus)) {
+    return validationErrorResponse(['Invalid paymentStatus. Allowed: pending, paid, failed, refunded']);
   }
 
   if (!orderId && !id) {
@@ -284,11 +298,11 @@ export const PATCH = asyncHandler(async (req: NextRequest) => {
 
   const currentStatus = String(existingOrder.status || 'pending').toLowerCase();
 
-  if (currentStatus === 'cancelled' && status !== 'cancelled') {
+  if (wantsStatusUpdate && currentStatus === 'cancelled' && status !== 'cancelled') {
     return errorResponse('Cancelled orders cannot be updated', 409);
   }
 
-  if (status === 'cancelled') {
+  if (wantsStatusUpdate && status === 'cancelled') {
     if (!requestUserId) {
       return validationErrorResponse(['user_id is required to cancel order']);
     }
@@ -303,9 +317,23 @@ export const PATCH = asyncHandler(async (req: NextRequest) => {
     }
   }
 
+  const updatePayload: Record<string, string> = {};
+
+  if (wantsStatusUpdate) {
+    updatePayload.status = status;
+  }
+
+  if (wantsPaymentUpdate) {
+    updatePayload.paymentStatus = paymentStatus;
+
+    if (!wantsStatusUpdate && paymentStatus === 'paid' && currentStatus === 'pending') {
+      updatePayload.status = 'processing';
+    }
+  }
+
   const result = await Order.collection.findOneAndUpdate(
     query,
-    { $set: { status } },
+    { $set: updatePayload },
     { returnDocument: 'after' }
   );
 

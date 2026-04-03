@@ -108,6 +108,7 @@ export default function AdminPanel() {
   const [activeTab, setActiveTab] = useState('products');
   const [orders, setOrders] = useState<Order[]>([]);
   const [statusSavingId, setStatusSavingId] = useState<string | null>(null);
+  const [paymentSavingId, setPaymentSavingId] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [showAddSaleForm, setShowAddSaleForm] = useState(false);
   const [showAddNewArrivalForm, setShowAddNewArrivalForm] = useState(false);
@@ -692,6 +693,39 @@ export default function AdminPanel() {
       alert(error instanceof Error ? error.message : 'Failed to update order status');
     } finally {
       setStatusSavingId(null);
+    }
+  };
+
+  const updatePaymentStatus = async (order: Order, nextPaymentStatus: 'pending' | 'paid' | 'failed') => {
+    const targetId = order.orderId || order.id;
+    if (!targetId) return;
+
+    try {
+      setPaymentSavingId(order.id);
+      const response = await fetch('/api/orders', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: targetId, paymentStatus: nextPaymentStatus }),
+      });
+
+      const result = await response.json();
+      if (!response.ok || !result?.success) {
+        throw new Error(result?.message || 'Failed to update payment status');
+      }
+
+      setOrders((prev) => prev.map((o) => (
+        o.id === order.id
+          ? {
+              ...o,
+              paymentStatus: nextPaymentStatus,
+              status: (nextPaymentStatus === 'paid' && o.status === 'pending') ? 'processing' : o.status,
+            }
+          : o
+      )));
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Failed to update payment status');
+    } finally {
+      setPaymentSavingId(null);
     }
   };
 
@@ -2532,6 +2566,18 @@ export default function AdminPanel() {
                           <p className="text-xs text-white/50 mb-3">{o.customerPhone || 'Phone not provided'}</p>
                           <div className="space-y-1 mb-3">
                             <p className="text-[11px] text-[#D4AF37]/80 uppercase tracking-[0.18em]">Payment Method: {o.paymentMethod || 'cod'}</p>
+                            <p className="text-[11px] uppercase tracking-[0.18em]">
+                              Payment Status:{' '}
+                              <span className={
+                                (o.paymentStatus || 'pending') === 'paid'
+                                  ? 'text-emerald-400'
+                                  : (o.paymentStatus || 'pending') === 'failed'
+                                    ? 'text-red-400'
+                                    : 'text-amber-400'
+                              }>
+                                {(o.paymentStatus || 'pending').toUpperCase()}
+                              </span>
+                            </p>
                             {o.paymentMethod === 'cod' ? (
                               <p className="text-xs text-white/50">COD - Pay on delivery</p>
                             ) : null}
@@ -2593,6 +2639,34 @@ export default function AdminPanel() {
                               </button>
                             ))}
                           </div>
+
+                          {/* Payment Verification */}
+                          <div className="flex bg-white/5 border border-white/5 rounded-xl p-1">
+                            {(['pending', 'paid', 'failed'] as const).map((paymentState) => (
+                              <button
+                                key={paymentState}
+                                onClick={() => updatePaymentStatus(o, paymentState)}
+                                disabled={paymentSavingId === o.id || (o.paymentStatus || 'pending') === paymentState}
+                                className={`px-4 py-2 rounded-lg text-[9px] font-bold tracking-widest uppercase transition-all ${
+                                  (o.paymentStatus || 'pending') === paymentState
+                                    ? paymentState === 'paid'
+                                      ? 'bg-emerald-500/30 text-emerald-200 shadow-md'
+                                      : paymentState === 'failed'
+                                        ? 'bg-red-500/20 text-red-200 shadow-md'
+                                        : 'bg-amber-500/20 text-amber-200 shadow-md'
+                                    : 'text-white/40 hover:text-white hover:bg-white/5'
+                                } disabled:opacity-50`}
+                              >
+                                {paymentSavingId === o.id && (o.paymentStatus || 'pending') !== paymentState ? '...' : paymentState}
+                              </button>
+                            ))}
+                          </div>
+
+                          {(o.paymentStatus || 'pending') === 'paid' ? (
+                            <p className="text-[10px] text-emerald-400 uppercase tracking-[0.14em] font-bold">Payment received - Ready for delivery</p>
+                          ) : (
+                            <p className="text-[10px] text-amber-300 uppercase tracking-[0.14em] font-bold">Payment not verified yet</p>
+                          )}
                         </div>
 
                       </div>

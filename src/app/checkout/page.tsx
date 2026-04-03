@@ -507,7 +507,7 @@ export default function CheckoutPage() {
         shippingFee: deliveryFee,
         total: orderTotal,
         paymentMethod: selectedMethod,
-        paymentStatus: selectedMethod === 'cod' ? 'pending' : 'paid',
+        paymentStatus: 'pending',
         paymentDetails,
       };
 
