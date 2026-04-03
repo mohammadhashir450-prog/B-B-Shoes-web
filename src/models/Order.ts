@@ -21,7 +21,7 @@ export interface IOrder extends Document {
   shippingFee: number;
   total: number;
   status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
-  paymentMethod: 'cod' | 'bank' | 'jazzcash' | 'easypaisa' | 'stripe' | 'paypal';
+  paymentMethod: 'cod' | 'bank' | 'jazzcash' | 'card' | 'easypaisa' | 'stripe' | 'paypal';
   paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded';
   paymentDetails?: {
     cod?: {
@@ -39,6 +39,15 @@ export interface IOrder extends Document {
     bank?: {
       bankName?: string;
       senderAccountNumber?: string;
+      transactionId?: string;
+    };
+    card?: {
+      cardHolderName?: string;
+      cardBrand?: string;
+      cardLast4?: string;
+      cardMasked?: string;
+      expiryMonth?: string;
+      expiryYear?: string;
       transactionId?: string;
     };
   };
@@ -138,7 +147,7 @@ const OrderSchema = new Schema<IOrder>(
     },
     paymentMethod: {
       type: String,
-      enum: ['cod', 'bank', 'jazzcash', 'easypaisa', 'stripe', 'paypal'],
+      enum: ['cod', 'bank', 'jazzcash', 'card', 'easypaisa', 'stripe', 'paypal'],
       default: 'cod',
     },
     paymentStatus: {
@@ -162,6 +171,15 @@ const OrderSchema = new Schema<IOrder>(
       bank: {
         bankName: { type: String, trim: true },
         senderAccountNumber: { type: String, trim: true },
+        transactionId: { type: String, trim: true },
+      },
+      card: {
+        cardHolderName: { type: String, trim: true },
+        cardBrand: { type: String, trim: true },
+        cardLast4: { type: String, trim: true },
+        cardMasked: { type: String, trim: true },
+        expiryMonth: { type: String, trim: true },
+        expiryYear: { type: String, trim: true },
         transactionId: { type: String, trim: true },
       },
     },

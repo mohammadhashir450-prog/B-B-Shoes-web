@@ -41,6 +41,15 @@ interface Order {
       senderAccountNumber?: string;
       transactionId?: string;
     };
+    card?: {
+      cardHolderName?: string;
+      cardBrand?: string;
+      cardLast4?: string;
+      cardMasked?: string;
+      expiryMonth?: string;
+      expiryYear?: string;
+      transactionId?: string;
+    };
   };
   date: string;
 }
@@ -2535,6 +2544,13 @@ export default function AdminPanel() {
                                 <p className="text-xs text-white/50">Bank: {o.paymentDetails?.bank?.bankName || 'N/A'}</p>
                                 <p className="text-xs text-white/50">Sender Account: {o.paymentDetails?.bank?.senderAccountNumber || 'N/A'}</p>
                                 <p className="text-xs text-white/50">Transaction ID: {o.paymentDetails?.bank?.transactionId || 'N/A'}</p>
+                              </>
+                            ) : null}
+                            {o.paymentMethod === 'card' ? (
+                              <>
+                                <p className="text-xs text-white/50">Card Holder: {o.paymentDetails?.card?.cardHolderName || 'N/A'}</p>
+                                <p className="text-xs text-white/50">Card: {o.paymentDetails?.card?.cardBrand || 'Card'} {o.paymentDetails?.card?.cardMasked || (o.paymentDetails?.card?.cardLast4 ? `**** **** **** ${o.paymentDetails.card.cardLast4}` : 'N/A')}</p>
+                                <p className="text-xs text-white/50">Transaction ID: {o.paymentDetails?.card?.transactionId || 'N/A'}</p>
                               </>
                             ) : null}
                           </div>

@@ -177,6 +177,20 @@ export const POST = asyncHandler(async (req: NextRequest) => {
           transactionId: String(requestPaymentDetails.bank.transactionId || '').trim(),
         }
       : undefined,
+    card: requestPaymentDetails.card
+      ? {
+          cardHolderName: String(requestPaymentDetails.card.cardHolderName || '').trim(),
+          cardBrand: String(requestPaymentDetails.card.cardBrand || '').trim(),
+          cardLast4: String(
+            requestPaymentDetails.card.cardLast4 ||
+            String(requestPaymentDetails.card.cardNumber || '').replace(/\D/g, '').slice(-4)
+          ).trim(),
+          cardMasked: String(requestPaymentDetails.card.cardMasked || '').trim(),
+          expiryMonth: String(requestPaymentDetails.card.expiryMonth || '').trim(),
+          expiryYear: String(requestPaymentDetails.card.expiryYear || '').trim(),
+          transactionId: String(requestPaymentDetails.card.transactionId || '').trim(),
+        }
+      : undefined,
   };
 
   const normalizedOrder = {

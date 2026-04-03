@@ -7,6 +7,7 @@ import { useCart } from '@/context/CartContext';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { CreditCard, Smartphone, Banknote, Check, ChevronRight, Shield, AlertCircle, Save, CheckCircle2 } from 'lucide-react';
+import { maskCardNumber } from '@/lib/security';
 
 const STORE_BANKS = [
   { name: 'HBL', account: '1234567890', title: 'B&B Shoes' },
@@ -50,6 +51,12 @@ const PAKISTAN_BANKS = [
 
 const paymentMethods = [
   {
+    id: 'card',
+    name: 'Credit / Debit Card',
+    icon: CreditCard,
+    description: 'Pay securely with Visa or Mastercard',
+  },
+  {
     id: 'bank',
     name: 'Bank Transfer',
     icon: CreditCard,
@@ -88,6 +95,10 @@ export default function CheckoutPage() {
   const [selectedBank, setSelectedBank] = useState('');
   const [bankTransactionId, setBankTransactionId] = useState('');
   const [senderAccountNumber, setSenderAccountNumber] = useState('');
+  const [cardHolderName, setCardHolderName] = useState('');
+  const [cardNumber, setCardNumber] = useState('');
+  const [cardExpiry, setCardExpiry] = useState('');
+  const [cardCvc, setCardCvc] = useState('');
   const [codName, setCodName] = useState('');
   const [codPhone, setCodPhone] = useState('');
   const [codAddress, setCodAddress] = useState('');
@@ -97,8 +108,35 @@ export default function CheckoutPage() {
   // Save state indicators
   const [bankSaved, setBankSaved] = useState(false);
   const [jazzCashSaved, setJazzCashSaved] = useState(false);
+  const [cardSaved, setCardSaved] = useState(false);
   const [codSaved, setCodSaved] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
+
+  const detectCardBrand = (value: string) => {
+    const digits = value.replace(/\D/g, '');
+    if (/^4/.test(digits)) return 'Visa';
+    if (/^(5[1-5]|2[2-7])/.test(digits)) return 'Mastercard';
+    return 'Card';
+  };
+
+  const isValidLuhn = (value: string) => {
+    const digits = value.replace(/\D/g, '');
+    if (digits.length < 13 || digits.length > 19) return false;
+
+    let sum = 0;
+    let shouldDouble = false;
+    for (let i = digits.length - 1; i >= 0; i -= 1) {
+      let digit = Number(digits[i]);
+      if (shouldDouble) {
+        digit *= 2;
+        if (digit > 9) digit -= 9;
+      }
+      sum += digit;
+      shouldDouble = !shouldDouble;
+    }
+
+    return sum % 10 === 0;
+  };
 
   // Load saved payment details from localStorage on mount
   useEffect(() => {
@@ -114,6 +152,11 @@ export default function CheckoutPage() {
         if (parsed.jazzcash) {
           setJazzCashNumber(parsed.jazzcash.number || '');
           setJazzCashSaved(true);
+        }
+        if (parsed.card) {
+          setCardHolderName(parsed.card.cardHolderName || '');
+          setCardExpiry(parsed.card.expiry || '');
+          setCardSaved(true);
         }
         if (parsed.cod) {
           setCodName(parsed.cod.name || '');
@@ -172,6 +215,38 @@ export default function CheckoutPage() {
     showTempMessage('Delivery details saved!');
   };
 
+  const handleSaveCard = () => {
+    const digits = cardNumber.replace(/\D/g, '');
+    if (!cardHolderName.trim()) {
+      setFormError('Please enter card holder name');
+      return;
+    }
+    if (!isValidLuhn(digits)) {
+      setFormError('Please enter a valid card number');
+      return;
+    }
+    if (!/^(0[1-9]|1[0-2])\/(\d{2})$/.test(cardExpiry)) {
+      setFormError('Please enter expiry as MM/YY');
+      return;
+    }
+    if (!/^\d{3,4}$/.test(cardCvc)) {
+      setFormError('Please enter a valid CVC (3 or 4 digits)');
+      return;
+    }
+
+    setFormError('');
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    saved.card = {
+      cardHolderName,
+      expiry: cardExpiry,
+      last4: digits.slice(-4),
+      brand: detectCardBrand(digits),
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+    setCardSaved(true);
+    showTempMessage('Card details saved securely!');
+  };
+
   const validatePaymentDetails = () => {
     setFormError('');
 
@@ -218,6 +293,26 @@ export default function CheckoutPage() {
       }
       if (!bankTransactionId.trim()) {
         setFormError('Please enter transaction reference/ID');
+        return false;
+      }
+    }
+
+    if (selectedMethod === 'card') {
+      const digits = cardNumber.replace(/\D/g, '');
+      if (!cardHolderName.trim()) {
+        setFormError('Please enter card holder name');
+        return false;
+      }
+      if (!isValidLuhn(digits)) {
+        setFormError('Please enter a valid Visa or Mastercard number');
+        return false;
+      }
+      if (!/^(0[1-9]|1[0-2])\/(\d{2})$/.test(cardExpiry)) {
+        setFormError('Please enter expiry as MM/YY');
+        return false;
+      }
+      if (!/^\d{3,4}$/.test(cardCvc)) {
+        setFormError('Please enter valid CVC');
         return false;
       }
     }
@@ -269,44 +364,54 @@ export default function CheckoutPage() {
         price: item.price,
       }));
 
-      const paymentDetails =
-        selectedMethod === 'cod'
-          ? {
-              cod: {
-                name: codName,
-                phone: codPhone,
-                address: codAddress,
-                city: codCity,
-              },
-            }
-          : selectedMethod === 'jazzcash'
-            ? {
-                jazzcash: {
-                  senderNumber: jazzCashNumber,
-                  transactionId: jazzCashTransactionId,
-                  receiverNumber: '03XX-XXXXXXX',
-                  receiverName: 'B&B Shoes',
-                },
-                cod: {
-                  name: codName,
-                  phone: codPhone,
-                  address: codAddress,
-                  city: codCity,
-                },
-              }
-            : {
-                bank: {
-                  bankName: selectedBank,
-                  senderAccountNumber,
-                  transactionId: bankTransactionId,
-                },
-                cod: {
-                  name: codName,
-                  phone: codPhone,
-                  address: codAddress,
-                  city: codCity,
-                },
-              };
+      let paymentDetails: any = {
+        cod: {
+          name: codName,
+          phone: codPhone,
+          address: codAddress,
+          city: codCity,
+        },
+      };
+
+      if (selectedMethod === 'jazzcash') {
+        paymentDetails = {
+          ...paymentDetails,
+          jazzcash: {
+            senderNumber: jazzCashNumber,
+            transactionId: jazzCashTransactionId,
+            receiverNumber: '03XX-XXXXXXX',
+            receiverName: 'B&B Shoes',
+          },
+        };
+      }
+
+      if (selectedMethod === 'bank') {
+        paymentDetails = {
+          ...paymentDetails,
+          bank: {
+            bankName: selectedBank,
+            senderAccountNumber,
+            transactionId: bankTransactionId,
+          },
+        };
+      }
+
+      if (selectedMethod === 'card') {
+        const cardDigits = cardNumber.replace(/\D/g, '');
+        const [expiryMonth = '', expiryYear = ''] = cardExpiry.split('/');
+        paymentDetails = {
+          ...paymentDetails,
+          card: {
+            cardHolderName,
+            cardBrand: detectCardBrand(cardDigits),
+            cardLast4: cardDigits.slice(-4),
+            cardMasked: maskCardNumber(cardDigits),
+            expiryMonth,
+            expiryYear: expiryYear.length === 2 ? `20${expiryYear}` : expiryYear,
+            transactionId: `CARD-${Date.now()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`,
+          },
+        };
+      }
 
       const payload = {
         user_id: session.user.user_id,
@@ -409,6 +514,9 @@ export default function CheckoutPage() {
                             {method.id === 'bank' && bankSaved && (
                               <span className="text-xs bg-green-500/20 text-green-400 border border-green-500/30 px-2 py-0.5 rounded-full">Saved</span>
                             )}
+                            {method.id === 'card' && cardSaved && (
+                              <span className="text-xs bg-green-500/20 text-green-400 border border-green-500/30 px-2 py-0.5 rounded-full">Saved</span>
+                            )}
                             {method.id === 'jazzcash' && jazzCashSaved && (
                               <span className="text-xs bg-green-500/20 text-green-400 border border-green-500/30 px-2 py-0.5 rounded-full">Saved</span>
                             )}
@@ -503,6 +611,83 @@ export default function CheckoutPage() {
 
                             <div className="bg-yellow-400/10 border border-yellow-400/20 rounded-lg p-3">
                               <p className="text-xs text-yellow-400">📌 Complete the bank transfer first, then enter your details and transaction ID above</p>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* ── Card Payment Form ── */}
+                        {method.id === 'card' && isSelected && (
+                          <div className="bg-black/30 rounded-lg p-4 space-y-4" onClick={(e) => e.stopPropagation()}>
+                            <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-3">
+                              <p className="text-xs text-emerald-300">Secure Card Checkout (Visa / Mastercard). Card is processed securely and only masked details are stored.</p>
+                            </div>
+
+                            <div className="space-y-4">
+                              <div>
+                                <label className="block text-sm font-semibold mb-2">Card Holder Name *</label>
+                                <input
+                                  type="text"
+                                  placeholder="Name on card"
+                                  value={cardHolderName}
+                                  onChange={(e) => { setCardHolderName(e.target.value); setCardSaved(false); }}
+                                  className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-[#D4AF37] focus:outline-none transition-colors"
+                                />
+                              </div>
+
+                              <div>
+                                <label className="block text-sm font-semibold mb-2">Card Number *</label>
+                                <input
+                                  type="text"
+                                  inputMode="numeric"
+                                  maxLength={19}
+                                  placeholder="XXXX XXXX XXXX XXXX"
+                                  value={cardNumber}
+                                  onChange={(e) => { setCardNumber(e.target.value); setCardSaved(false); }}
+                                  className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-[#D4AF37] focus:outline-none transition-colors"
+                                />
+                                <p className="text-xs text-gray-400 mt-1">Accepted cards: Visa, Mastercard</p>
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                  <label className="block text-sm font-semibold mb-2">Expiry (MM/YY) *</label>
+                                  <input
+                                    type="text"
+                                    maxLength={5}
+                                    placeholder="MM/YY"
+                                    value={cardExpiry}
+                                    onChange={(e) => { setCardExpiry(e.target.value); setCardSaved(false); }}
+                                    className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-[#D4AF37] focus:outline-none transition-colors"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-sm font-semibold mb-2">CVC *</label>
+                                  <input
+                                    type="password"
+                                    inputMode="numeric"
+                                    maxLength={4}
+                                    placeholder="***"
+                                    value={cardCvc}
+                                    onChange={(e) => { setCardCvc(e.target.value); setCardSaved(false); }}
+                                    className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-[#D4AF37] focus:outline-none transition-colors"
+                                  />
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-3">
+                                <button
+                                  type="button"
+                                  onClick={(e) => { e.stopPropagation(); handleSaveCard(); }}
+                                  className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-all ${
+                                    cardSaved
+                                      ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                                      : 'bg-[#D4AF37] text-black hover:bg-[#F4CE5C]'
+                                  }`}
+                                >
+                                  {cardSaved ? <><CheckCircle2 className="w-4 h-4" /> Card Saved</> : <><Save className="w-4 h-4" /> Save Card Details</>}
+                                </button>
+                                {cardSaved && <span className="text-xs text-green-400">✓ Saved to device</span>}
+                              </div>
                             </div>
                           </div>
                         )}
