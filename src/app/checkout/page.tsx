@@ -543,7 +543,7 @@ export default function CheckoutPage() {
 
                         {/* ── Bank Transfer Form ── */}
                         {method.id === 'bank' && isSelected && (
-                          <div className="bg-gradient-to-br from-[#26344F] to-[#172338] rounded-lg p-4 space-y-4 border border-[#D4AF37]/20" onClick={(e) => e.stopPropagation()}>
+                          <div className="bg-white rounded-lg p-4 space-y-4 border border-[#D4AF37]/35 shadow-[0_14px_30px_-20px_rgba(7,10,15,0.45)]" onClick={(e) => e.stopPropagation()}>
 
                             {/* Store bank accounts */}
                             <div>
@@ -551,8 +551,8 @@ export default function CheckoutPage() {
                               <div className="bg-[#D4AF37]/12 border border-[#D4AF37]/30 rounded-lg p-3">
                                 <div className="flex items-center justify-between">
                                   <div>
-                                    <p className="font-semibold text-sm text-white">{STORE_BANK_ACCOUNT.name}</p>
-                                    <p className="text-xs text-white/70">{STORE_BANK_ACCOUNT.title}</p>
+                                    <p className="font-semibold text-sm text-[#111827]">{STORE_BANK_ACCOUNT.name}</p>
+                                    <p className="text-xs text-[#4B5563]">{STORE_BANK_ACCOUNT.title}</p>
                                   </div>
                                   <p className="text-[#F5D77A] font-mono text-sm">{STORE_BANK_ACCOUNT.account}</p>
                                 </div>
@@ -560,7 +560,7 @@ export default function CheckoutPage() {
                             </div>
 
                             {/* User bank details */}
-                            <div className="space-y-4 pt-4 border-t border-white/10">
+                            <div className="space-y-4 pt-4 border-t border-[#E5E7EB]">
                               <p className="text-sm font-semibold text-[#D4AF37]">Your Bank Details:</p>
 
                               <div>
@@ -570,7 +570,7 @@ export default function CheckoutPage() {
                                   placeholder="Enter your account number"
                                   value={senderAccountNumber}
                                   onChange={(e) => { setSenderAccountNumber(e.target.value); setBankSaved(false); }}
-                                  className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-[#D4AF37] focus:outline-none transition-colors"
+                                  className="w-full bg-white border border-[#D1D5DB] rounded-lg px-4 py-3 text-[#111827] placeholder-gray-500 focus:border-[#D4AF37] focus:outline-none transition-colors"
                                 />
                               </div>
 
@@ -589,16 +589,16 @@ export default function CheckoutPage() {
                                 {bankSaved && <span className="text-xs text-green-400">✓ Saved to device</span>}
                               </div>
 
-                              <div className="pt-2 border-t border-white/10">
+                              <div className="pt-2 border-t border-[#E5E7EB]">
                                 <label className="block text-sm font-semibold mb-2">Transaction Reference / ID *</label>
                                 <input
                                   type="text"
                                   placeholder="Enter transaction reference number"
                                   value={bankTransactionId}
                                   onChange={(e) => setBankTransactionId(e.target.value)}
-                                  className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-[#D4AF37] focus:outline-none transition-colors"
+                                  className="w-full bg-white border border-[#D1D5DB] rounded-lg px-4 py-3 text-[#111827] placeholder-gray-500 focus:border-[#D4AF37] focus:outline-none transition-colors"
                                 />
-                                <p className="text-xs text-gray-400 mt-1">Enter the reference number from your bank transfer receipt</p>
+                                <p className="text-xs text-[#6B7280] mt-1">Enter the reference number from your bank transfer receipt</p>
                               </div>
                             </div>
 
@@ -610,17 +610,17 @@ export default function CheckoutPage() {
 
                         {/* ── Card Payment Form ── */}
                         {method.id === 'card' && isSelected && (
-                          <div className="bg-gradient-to-br from-[#26344F] to-[#172338] rounded-lg p-4 space-y-4 border border-[#D4AF37]/20" onClick={(e) => e.stopPropagation()}>
+                          <div className="bg-white rounded-lg p-4 space-y-4 border border-[#D4AF37]/35 shadow-[0_14px_30px_-20px_rgba(7,10,15,0.45)]" onClick={(e) => e.stopPropagation()}>
                             <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-3">
-                              <p className="text-xs text-emerald-300">Secure Card Checkout (Visa / Mastercard). Card is processed securely and only masked details are stored.</p>
+                              <p className="text-xs text-emerald-700">Secure Card Checkout (Visa / Mastercard). Card is processed securely and only masked details are stored.</p>
                             </div>
 
                             {savedCardProfile && (
-                              <div className="bg-white/5 border border-white/15 rounded-lg p-3 flex items-center justify-between gap-3">
+                              <div className="bg-[#F8F5EB] border border-[#D8CDAE] rounded-lg p-3 flex items-center justify-between gap-3">
                                 <div>
-                                  <p className="text-xs text-white/60 uppercase tracking-wider">Saved Card</p>
-                                  <p className="text-sm text-white font-semibold">{savedCardProfile.cardBrand} {savedCardProfile.cardMasked}</p>
-                                  <p className="text-xs text-white/60">Expiry: {savedCardProfile.expiry}</p>
+                                  <p className="text-xs text-[#6B7280] uppercase tracking-wider">Saved Card</p>
+                                  <p className="text-sm text-[#111827] font-semibold">{savedCardProfile.cardBrand} {savedCardProfile.cardMasked}</p>
+                                  <p className="text-xs text-[#6B7280]">Expiry: {savedCardProfile.expiry}</p>
                                 </div>
                                 <button
                                   type="button"
@@ -640,7 +640,7 @@ export default function CheckoutPage() {
                                   placeholder="Name on card"
                                   value={cardHolderName}
                                   onChange={(e) => { setCardHolderName(e.target.value); setCardSaved(false); }}
-                                  className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-[#D4AF37] focus:outline-none transition-colors"
+                                  className="w-full bg-white border border-[#D1D5DB] rounded-lg px-4 py-3 text-[#111827] placeholder-gray-500 focus:border-[#D4AF37] focus:outline-none transition-colors"
                                 />
                               </div>
 
@@ -653,9 +653,9 @@ export default function CheckoutPage() {
                                   placeholder={savedCardProfile ? 'Leave empty to use saved card' : 'XXXX XXXX XXXX XXXX'}
                                   value={cardNumber}
                                   onChange={(e) => { setCardNumber(e.target.value); setCardSaved(false); }}
-                                  className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-[#D4AF37] focus:outline-none transition-colors"
+                                  className="w-full bg-white border border-[#D1D5DB] rounded-lg px-4 py-3 text-[#111827] placeholder-gray-500 focus:border-[#D4AF37] focus:outline-none transition-colors"
                                 />
-                                <p className="text-xs text-gray-400 mt-1">Accepted cards: Visa, Mastercard</p>
+                                <p className="text-xs text-[#6B7280] mt-1">Accepted cards: Visa, Mastercard</p>
                               </div>
 
                               <div className="grid grid-cols-2 gap-4">
@@ -667,7 +667,7 @@ export default function CheckoutPage() {
                                     placeholder="MM/YY"
                                     value={cardExpiry}
                                     onChange={(e) => { setCardExpiry(e.target.value); setCardSaved(false); }}
-                                    className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-[#D4AF37] focus:outline-none transition-colors"
+                                    className="w-full bg-white border border-[#D1D5DB] rounded-lg px-4 py-3 text-[#111827] placeholder-gray-500 focus:border-[#D4AF37] focus:outline-none transition-colors"
                                   />
                                 </div>
                                 <div>
@@ -679,7 +679,7 @@ export default function CheckoutPage() {
                                     placeholder="***"
                                     value={cardCvc}
                                     onChange={(e) => { setCardCvc(e.target.value); setCardSaved(false); }}
-                                    className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-[#D4AF37] focus:outline-none transition-colors"
+                                    className="w-full bg-white border border-[#D1D5DB] rounded-lg px-4 py-3 text-[#111827] placeholder-gray-500 focus:border-[#D4AF37] focus:outline-none transition-colors"
                                   />
                                 </div>
                               </div>
@@ -704,14 +704,14 @@ export default function CheckoutPage() {
 
                         {/* ── JazzCash Form ── */}
                         {method.id === 'jazzcash' && isSelected && method.details && (
-                          <div className="bg-gradient-to-br from-[#26344F] to-[#172338] rounded-lg p-4 space-y-4 border border-[#D4AF37]/20" onClick={(e) => e.stopPropagation()}>
+                          <div className="bg-white rounded-lg p-4 space-y-4 border border-[#D4AF37]/35 shadow-[0_14px_30px_-20px_rgba(7,10,15,0.45)]" onClick={(e) => e.stopPropagation()}>
                             <div>
-                              <p className="text-xs text-gray-400 uppercase tracking-wider mb-2">Send Payment To:</p>
+                              <p className="text-xs text-[#6B7280] uppercase tracking-wider mb-2">Send Payment To:</p>
                               <p className="text-2xl font-bold text-[#D4AF37] mb-1">{method.details.number}</p>
-                              <p className="text-sm text-gray-400 mb-4">Account Title: {method.details.name}</p>
+                              <p className="text-sm text-[#4B5563] mb-4">Account Title: {method.details.name}</p>
                             </div>
 
-                            <div className="space-y-4 pt-4 border-t border-white/10">
+                            <div className="space-y-4 pt-4 border-t border-[#E5E7EB]">
                               <p className="text-sm font-semibold text-[#D4AF37]">Your JazzCash Details:</p>
 
                               <div>
@@ -722,9 +722,9 @@ export default function CheckoutPage() {
                                   value={jazzCashNumber}
                                   maxLength={11}
                                   onChange={(e) => { setJazzCashNumber(e.target.value); setJazzCashSaved(false); }}
-                                  className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-[#D4AF37] focus:outline-none transition-colors"
+                                  className="w-full bg-white border border-[#D1D5DB] rounded-lg px-4 py-3 text-[#111827] placeholder-gray-500 focus:border-[#D4AF37] focus:outline-none transition-colors"
                                 />
-                                <p className="text-xs text-gray-400 mt-1">The number you are sending from</p>
+                                <p className="text-xs text-[#6B7280] mt-1">The number you are sending from</p>
                               </div>
 
                               <div className="flex items-center gap-3">
@@ -742,16 +742,16 @@ export default function CheckoutPage() {
                                 {jazzCashSaved && <span className="text-xs text-green-400">✓ Saved to device</span>}
                               </div>
 
-                              <div className="pt-2 border-t border-white/10">
+                              <div className="pt-2 border-t border-[#E5E7EB]">
                                 <label className="block text-sm font-semibold mb-2">Transaction ID *</label>
                                 <input
                                   type="text"
                                   placeholder="Enter JazzCash transaction ID"
                                   value={jazzCashTransactionId}
                                   onChange={(e) => setJazzCashTransactionId(e.target.value)}
-                                  className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-[#D4AF37] focus:outline-none transition-colors"
+                                  className="w-full bg-white border border-[#D1D5DB] rounded-lg px-4 py-3 text-[#111827] placeholder-gray-500 focus:border-[#D4AF37] focus:outline-none transition-colors"
                                 />
-                                <p className="text-xs text-gray-400 mt-1">Transaction ID received after sending payment</p>
+                                <p className="text-xs text-[#6B7280] mt-1">Transaction ID received after sending payment</p>
                               </div>
                             </div>
 
@@ -763,9 +763,9 @@ export default function CheckoutPage() {
 
                         {/* ── Cash on Delivery Form ── */}
                         {method.id === 'cod' && isSelected && (
-                          <div className="bg-black/30 rounded-lg p-4 space-y-4" onClick={(e) => e.stopPropagation()}>
+                          <div className="bg-white rounded-lg p-4 space-y-4 border border-[#D4AF37]/35 shadow-[0_14px_30px_-20px_rgba(7,10,15,0.45)]" onClick={(e) => e.stopPropagation()}>
                             <div className="bg-blue-400/10 border border-blue-400/20 rounded-lg p-3">
-                              <p className="text-sm text-blue-400">💰 Pay in cash when your order is delivered to your door</p>
+                              <p className="text-sm text-blue-700">Pay in cash when your order is delivered to your door</p>
                             </div>
 
                             <div className="space-y-4">
@@ -776,7 +776,7 @@ export default function CheckoutPage() {
                                   placeholder="Enter your full name"
                                   value={codName}
                                   onChange={(e) => { setCodName(e.target.value); setCodSaved(false); }}
-                                  className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-[#D4AF37] focus:outline-none transition-colors"
+                                  className="w-full bg-white border border-[#D1D5DB] rounded-lg px-4 py-3 text-[#111827] placeholder-gray-500 focus:border-[#D4AF37] focus:outline-none transition-colors"
                                 />
                               </div>
 
@@ -788,7 +788,7 @@ export default function CheckoutPage() {
                                   value={codPhone}
                                   maxLength={11}
                                   onChange={(e) => { setCodPhone(e.target.value); setCodSaved(false); }}
-                                  className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-[#D4AF37] focus:outline-none transition-colors"
+                                  className="w-full bg-white border border-[#D1D5DB] rounded-lg px-4 py-3 text-[#111827] placeholder-gray-500 focus:border-[#D4AF37] focus:outline-none transition-colors"
                                 />
                               </div>
 
@@ -799,7 +799,7 @@ export default function CheckoutPage() {
                                   value={codAddress}
                                   rows={3}
                                   onChange={(e) => { setCodAddress(e.target.value); setCodSaved(false); }}
-                                  className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-[#D4AF37] focus:outline-none transition-colors resize-none"
+                                  className="w-full bg-white border border-[#D1D5DB] rounded-lg px-4 py-3 text-[#111827] placeholder-gray-500 focus:border-[#D4AF37] focus:outline-none transition-colors resize-none"
                                 />
                               </div>
 
@@ -808,7 +808,7 @@ export default function CheckoutPage() {
                                 <select
                                   value={codCity}
                                   onChange={(e) => { setCodCity(e.target.value); setCodSaved(false); }}
-                                  className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-[#D4AF37] focus:outline-none transition-colors"
+                                  className="w-full bg-white border border-[#D1D5DB] rounded-lg px-4 py-3 text-[#111827] focus:border-[#D4AF37] focus:outline-none transition-colors"
                                 >
                                   <option value="">Select your city...</option>
                                   <option value="Karachi">Karachi</option>
