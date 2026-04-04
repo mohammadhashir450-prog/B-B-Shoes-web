@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import Link from 'next/link'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
@@ -23,7 +23,9 @@ const normalizeText = (value?: string) =>
 
 export default function AccessoriesPage() {
   const [selectedType, setSelectedType] = useState('all')
+  const [currentPage, setCurrentPage] = useState(1)
   const { getProductsByCategory, loading } = useProducts()
+  const productsPerPage = 8
 
   const accessoriesProducts = useMemo(() => {
     return getProductsByCategory('Accessories')
@@ -48,6 +50,22 @@ export default function AccessoriesPage() {
       )
     })
   }, [accessoriesProducts, selectedType])
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [selectedType])
+
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / productsPerPage))
+  const paginatedProducts = useMemo(() => {
+    const startIndex = (currentPage - 1) * productsPerPage
+    return filteredProducts.slice(startIndex, startIndex + productsPerPage)
+  }, [filteredProducts, currentPage])
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages)
+    }
+  }, [currentPage, totalPages])
 
   return (
     <>
@@ -111,7 +129,7 @@ export default function AccessoriesPage() {
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {filteredProducts.map((product) => (
+              {paginatedProducts.map((product) => (
                 <Link
                   key={product.id}
                   href={`/product/${product.id}`}
@@ -148,6 +166,34 @@ export default function AccessoriesPage() {
                   </div>
                 </Link>
               ))}
+            </div>
+          )}
+
+          {!loading && filteredProducts.length > 0 && totalPages > 1 && (
+            <div className="flex items-center justify-center gap-3 mt-10">
+              <button
+                type="button"
+                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-white hover:border-[#D4AF37] hover:text-[#D4AF37] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                aria-label="Previous page"
+              >
+                <ChevronRight size={16} className="rotate-180" />
+              </button>
+
+              <div className="w-10 h-10 rounded-full bg-[#D4AF37] text-[#0B101E] font-bold text-sm flex items-center justify-center">
+                {currentPage}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+                className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-white hover:border-[#D4AF37] hover:text-[#D4AF37] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                aria-label="Next page"
+              >
+                <ChevronRight size={16} />
+              </button>
             </div>
           )}
         </div>

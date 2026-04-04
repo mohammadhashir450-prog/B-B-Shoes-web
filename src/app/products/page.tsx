@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
@@ -12,11 +12,25 @@ import { useWishlist } from '@/context/WishlistContext'
 export default function ProductsPage() {
   const { allProducts, loading } = useProducts()
   const { isWishlisted, toggleWishlist } = useWishlist()
+  const [currentPage, setCurrentPage] = useState(1)
+  const productsPerPage = 12
 
   // Get all regular products (not sales or new arrivals)
   const regularProducts = useMemo(() => {
     return allProducts.filter((p) => !p.isOnSale && !p.isNewArrival).sort((a, b) => a.name.localeCompare(b.name))
   }, [allProducts])
+
+  const totalPages = Math.max(1, Math.ceil(regularProducts.length / productsPerPage))
+  const paginatedProducts = useMemo(() => {
+    const startIndex = (currentPage - 1) * productsPerPage
+    return regularProducts.slice(startIndex, startIndex + productsPerPage)
+  }, [regularProducts, currentPage])
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages)
+    }
+  }, [currentPage, totalPages])
 
   // Premium Loading State
   if (loading) {
@@ -91,7 +105,7 @@ export default function ProductsPage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
-                {regularProducts.map((product, index) => (
+                {paginatedProducts.map((product, index) => (
                   <div
                     key={product.id}
                     className="group relative bg-white border border-[#E7E0D1] rounded-2xl overflow-hidden transition-all duration-400 hover:border-[#D4AF37]/45 hover:shadow-[0_18px_34px_-18px_rgba(24,32,43,0.22)]"
@@ -156,6 +170,34 @@ export default function ProductsPage() {
                     </Link>
                   </div>
                 ))}
+              </div>
+            )}
+
+            {regularProducts.length > 0 && totalPages > 1 && (
+              <div className="flex items-center justify-center gap-3 mt-10">
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className="w-10 h-10 rounded-full border border-[#D7C9AD] flex items-center justify-center text-[#233044] hover:border-[#D4AF37] hover:text-[#D4AF37] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                  aria-label="Previous page"
+                >
+                  <ChevronRight size={16} className="rotate-180" />
+                </button>
+
+                <div className="w-10 h-10 rounded-full bg-[#D4AF37] text-[#0B101E] font-bold text-sm flex items-center justify-center">
+                  {currentPage}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                  className="w-10 h-10 rounded-full border border-[#D7C9AD] flex items-center justify-center text-[#233044] hover:border-[#D4AF37] hover:text-[#D4AF37] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                  aria-label="Next page"
+                >
+                  <ChevronRight size={16} />
+                </button>
               </div>
             )}
           </div>

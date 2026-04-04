@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import Link from 'next/link'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
@@ -25,7 +25,9 @@ const normalizeText = (value?: string) =>
 
 export default function KidsPage() {
   const [selectedStyle, setSelectedStyle] = useState('all')
+  const [currentPage, setCurrentPage] = useState(1)
   const { getProductsByCategory, loading } = useProducts()
+  const productsPerPage = 6
   
   const products = useMemo(() => {
     return getProductsByCategory('Kids')
@@ -50,6 +52,22 @@ export default function KidsPage() {
       )
     })
   }, [products, selectedStyle])
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [selectedStyle])
+
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / productsPerPage))
+  const paginatedProducts = useMemo(() => {
+    const startIndex = (currentPage - 1) * productsPerPage
+    return filteredProducts.slice(startIndex, startIndex + productsPerPage)
+  }, [filteredProducts, currentPage])
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages)
+    }
+  }, [currentPage, totalPages])
 
   return (
     <>
@@ -126,7 +144,7 @@ export default function KidsPage() {
               </div>
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {filteredProducts.map((product) => (
+                {paginatedProducts.map((product) => (
                   <Link href={`/product/${product.id}`} key={product.id} className="group">
                     <article className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl hover:shadow-[#D4AF37]/20 transition-all duration-300">
                       <div className="relative aspect-square bg-gray-100 overflow-hidden border border-[#06080F]/45 rounded-xl shadow-[0_10px_24px_-18px_rgba(6,8,15,0.55)]">
@@ -161,6 +179,34 @@ export default function KidsPage() {
                     </article>
                   </Link>
                 ))}
+              </div>
+            )}
+
+            {!loading && filteredProducts.length > 0 && totalPages > 1 && (
+              <div className="flex items-center justify-center gap-3 mt-10">
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-white hover:border-[#D4AF37] hover:text-[#D4AF37] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                  aria-label="Previous page"
+                >
+                  <ChevronRight size={16} className="rotate-180" />
+                </button>
+
+                <div className="w-10 h-10 rounded-full bg-[#D4AF37] text-[#0B101E] font-bold text-sm flex items-center justify-center">
+                  {currentPage}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                  className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-white hover:border-[#D4AF37] hover:text-[#D4AF37] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                  aria-label="Next page"
+                >
+                  <ChevronRight size={16} />
+                </button>
               </div>
             )}
           </div>

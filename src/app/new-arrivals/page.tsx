@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
@@ -16,6 +16,8 @@ export default function NewArrivals() {
   const [priceRangeOpen, setPriceRangeOpen] = useState(false)
   const [materialOpen, setMaterialOpen] = useState(false)
   const [activeCategory, setActiveCategory] = useState('new-arrivals')
+  const [currentPage, setCurrentPage] = useState(1)
+  const productsPerPage = 6
   
   const products = useMemo(() => {
     return getNewArrivals()
@@ -42,6 +44,22 @@ export default function NewArrivals() {
       return categoryMatch && sizeMatch
     })
   }, [products, activeCategory, selectedSize])
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [activeCategory, selectedSize])
+
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / productsPerPage))
+  const paginatedProducts = useMemo(() => {
+    const startIndex = (currentPage - 1) * productsPerPage
+    return filteredProducts.slice(startIndex, startIndex + productsPerPage)
+  }, [filteredProducts, currentPage])
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages)
+    }
+  }, [currentPage, totalPages])
 
   return (
     <>
@@ -257,7 +275,7 @@ export default function NewArrivals() {
               ) : (
                 <>
                   <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-12">
-                    {filteredProducts.map((product) => (
+                    {paginatedProducts.map((product) => (
                       <Link 
                         href={`/product/${product.id}`}
                         key={product.id} 
@@ -319,20 +337,37 @@ export default function NewArrivals() {
                     ))}
                   </div>
 
-                  {/* Pagination */}
-                  <div className="flex items-center justify-center gap-2">
-                    <button className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-white hover:border-[#D4AF37] hover:text-[#D4AF37] transition-all">
-                      <ChevronRight size={16} className="rotate-180" />
-                    </button>
-                    
-                    <button className="w-10 h-10 rounded-full bg-[#D4AF37] text-[#0B101E] font-bold text-sm">
-                      1
-                    </button>
-                    
-                    <button className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-white hover:border-[#D4AF37] hover:text-[#D4AF37] transition-all">
-                      <ChevronRight size={16} />
-                    </button>
-                  </div>
+                  {totalPages > 1 && (
+                    <div className="flex items-center justify-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                        disabled={currentPage === 1}
+                        className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-white hover:border-[#D4AF37] hover:text-[#D4AF37] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                        aria-label="Previous page"
+                      >
+                        <ChevronRight size={16} className="rotate-180" />
+                      </button>
+
+                      <button
+                        type="button"
+                        className="w-10 h-10 rounded-full bg-[#D4AF37] text-[#0B101E] font-bold text-sm"
+                        aria-label={`Current page ${currentPage}`}
+                      >
+                        {currentPage}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                        disabled={currentPage === totalPages}
+                        className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-white hover:border-[#D4AF37] hover:text-[#D4AF37] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                        aria-label="Next page"
+                      >
+                        <ChevronRight size={16} />
+                      </button>
+                    </div>
+                  )}
                 </>
               )}
             </div>
