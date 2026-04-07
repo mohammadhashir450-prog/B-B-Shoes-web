@@ -18,11 +18,13 @@ export const metadata: Metadata = {
   description: "BRANDS YOU LIKE! Discover Pakistan's finest collection of premium footwear. From formal elegance to casual comfort - we've got your perfect match.",
   keywords: ["shoes", "footwear", "B&B Shoes", "premium shoes", "Pakistan shoes", "online shoe store", "sneakers", "leather boots"],
   authors: [{ name: "B&B Shoes" }],
-  // Next.js explicitly in icons ko uthayega
   icons: {
-    icon: '/icon.png',
-    shortcut: '/icon.png',
-    apple: '/icon.png',
+    icon: [
+      { url: '/favicon.ico', sizes: 'any', type: 'image/x-icon' },
+      { url: '/icon.png', sizes: '512x512', type: 'image/png' },
+    ],
+    shortcut: '/favicon.ico',
+    apple: [{ url: '/icon.png', sizes: '180x180', type: 'image/png' }],
   },
   robots: {
     index: true,
@@ -44,7 +46,7 @@ export const metadata: Metadata = {
     type: 'website',
     images: [
       {
-        url: '/icon.png', // WhatsApp/FB share par logo nazar aayega
+        url: '/icon.png',
         width: 512,
         height: 512,
         alt: 'B&B Shoes Logo',
