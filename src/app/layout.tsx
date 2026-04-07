@@ -19,7 +19,11 @@ export const metadata: Metadata = {
   keywords: ["shoes", "footwear", "B&B Shoes", "premium shoes", "Pakistan shoes", "online shoe store", "sneakers", "leather boots"],
   authors: [{ name: "B&B Shoes" }],
   icons: {
-    icon: "/favicon.ico",
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/logo.png', type: 'image/png' },
+    ],
+    apple: '/logo.png',
   },
   robots: {
     index: true,
@@ -39,11 +43,20 @@ export const metadata: Metadata = {
     siteName: 'B&B Shoes',
     locale: 'en_US',
     type: 'website',
+    images: [
+      {
+        url: '/logo.png',
+        width: 512,
+        height: 512,
+        alt: 'B&B Shoes logo',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'B&B Shoes | Premium Experience',
     description: "Discover Pakistan's finest collection of premium footwear.",
+    images: ['/logo.png'],
   },
 }
 

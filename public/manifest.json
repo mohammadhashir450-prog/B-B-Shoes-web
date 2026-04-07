@@ -4,14 +4,14 @@
   "description": "BRANDS YOU LIKE! Discover Pakistan's finest collection of premium footwear.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0047AB",
-  "theme_color": "#0047AB",
+  "background_color": "#0B101E",
+  "theme_color": "#0B101E",
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/favicon.ico",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
     }
   ],
   "categories": ["shopping", "e-commerce", "lifestyle"],

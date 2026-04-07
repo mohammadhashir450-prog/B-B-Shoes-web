@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="B&B Shoes logo">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#05070C" />
+      <stop offset="100%" stop-color="#0B101E" />
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="96" fill="url(#bg)" />
+  <rect x="32" y="32" width="448" height="448" rx="72" fill="none" stroke="#D4AF37" stroke-opacity="0.22" stroke-width="12" />
+  <text x="256" y="250" fill="#D4AF37" font-family="Arial, Helvetica, sans-serif" font-size="150" font-weight="900" text-anchor="middle" letter-spacing="-18">B&amp;B</text>
+  <text x="256" y="322" fill="#F5D86F" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="800" text-anchor="middle" letter-spacing="5">BRANDS YOU LIKE!</text>
+</svg>
