@@ -9,9 +9,16 @@
   "orientation": "portrait-primary",
   "icons": [
     {
+      "src": "/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon",
+      "purpose": "any"
+    },
+    {
       "src": "/logo.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ],
   "categories": ["shopping", "e-commerce", "lifestyle"],

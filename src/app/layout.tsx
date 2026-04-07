@@ -20,10 +20,12 @@ export const metadata: Metadata = {
   authors: [{ name: "B&B Shoes" }],
   icons: {
     icon: [
+      { url: '/favicon.ico', type: 'image/x-icon', sizes: 'any' },
+      { url: '/icon.png', type: 'image/png', sizes: '512x512' },
       { url: '/favicon.svg', type: 'image/svg+xml' },
-      { url: '/logo.png', type: 'image/png' },
     ],
-    apple: '/logo.png',
+    shortcut: '/favicon.ico',
+    apple: [{ url: '/logo.png', type: 'image/png', sizes: '180x180' }],
   },
   robots: {
     index: true,
