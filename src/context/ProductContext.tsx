@@ -71,8 +71,84 @@ export function ProductProvider({ children }: { children: ReactNode }) {
   const [womenProducts, setWomenProducts] = useState<Product[]>([]);
   const [salesEndsAt, setSalesEndsAt] = useState<string | null>(null);
   const [nowTick, setNowTick] = useState<number>(Date.now());
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const normalizeProduct = (raw: any): Product | null => {
+    if (!raw || typeof raw !== 'object') return null;
+
+    const id = String(raw.id || raw._id || '').trim();
+    const name = String(raw.name || '').trim();
+    const image = String(raw.image || '').trim();
+    const category = String(raw.category || '').trim();
+    const price = Number(raw.price || 0);
+
+    if (!id || !name || !image || !category || !Number.isFinite(price) || price <= 0) {
+      return null;
+    }
+
+    return {
+      id,
+      name,
+      image,
+      category,
+      price,
+      originalPrice: Number(raw.originalPrice || 0) || undefined,
+      discount: Number(raw.discount || 0) || undefined,
+      secondaryImage: raw.secondaryImage,
+      sizeColorImages: Array.isArray(raw.sizeColorImages) ? raw.sizeColorImages : [],
+      subcategory: raw.subcategory,
+      brand: raw.brand,
+      sizes: Array.isArray(raw.sizes) ? raw.sizes : [],
+      colors: Array.isArray(raw.colors) ? raw.colors : [],
+      description: raw.description,
+      rating: Number(raw.rating || 0) || undefined,
+      reviews: Number(raw.reviews || 0) || undefined,
+      isOnSale: Boolean(raw.isOnSale),
+      isNewArrival: Boolean(raw.isNewArrival),
+      inStock: raw.inStock !== false,
+      stock: Number(raw.stock || 0) || undefined,
+      sold: Number(raw.sold || 0) || undefined,
+      sizeStock: Array.isArray(raw.sizeStock) ? raw.sizeStock : [],
+    };
+  };
+
+  const getCachedProducts = (): Product[] => {
+    if (typeof window === 'undefined') return [];
+
+    const cacheKeys = ['bb_cached_products', 'allProducts'];
+
+    for (const key of cacheKeys) {
+      try {
+        const raw = window.localStorage.getItem(key);
+        if (!raw) continue;
+
+        const parsed = JSON.parse(raw);
+        const normalized = (Array.isArray(parsed) ? parsed : [])
+          .map(normalizeProduct)
+          .filter((item): item is Product => Boolean(item));
+
+        if (normalized.length > 0) {
+          return normalized;
+        }
+      } catch {
+        // Ignore malformed local cache entries.
+      }
+    }
+
+    return [];
+  };
+
+  const saveCachedProducts = (products: Product[]) => {
+    if (typeof window === 'undefined') return;
+
+    try {
+      window.localStorage.setItem('bb_cached_products', JSON.stringify(products));
+      window.localStorage.setItem('allProducts', JSON.stringify(products));
+    } catch {
+      // Ignore localStorage write failures.
+    }
+  };
 
   const normalizeCategory = (value?: string) =>
     (value || '')
@@ -147,8 +223,11 @@ export function ProductProvider({ children }: { children: ReactNode }) {
   };
 
   const fetchSalesTimer = async (): Promise<string | null> => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 1200);
+
     try {
-      const timerResponse = await fetch('/api/settings/sales-timer', { cache: 'no-store' });
+      const timerResponse = await fetch('/api/settings/sales-timer', { signal: controller.signal });
       if (timerResponse.ok) {
         const timerData = await timerResponse.json();
         const timerValue = timerData?.data?.salesEndsAt || null;
@@ -157,6 +236,8 @@ export function ProductProvider({ children }: { children: ReactNode }) {
       }
     } catch (timerError) {
       console.warn('⚠️ Sales timer fetch skipped:', timerError);
+    } finally {
+      clearTimeout(timeout);
     }
 
     return null;
@@ -165,15 +246,28 @@ export function ProductProvider({ children }: { children: ReactNode }) {
   // Fetch all products once
   const fetchProducts = async () => {
   try {
-    setLoading(true);
+    const cachedProducts = getCachedProducts();
+    setLoading(cachedProducts.length === 0);
     setError(null);
+
+    if (cachedProducts.length > 0) {
+      setSourceProducts(cachedProducts);
+      const cachedVisible = buildVisibleProducts(cachedProducts, salesEndsAt, Date.now(), isAdminRoute);
+      applyVisibleProductBuckets(cachedVisible);
+    }
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 2500);
     
     const response = await fetch('/api/products', {
-      cache: 'no-store',
+      signal: controller.signal,
+      cache: 'default',
       headers: {
         'Content-Type': 'application/json',
       },
     });
+
+    clearTimeout(timeout);
     
     if (!response.ok) {
       throw new Error(`Failed to fetch products: ${response.status}`);
@@ -182,11 +276,10 @@ export function ProductProvider({ children }: { children: ReactNode }) {
     // Parse the JSON
     const responseData = await response.json();
 
-    // Keep sales timer in sync with admin panel settings.
-    const timerValue = await fetchSalesTimer();
-    
     // Extract products
-    const products = responseData.data?.products || []; 
+    const products = Array.isArray(responseData?.data?.products)
+      ? responseData.data.products.map(normalizeProduct).filter((item: Product | null): item is Product => Boolean(item))
+      : []; 
     
     // Verify images
     const withImages = products.filter((p: Product) => p.image && p.image.trim() !== '');
@@ -203,19 +296,30 @@ export function ProductProvider({ children }: { children: ReactNode }) {
     }
     
     setSourceProducts(products);
+    saveCachedProducts(products);
 
-    const visibleProducts = buildVisibleProducts(products, timerValue, Date.now(), isAdminRoute);
+    const visibleProducts = buildVisibleProducts(products, salesEndsAt, Date.now(), isAdminRoute);
     applyVisibleProductBuckets(visibleProducts);
+
+    // Keep sales timer in sync without delaying primary product rendering.
+    void fetchSalesTimer();
     
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : 'Failed to load products';
     setError(errorMessage);
     console.error('❌ Error loading products:', err);
-    
-    setAllProducts([]);
-    setSourceProducts([]);
-    setMenProducts([]);
-    setWomenProducts([]);
+
+    const cachedProducts = getCachedProducts();
+    if (cachedProducts.length > 0) {
+      setSourceProducts(cachedProducts);
+      const cachedVisible = buildVisibleProducts(cachedProducts, salesEndsAt, Date.now(), isAdminRoute);
+      applyVisibleProductBuckets(cachedVisible);
+    } else {
+      setAllProducts([]);
+      setSourceProducts([]);
+      setMenProducts([]);
+      setWomenProducts([]);
+    }
   } finally {
     setLoading(false);
   }

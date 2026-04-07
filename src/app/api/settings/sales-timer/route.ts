@@ -4,14 +4,63 @@ import { SiteSettings } from '@/models';
 import { asyncHandler } from '@/lib/errorHandler';
 import { successResponse, errorResponse, validationErrorResponse } from '@/lib/apiResponse';
 
+type SalesTimerPayload = {
+  salesEndsAt: Date | string | null;
+  salesTickerMessage: string;
+  salesTickerSpeed: number;
+  flatSalePercent: number;
+  updatedAt: Date | string | null;
+};
+
+const DEFAULT_SALES_TIMER: SalesTimerPayload = {
+  salesEndsAt: null,
+  salesTickerMessage: '',
+  salesTickerSpeed: 18,
+  flatSalePercent: 0,
+  updatedAt: null,
+};
+
+const SALES_TIMER_CACHE_TTL_MS = 60_000;
+
+let salesTimerCache: {
+  data: SalesTimerPayload;
+  expiresAt: number;
+} | null = null;
+
+function normalizeSalesTimer(settings: any): SalesTimerPayload {
+  return {
+    salesEndsAt: settings?.salesEndsAt || null,
+    salesTickerMessage: settings?.salesTickerMessage || '',
+    salesTickerSpeed: Number(settings?.salesTickerSpeed || 18),
+    flatSalePercent: Number(settings?.flatSalePercent || 0),
+    updatedAt: settings?.updatedAt || null,
+  };
+}
+
+function updateSalesTimerCache(data: SalesTimerPayload) {
+  salesTimerCache = {
+    data,
+    expiresAt: Date.now() + SALES_TIMER_CACHE_TTL_MS,
+  };
+}
+
 /**
  * GET /api/settings/sales-timer
  * Returns current sales countdown end time
  */
 export const GET = asyncHandler(async () => {
+  if (salesTimerCache && salesTimerCache.expiresAt > Date.now()) {
+    return successResponse(salesTimerCache.data, 'Sales timer fetched successfully');
+  }
+
   try {
     await connectDB();
   } catch (dbError: any) {
+    // Keep storefront responsive in local/dev even when DB is unavailable.
+    if (salesTimerCache?.data) {
+      return successResponse(salesTimerCache.data, 'Sales timer fetched from cache');
+    }
+
     return errorResponse(
       dbError?.message || 'Database connection failed while loading sales timer',
       503
@@ -20,14 +69,11 @@ export const GET = asyncHandler(async () => {
 
   const settings = await SiteSettings.findOne({ key: 'global' }).select('salesEndsAt salesTickerMessage salesTickerSpeed flatSalePercent updatedAt');
 
+  const payload = normalizeSalesTimer(settings || DEFAULT_SALES_TIMER);
+  updateSalesTimerCache(payload);
+
   return successResponse(
-    {
-      salesEndsAt: settings?.salesEndsAt || null,
-      salesTickerMessage: settings?.salesTickerMessage || '',
-      salesTickerSpeed: Number(settings?.salesTickerSpeed || 18),
-      flatSalePercent: Number(settings?.flatSalePercent || 0),
-      updatedAt: settings?.updatedAt || null,
-    },
+    payload,
     'Sales timer fetched successfully'
   );
 });
@@ -89,14 +135,11 @@ export const PATCH = asyncHandler(async (req: NextRequest) => {
     }
   ).select('salesEndsAt salesTickerMessage salesTickerSpeed flatSalePercent updatedAt');
 
+  const payload = normalizeSalesTimer(settings || DEFAULT_SALES_TIMER);
+  updateSalesTimerCache(payload);
+
   return successResponse(
-    {
-      salesEndsAt: settings?.salesEndsAt || null,
-      salesTickerMessage: settings?.salesTickerMessage || '',
-      salesTickerSpeed: Number(settings?.salesTickerSpeed || 18),
-      flatSalePercent: Number(settings?.flatSalePercent || 0),
-      updatedAt: settings?.updatedAt || null,
-    },
+    payload,
     'Sales timer updated successfully'
   );
 });
