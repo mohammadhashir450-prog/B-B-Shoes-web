@@ -33,10 +33,6 @@ export default function CuratedCollections() {
     }
   }, [allProducts])
 
-  const fallbackProducts = useMemo(() => {
-    return allProducts.filter((p) => !p.isOnSale && !p.isNewArrival)
-  }, [allProducts])
-
   const displayedProducts = categoryProducts[activeCategory].slice(0, 4)
   const currentRouteLink = categories.find(c => c.key === activeCategory)?.route || '/women'
 
@@ -65,7 +61,7 @@ export default function CuratedCollections() {
   }
 
   // Check if any category has products
-  const hasAnyProducts = Object.values(categoryProducts).some(products => products.length > 0) || fallbackProducts.length > 0
+  const hasAnyProducts = Object.values(categoryProducts).some(products => products.length > 0)
 
   // Premium Empty State
   if (!hasAnyProducts) {
@@ -91,8 +87,6 @@ export default function CuratedCollections() {
   ) || 'Women'
 
   const finalProducts = categoryProducts[validCategory].slice(0, 4)
-  const productsToRender = finalProducts.length > 0 ? finalProducts : fallbackProducts.slice(0, 4)
-  const routeLink = finalProducts.length > 0 ? currentRouteLink : '/collections#all-products-grid'
 
   return (
     <section className="relative bg-[#FCFBF8] py-12 md:py-20 overflow-hidden">
@@ -181,7 +175,7 @@ export default function CuratedCollections() {
               </button>
 
               <Link
-                href={routeLink}
+                href={`${currentRouteLink}?category=${validCategory.toLowerCase()}`}
                 className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-full border border-[#DCCFB6] bg-white/90 text-[#253041] text-[10px] sm:text-[11px] font-bold tracking-[0.14em] uppercase hover:border-[#D4AF37] hover:bg-[#D4AF37] transition-all duration-300"
               >
                 See More
@@ -197,7 +191,7 @@ export default function CuratedCollections() {
               onTouchStart={() => setShowSwipeHint(false)}
               className="flex gap-4 sm:gap-5 lg:gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-3 scroll-px-4 sm:scroll-px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             >
-              {productsToRender.map((product, index) => (
+              {finalProducts.map((product, index) => (
                 <motion.div
                   key={product.id}
                   initial={shouldReduceMotion ? false : { opacity: 0, y: 30 }}
@@ -279,7 +273,7 @@ export default function CuratedCollections() {
               className="md:hidden mt-3 flex items-center justify-center"
             >
               <Link
-                href={routeLink}
+                href={`${currentRouteLink}?category=${validCategory.toLowerCase()}`}
                 className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#F5EFE1] border border-[#E2D6BF] text-[#6A7483] text-[10px] tracking-[0.14em] uppercase font-bold hover:bg-[#EEDED4] transition-all duration-300"
               >
                 <span>See More Products</span>

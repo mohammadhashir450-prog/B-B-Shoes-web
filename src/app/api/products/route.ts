@@ -6,26 +6,11 @@ import { asyncHandler } from '@/lib/errorHandler';
 import { successResponse, createdResponse, validationErrorResponse, errorResponse } from '@/lib/apiResponse';
 import { validateProduct } from '@/lib/validation';
 
-const PRODUCTS_CACHE_TTL_MS = 60_000;
-
-let productsCache: {
-  data: any;
-  expiresAt: number;
-} | null = null;
-
-const clearProductsCache = () => {
-  productsCache = null;
-};
-
 /**
  * GET /api/products
  * Fetch all products with optional filtering
  */
 export const GET = asyncHandler(async (req: NextRequest) => {
-  if (productsCache && productsCache.expiresAt > Date.now()) {
-    return successResponse(productsCache.data, 'Products fetched successfully');
-  }
-
   console.log("🔵 GET /api/products called");
   
   // Connect to database (with fallback to local MongoDB)
@@ -96,13 +81,10 @@ export const GET = asyncHandler(async (req: NextRequest) => {
 
   console.log(`✅ Fetched ${formattedProducts.length} products`);
 
-  const payload = { count: formattedProducts.length, products: formattedProducts };
-  productsCache = {
-    data: payload,
-    expiresAt: Date.now() + PRODUCTS_CACHE_TTL_MS,
-  };
-
-  return successResponse(payload, 'Products fetched successfully');
+  return successResponse(
+    { count: formattedProducts.length, products: formattedProducts },
+    'Products fetched successfully'
+  );
 });
 
 /**
@@ -111,8 +93,6 @@ export const GET = asyncHandler(async (req: NextRequest) => {
  */
 export const POST = asyncHandler(async (req: NextRequest) => {
   await dbConnect();
-
-  clearProductsCache();
 
   const body = await req.json();
   

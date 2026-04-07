@@ -20,17 +20,7 @@ export default function WomenSection() {
     return allProducts.filter((p) => p.category === 'Women' && !p.isOnSale && !p.isNewArrival)
   }, [allProducts])
 
-  const fallbackProducts = useMemo(() => {
-    return allProducts.filter((p) => !p.isOnSale && !p.isNewArrival)
-  }, [allProducts])
-
-  const displayedProducts = (womenProducts.length > 0 ? womenProducts : fallbackProducts).slice(0, 4)
-  const isWomenMode = womenProducts.length > 0
-  const sectionTitle = isWomenMode ? 'The Women Collection' : 'Featured Collection'
-  const sectionDescription = isWomenMode
-    ? 'Premium picks designed for modern women, curated for style and comfort.'
-    : 'Premium picks curated for style and comfort while new women arrivals are being added.'
-  const sectionRoute = isWomenMode ? '/women' : '/collections#all-products-grid'
+  const displayedProducts = womenProducts.slice(0, 4)
 
   const scrollSlider = (direction: 'left' | 'right') => {
     if (!sliderRef.current) return
@@ -58,7 +48,7 @@ export default function WomenSection() {
   }
 
   // Premium Empty State
-  if (displayedProducts.length === 0 && !loading) {
+  if (womenProducts.length === 0 && !loading) {
     return (
       <section className="relative bg-white py-32 overflow-hidden min-h-[50vh] flex items-center justify-center">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-white/5 blur-[120px] rounded-full pointer-events-none" />
@@ -98,10 +88,10 @@ export default function WomenSection() {
               </p>
             </div>
             <h2 className="text-[30px] md:text-4xl lg:text-5xl font-serif font-black text-[#18202B] leading-tight mb-2 md:mb-3">
-              {sectionTitle}
+              The Women Collection
             </h2>
             <p className="text-[#4F5A69] text-sm max-w-[420px] leading-relaxed">
-              {sectionDescription}
+              Premium picks designed for modern women, curated for style and comfort.
             </p>
           </motion.div>
           
@@ -129,7 +119,7 @@ export default function WomenSection() {
             </button>
 
             <Link
-              href={sectionRoute}
+              href="/women"
               className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-full border border-[#DCCFB6] bg-white/90 text-[#253041] text-[10px] sm:text-[11px] font-bold tracking-[0.14em] uppercase hover:border-[#D4AF37] hover:bg-[#D4AF37] transition-all duration-300"
             >
               See More
@@ -227,7 +217,7 @@ export default function WomenSection() {
             className="md:hidden mt-3 flex items-center justify-center"
           >
             <Link
-              href={sectionRoute}
+              href="/women"
               className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#F5EFE1] border border-[#E2D6BF] text-[#6A7483] text-[10px] tracking-[0.14em] uppercase font-bold hover:bg-[#EEDED4] transition-all duration-300"
             >
               <span>See More Products</span>

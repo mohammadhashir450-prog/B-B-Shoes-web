@@ -225,11 +225,8 @@ export default function Navbar() {
 
   useEffect(() => {
     const fetchSalesTimer = async () => {
-      const controller = new AbortController()
-      const timeout = setTimeout(() => controller.abort(), 1200)
-
       try {
-        const response = await fetch('/api/settings/sales-timer', { signal: controller.signal })
+        const response = await fetch('/api/settings/sales-timer', { cache: 'no-store' })
         if (!response.ok) return
         const result = await response.json()
         setSalesEndsAt(result?.data?.salesEndsAt || null)
@@ -241,8 +238,6 @@ export default function Navbar() {
         setSalesTickerMessage('')
         setSalesTickerSpeed(18)
         setFlatSalePercent(0)
-      } finally {
-        clearTimeout(timeout)
       }
     }
 
