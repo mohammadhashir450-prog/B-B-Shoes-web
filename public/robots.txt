@@ -1,34 +1,22 @@
 # Robots.txt for B&B Shoes E-commerce
 # https://www.robotstxt.org/
 
-# Allow all bots to crawl the site
 User-agent: *
 Allow: /
 
-# Disallow admin and API routes
 Disallow: /admin/
 Disallow: /api/
-
-# Disallow authentication pages from indexing
 Disallow: /login
-Disallow: /
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /my-orders
+Disallow: /my-addresses
+Disallow: /profile
+Disallow: /settings
+Disallow: /checkout
 
-# Allow images
 Allow: /_next/image
 Allow: /images/
 Allow: /favicon.ico
 
-# Sitemap location
-Sitemap: https://yourwebsite.com/sitemap.xml
-
-# Crawl delay (optional, in seconds)
-Crawl-delay: 1
-
-# Specific bot rules
-User-agent: Googlebot
-Allow: /
-Crawl-delay: 0
-
-User-agent: Bingbot
-Allow: /
-Crawl-delay: 1
+Sitemap: https://bnbshoes.online/sitemap.xml
