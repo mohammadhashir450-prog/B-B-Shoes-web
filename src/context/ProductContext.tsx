@@ -187,12 +187,6 @@ export function ProductProvider({ children }: { children: ReactNode }) {
     return true;
   };
 
-  const isSameProductList = (left: Product[], right: Product[]): boolean => {
-    if (left.length !== right.length) return false;
-
-    return left.every((product, index) => product.id === right[index]?.id);
-  };
-
   const buildVisibleProducts = (
     products: Product[],
     timerValue: string | null,
@@ -213,19 +207,19 @@ export function ProductProvider({ children }: { children: ReactNode }) {
   };
 
   const applyVisibleProductBuckets = (products: Product[]) => {
-    setAllProducts((prev) => (isSameProductList(prev, products) ? prev : products));
+    setAllProducts(products);
 
     const men = products.filter((p: Product) => {
       const category = normalizeCategory(p.category);
       return category === 'men' || category === 'mens';
     });
-    setMenProducts((prev) => (isSameProductList(prev, men) ? prev : men));
+    setMenProducts(men);
 
     const women = products.filter((p: Product) => {
       const category = normalizeCategory(p.category);
       return category === 'women' || category === 'womens';
     });
-    setWomenProducts((prev) => (isSameProductList(prev, women) ? prev : women));
+    setWomenProducts(women);
   };
 
   const fetchSalesTimer = async (): Promise<string | null> => {
