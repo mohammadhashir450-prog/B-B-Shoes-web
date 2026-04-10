@@ -337,17 +337,17 @@ export default function Navbar() {
             initial={{ opacity: 0, y: -16 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -16 }}
-            className="fixed top-0 left-0 right-0 z-[130] bg-gradient-to-r from-[#7B0000] via-[#C20F1E] to-[#7B0000] text-white border-b border-[#FF9AA2]/30 shadow-[0_8px_28px_-12px_rgba(194,15,30,0.9)]"
+            className="fixed top-0 left-0 right-0 z-[130] overflow-hidden bg-[linear-gradient(90deg,#5E0000_0%,#C20F1E_44%,#FF5A6A_50%,#C20F1E_56%,#5E0000_100%)] text-white border-b border-[#FFB3BC]/35 shadow-[0_14px_38px_-18px_rgba(194,15,30,0.95)]"
           >
             <div className="max-w-[1400px] mx-auto px-3 md:px-10 py-3 flex items-center gap-3">
-              <span className="hidden sm:inline-flex items-center gap-2 rounded-full bg-[#2C0000] border border-[#FFB3BC]/40 px-3 py-1.5 text-[10px] font-black tracking-[0.28em] uppercase whitespace-nowrap sales-badge-pulse shadow-[0_0_0_1px_rgba(255,255,255,0.04)]">
+              <span className="hidden sm:inline-flex items-center gap-2 rounded-full bg-[#210000]/95 border border-[#FFD7DC]/35 px-3.5 py-1.5 text-[10px] font-black tracking-[0.32em] uppercase whitespace-nowrap sales-badge-pulse shadow-[0_8px_18px_-10px_rgba(0,0,0,0.55)]">
                 <span className="sales-live-dot" />
                 Live
               </span>
-              <Link href="/sales" className="sales-marquee group flex-1 overflow-hidden rounded-full border border-white/15 bg-white/8 px-3 py-2 hover:bg-white/12 transition-colors shadow-[0_10px_24px_-14px_rgba(0,0,0,0.45)]">
+              <Link href="/sales" className="sales-marquee group flex-1 overflow-hidden rounded-full border border-white/18 bg-white/10 px-3 py-2.5 hover:bg-white/16 transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_10px_24px_-14px_rgba(0,0,0,0.45)] backdrop-blur-sm">
                 <div className="sales-marquee-track" style={{ animationDuration: `${tickerDurationSeconds}s` }}>
                   {[1, 2].map((copy) => (
-                    <span key={copy} className="sales-marquee-content text-[12px] md:text-sm lg:text-[15px] font-extrabold tracking-[0.16em] uppercase drop-shadow-[0_2px_2px_rgba(0,0,0,0.45)]">
+                    <span key={copy} className="sales-marquee-content text-[12px] md:text-[15px] lg:text-[16px] font-black tracking-[0.18em] uppercase drop-shadow-[0_2px_2px_rgba(0,0,0,0.45)]">
                       {salesTickerText}
                     </span>
                   ))}

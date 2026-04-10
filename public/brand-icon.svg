@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="B&B Shoes">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#070B14" />
+      <stop offset="100%" stop-color="#0B132B" />
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FFE58A" />
+      <stop offset="50%" stop-color="#F2C94C" />
+      <stop offset="100%" stop-color="#C99A1A" />
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="104" fill="url(#bg)" />
+  <rect x="34" y="34" width="444" height="444" rx="88" fill="none" stroke="url(#gold)" stroke-opacity="0.42" stroke-width="10" />
+  <circle cx="256" cy="256" r="140" fill="none" stroke="#ffffff" stroke-opacity="0.06" stroke-width="24" />
+  <text x="256" y="286" fill="url(#gold)" font-family="Arial, Helvetica, sans-serif" font-size="170" font-weight="900" text-anchor="middle" letter-spacing="-18">B&amp;B</text>
+  <path d="M154 176h52c18 0 32 14 32 32s-14 32-32 32h-52v-64Zm0 128h52c18 0 32 14 32 32s-14 32-32 32h-52v-64Zm204-128h52v64h-52c-18 0-32-14-32-32s14-32 32-32Zm0 128h52v64h-52c-18 0-32-14-32-32s14-32 32-32Z" fill="#F2C94C" opacity="0.96"/>
+</svg>
