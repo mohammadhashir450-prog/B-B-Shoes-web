@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, Edit2, Trash2, X, Save, Camera, Upload } from 'lucide-react'
+import { CldUploadWidget } from 'next-cloudinary'
+import { Plus, Edit2, Trash2, X, Save, Camera } from 'lucide-react'
 
 interface ISeasonalBanner {
   _id: string;
@@ -21,10 +22,6 @@ interface ISeasonalBanner {
 }
 
 export default function AdminSeasonalBanners() {
-  const bannerFileInputRef = useRef<HTMLInputElement | null>(null)
-  const additionalFileInputRef = useRef<HTMLInputElement | null>(null)
-  const [uploadingBanner, setUploadingBanner] = useState(false)
-  const [uploadingAdditional, setUploadingAdditional] = useState(false)
   const [banners, setBanners] = useState<ISeasonalBanner[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
@@ -338,104 +335,18 @@ export default function AdminSeasonalBanners() {
     }
   }
 
-  const uploadBannerImage = async (file: File) => {
-    if (!file) {
-      return
-    }
-
-    setMessage('')
-    setUploadingBanner(true)
-
-    try {
-      const formData = new FormData()
-      formData.append('file', file)
-      formData.append('folder', 'bb_shoes/seasonal-banners')
-
-      const response = await fetch('/api/uploads/cloudinary', {
-        method: 'POST',
-        body: formData,
-      })
-
-      const result = await response.json()
-
-      if (!response.ok || !result?.success) {
-        throw new Error(result?.message || 'Upload failed')
-      }
-
-      const uploadedUrl = result?.data?.secureUrl || result?.data?.secure_url
-
-      if (!uploadedUrl) {
-        throw new Error('Upload did not return a valid image URL')
-      }
-
-      setFormData((prev) => ({ ...prev, bannerImage: uploadedUrl }))
-      setMessage('✅ Banner image uploaded successfully')
-    } catch (error) {
-      setMessage(error instanceof Error ? `❌ ${error.message}` : '❌ Upload failed')
-    } finally {
-      setUploadingBanner(false)
-      if (bannerFileInputRef.current) {
-        bannerFileInputRef.current.value = ''
-      }
-    }
-  }
-
-  const uploadAdditionalImage = async (file: File) => {
-    if (!file) {
-      return
-    }
-
-    const existing = formData.galleryImages || []
-    if (existing.length >= 2) {
-      setMessage('❌ Maximum 2 additional images allowed')
-      return
-    }
-
-    setMessage('')
-    setUploadingAdditional(true)
-
-    try {
-      const formDataPayload = new FormData()
-      formDataPayload.append('file', file)
-      formDataPayload.append('folder', 'bb_shoes/seasonal-banners')
-
-      const response = await fetch('/api/uploads/cloudinary', {
-        method: 'POST',
-        body: formDataPayload,
-      })
-
-      const result = await response.json()
-
-      if (!response.ok || !result?.success) {
-        throw new Error(result?.message || 'Upload failed')
-      }
-
-      const uploadedUrl = result?.data?.secureUrl || result?.data?.secure_url
-
-      if (!uploadedUrl) {
-        throw new Error('Upload did not return a valid image URL')
-      }
-
-      setFormData((prev) => ({
-        ...prev,
-        galleryImages: [...(prev.galleryImages || []), uploadedUrl],
-      }))
-      setMessage('✅ Additional slider image uploaded')
-    } catch (error) {
-      setMessage(error instanceof Error ? `❌ ${error.message}` : '❌ Upload failed')
-    } finally {
-      setUploadingAdditional(false)
-      if (additionalFileInputRef.current) {
-        additionalFileInputRef.current.value = ''
-      }
-    }
-  }
-
   const removeAdditionalImage = (indexToRemove: number) => {
     setFormData((prev) => ({
       ...prev,
       galleryImages: (prev.galleryImages || []).filter((_, index) => index !== indexToRemove),
     }))
+  }
+
+  const extractCloudinaryUrl = (result: any) => {
+    const info = result?.info
+    if (!info) return ''
+    const secure = typeof info.secure_url === 'string' ? info.secure_url.trim() : ''
+    return secure
   }
 
   if (loading) {
@@ -676,38 +587,44 @@ export default function AdminSeasonalBanners() {
               {/* Banner Image Upload */}
               <div>
                 <label className="text-sm text-white/70 font-bold mb-2 block">Banner Image</label>
-                <input
-                  ref={bannerFileInputRef}
-                  type="file"
-                  accept="image/png,image/jpeg,image/jpg,image/webp"
-                  className="hidden"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0]
-                    if (file) {
-                      void uploadBannerImage(file)
-                    }
+                <CldUploadWidget
+                  uploadPreset="bb_web"
+                  options={{
+                    cloudName: 'dt2ikjlfc',
+                    sources: ['local', 'url', 'camera'],
+                    multiple: false,
+                    maxFiles: 1,
+                    maxFileSize: 5000000,
+                    clientAllowedFormats: ['png', 'jpg', 'jpeg', 'webp'],
+                    folder: 'bb_shoes/seasonal-banners',
                   }}
-                />
-                <button
-                  type="button"
-                  onClick={() => bannerFileInputRef.current?.click()}
-                  disabled={uploadingBanner}
-                  className="w-full p-6 border-2 border-dashed border-[#D4AF37]/30 rounded-lg hover:border-[#D4AF37] transition-colors flex items-center justify-center gap-2 bg-white/5 disabled:opacity-60"
+                  onSuccess={(result: any) => {
+                    const uploadedUrl = extractCloudinaryUrl(result)
+                    if (!uploadedUrl) {
+                      setMessage('❌ Upload failed: invalid image URL from Cloudinary')
+                      return
+                    }
+
+                    setFormData((prev) => ({ ...prev, bannerImage: uploadedUrl }))
+                    setMessage('✅ Banner image uploaded successfully')
+                  }}
+                  onError={(error: any) => {
+                    setMessage(`❌ Upload failed: ${error?.message || 'Unknown error'}`)
+                  }}
                 >
-                  {uploadingBanner ? (
-                    <>
-                      <Upload size={18} className="text-[#D4AF37] animate-pulse" />
-                      <span className="text-white/70 text-sm">Uploading banner image...</span>
-                    </>
-                  ) : (
-                    <>
+                  {({ open }) => (
+                    <button
+                      type="button"
+                      onClick={() => open()}
+                      className="w-full p-6 border-2 border-dashed border-[#D4AF37]/30 rounded-lg hover:border-[#D4AF37] transition-colors flex items-center justify-center gap-2 bg-white/5"
+                    >
                       <Camera size={18} className="text-[#D4AF37]" />
                       <span className="text-white/70 text-sm">
                         {formData.bannerImage ? 'Change Image' : 'Upload Banner Image'}
                       </span>
-                    </>
+                    </button>
                   )}
-                </button>
+                </CldUploadWidget>
                 <p className="text-[11px] text-white/40 mt-1">Recommended size: 1400x600 or larger.</p>
                 {formData.bannerImage && (
                   <div className="mt-4 relative h-40 rounded-lg overflow-hidden border border-white/10">
@@ -723,40 +640,59 @@ export default function AdminSeasonalBanners() {
 
               <div>
                 <label className="text-sm text-white/70 font-bold mb-2 block">Additional Slider Images (Optional)</label>
-                <input
-                  ref={additionalFileInputRef}
-                  type="file"
-                  accept="image/png,image/jpeg,image/jpg,image/webp"
-                  className="hidden"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0]
-                    if (file) {
-                      void uploadAdditionalImage(file)
-                    }
+                <CldUploadWidget
+                  uploadPreset="bb_web"
+                  options={{
+                    cloudName: 'dt2ikjlfc',
+                    sources: ['local', 'url', 'camera'],
+                    multiple: false,
+                    maxFiles: 1,
+                    maxFileSize: 5000000,
+                    clientAllowedFormats: ['png', 'jpg', 'jpeg', 'webp'],
+                    folder: 'bb_shoes/seasonal-banners',
                   }}
-                />
-                <button
-                  type="button"
-                  onClick={() => additionalFileInputRef.current?.click()}
-                  disabled={uploadingAdditional || (formData.galleryImages || []).length >= 2}
-                  className="w-full p-4 border-2 border-dashed border-white/20 rounded-lg hover:border-[#D4AF37] transition-colors flex items-center justify-center gap-2 bg-white/5 disabled:opacity-60"
+                  onSuccess={(result: any) => {
+                    const existing = formData.galleryImages || []
+                    if (existing.length >= 2) {
+                      setMessage('❌ Maximum 2 additional images allowed')
+                      return
+                    }
+
+                    const uploadedUrl = extractCloudinaryUrl(result)
+                    if (!uploadedUrl) {
+                      setMessage('❌ Upload failed: invalid image URL from Cloudinary')
+                      return
+                    }
+
+                    setFormData((prev) => ({
+                      ...prev,
+                      galleryImages: [...(prev.galleryImages || []), uploadedUrl],
+                    }))
+                    setMessage('✅ Additional slider image uploaded')
+                  }}
+                  onError={(error: any) => {
+                    setMessage(`❌ Upload failed: ${error?.message || 'Unknown error'}`)
+                  }}
                 >
-                  {uploadingAdditional ? (
-                    <>
-                      <Upload size={18} className="text-[#D4AF37] animate-pulse" />
-                      <span className="text-white/70 text-sm">Uploading additional image...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Camera size={18} className="text-[#D4AF37]" />
-                      <span className="text-white/70 text-sm">
-                        {(formData.galleryImages || []).length >= 2
-                          ? 'Maximum additional images reached'
-                          : 'Upload Additional Slider Image'}
-                      </span>
-                    </>
-                  )}
-                </button>
+                  {({ open }) => {
+                    const isLimitReached = (formData.galleryImages || []).length >= 2
+                    return (
+                      <button
+                        type="button"
+                        onClick={() => open()}
+                        disabled={isLimitReached}
+                        className="w-full p-4 border-2 border-dashed border-white/20 rounded-lg hover:border-[#D4AF37] transition-colors flex items-center justify-center gap-2 bg-white/5 disabled:opacity-60"
+                      >
+                        <Camera size={18} className="text-[#D4AF37]" />
+                        <span className="text-white/70 text-sm">
+                          {isLimitReached
+                            ? 'Maximum additional images reached'
+                            : 'Upload Additional Slider Image'}
+                        </span>
+                      </button>
+                    )
+                  }}
+                </CldUploadWidget>
                 <p className="text-[11px] text-white/40 mt-1">Total slider images on home: up to 3.</p>
                 <p className="text-[11px] text-white/40 mt-1">If more than 1 image is added, slides auto-switch every 3 seconds.</p>
 
