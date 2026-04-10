@@ -6,6 +6,8 @@ export interface ISiteSettings extends Document {
   salesTickerMessage?: string;
   salesTickerSpeed?: number;
   flatSalePercent?: number;
+  salesTickerBgColor?: string;
+  salesTickerTextColor?: string;
   updatedBy?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -41,6 +43,18 @@ const SiteSettingsSchema = new Schema<ISiteSettings>(
       default: 0,
       min: 0,
       max: 100,
+    },
+    salesTickerBgColor: {
+      type: String,
+      default: '#C20F1E',
+      trim: true,
+      match: /^#([0-9A-Fa-f]{6})$/,
+    },
+    salesTickerTextColor: {
+      type: String,
+      default: '#FFFFFF',
+      trim: true,
+      match: /^#([0-9A-Fa-f]{6})$/,
     },
     updatedBy: {
       type: String,

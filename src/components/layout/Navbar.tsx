@@ -158,6 +158,16 @@ const getRemainingParts = (ms: number) => {
   }
 }
 
+const HEX_COLOR_RE = /^#([0-9A-Fa-f]{6})$/
+const DEFAULT_TICKER_BG = '#C20F1E'
+const DEFAULT_TICKER_TEXT = '#FFFFFF'
+
+const normalizeHexColor = (value: unknown, fallback: string) => {
+  if (typeof value !== 'string') return fallback
+  const normalized = value.trim()
+  return HEX_COLOR_RE.test(normalized) ? normalized.toUpperCase() : fallback
+}
+
 export default function Navbar() {
   const router = useRouter()
   const { totalItems } = useCart()
@@ -169,6 +179,8 @@ export default function Navbar() {
   const [salesTickerMessage, setSalesTickerMessage] = useState('')
   const [salesTickerSpeed, setSalesTickerSpeed] = useState<number>(18)
   const [flatSalePercent, setFlatSalePercent] = useState<number>(0)
+  const [salesTickerBgColor, setSalesTickerBgColor] = useState<string>(DEFAULT_TICKER_BG)
+  const [salesTickerTextColor, setSalesTickerTextColor] = useState<string>(DEFAULT_TICKER_TEXT)
   const [nowTick, setNowTick] = useState<number>(Date.now())
   
   // UI States
@@ -233,11 +245,15 @@ export default function Navbar() {
         setSalesTickerMessage((result?.data?.salesTickerMessage || '').trim())
         setSalesTickerSpeed(Number(result?.data?.salesTickerSpeed || 18))
         setFlatSalePercent(Math.min(100, Math.max(0, Number(result?.data?.flatSalePercent || 0))))
+        setSalesTickerBgColor(normalizeHexColor(result?.data?.salesTickerBgColor, DEFAULT_TICKER_BG))
+        setSalesTickerTextColor(normalizeHexColor(result?.data?.salesTickerTextColor, DEFAULT_TICKER_TEXT))
       } catch {
         setSalesEndsAt(null)
         setSalesTickerMessage('')
         setSalesTickerSpeed(18)
         setFlatSalePercent(0)
+        setSalesTickerBgColor(DEFAULT_TICKER_BG)
+        setSalesTickerTextColor(DEFAULT_TICKER_TEXT)
       }
     }
 
@@ -323,10 +339,10 @@ export default function Navbar() {
 
   const navTopClass = isAtTop
     ? isSalesBannerVisible
-      ? 'top-10 px-4 py-4 md:px-10'
+      ? 'top-14 px-4 py-4 md:px-10'
       : 'top-0 px-4 py-6 md:px-10'
     : isSalesBannerVisible
-      ? 'top-14 px-4'
+      ? 'top-[4.6rem] px-4'
       : 'top-4 px-4'
 
   return (
@@ -337,17 +353,21 @@ export default function Navbar() {
             initial={{ opacity: 0, y: -16 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -16 }}
-            className="fixed top-0 left-0 right-0 z-[130] overflow-hidden bg-[linear-gradient(90deg,#5E0000_0%,#C20F1E_44%,#FF5A6A_50%,#C20F1E_56%,#5E0000_100%)] text-white border-b border-[#FFB3BC]/35 shadow-[0_14px_38px_-18px_rgba(194,15,30,0.95)]"
+            style={{
+              backgroundColor: salesTickerBgColor,
+              color: salesTickerTextColor,
+            }}
+            className="fixed top-0 left-0 right-0 z-[130] overflow-hidden border-b border-white/20 shadow-[0_10px_26px_-16px_rgba(0,0,0,0.7)]"
           >
-            <div className="max-w-[1400px] mx-auto px-3 md:px-10 py-3 flex items-center gap-3">
-              <span className="hidden sm:inline-flex items-center gap-2 rounded-full bg-[#210000]/95 border border-[#FFD7DC]/35 px-3.5 py-1.5 text-[10px] font-black tracking-[0.32em] uppercase whitespace-nowrap sales-badge-pulse shadow-[0_8px_18px_-10px_rgba(0,0,0,0.55)]">
+            <div className="max-w-[1400px] mx-auto px-3 md:px-10 py-2.5 flex items-center gap-2.5">
+              <span className="hidden sm:inline-flex items-center gap-2 rounded-full bg-black/35 border border-white/25 px-3 py-1 text-[10px] font-black tracking-[0.22em] uppercase whitespace-nowrap sales-badge-pulse shadow-[0_8px_18px_-12px_rgba(0,0,0,0.55)]">
                 <span className="sales-live-dot" />
                 Live
               </span>
-              <Link href="/sales" className="sales-marquee group flex-1 overflow-hidden rounded-full border border-white/18 bg-white/10 px-3 py-2.5 hover:bg-white/16 transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_10px_24px_-14px_rgba(0,0,0,0.45)] backdrop-blur-sm">
+              <Link href="/sales" className="sales-marquee group flex-1 overflow-hidden rounded-full border border-white/25 bg-black/20 px-3 py-1.5 hover:bg-black/25 transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_10px_20px_-14px_rgba(0,0,0,0.5)] backdrop-blur-sm">
                 <div className="sales-marquee-track" style={{ animationDuration: `${tickerDurationSeconds}s` }}>
                   {[1, 2].map((copy) => (
-                    <span key={copy} className="sales-marquee-content text-[12px] md:text-[15px] lg:text-[16px] font-black tracking-[0.18em] uppercase drop-shadow-[0_2px_2px_rgba(0,0,0,0.45)]">
+                    <span key={copy} className="sales-marquee-content text-[11px] md:text-[12px] lg:text-[13px] font-extrabold tracking-[0.12em] uppercase drop-shadow-[0_2px_2px_rgba(0,0,0,0.45)]">
                       {salesTickerText}
                     </span>
                   ))}

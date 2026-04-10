@@ -4,6 +4,14 @@ import { SiteSettings } from '@/models';
 import { asyncHandler } from '@/lib/errorHandler';
 import { successResponse, errorResponse, validationErrorResponse } from '@/lib/apiResponse';
 
+const HEX_COLOR_RE = /^#([0-9A-Fa-f]{6})$/;
+
+const normalizeHexColor = (value: unknown, fallback: string) => {
+  if (typeof value !== 'string') return fallback;
+  const normalized = value.trim();
+  return HEX_COLOR_RE.test(normalized) ? normalized.toUpperCase() : fallback;
+};
+
 /**
  * GET /api/settings/sales-timer
  * Returns current sales countdown end time
@@ -18,7 +26,7 @@ export const GET = asyncHandler(async () => {
     );
   }
 
-  const settings = await SiteSettings.findOne({ key: 'global' }).select('salesEndsAt salesTickerMessage salesTickerSpeed flatSalePercent updatedAt');
+  const settings = await SiteSettings.findOne({ key: 'global' }).select('salesEndsAt salesTickerMessage salesTickerSpeed flatSalePercent salesTickerBgColor salesTickerTextColor updatedAt');
 
   return successResponse(
     {
@@ -26,6 +34,8 @@ export const GET = asyncHandler(async () => {
       salesTickerMessage: settings?.salesTickerMessage || '',
       salesTickerSpeed: Number(settings?.salesTickerSpeed || 18),
       flatSalePercent: Number(settings?.flatSalePercent || 0),
+      salesTickerBgColor: normalizeHexColor(settings?.salesTickerBgColor, '#C20F1E'),
+      salesTickerTextColor: normalizeHexColor(settings?.salesTickerTextColor, '#FFFFFF'),
       updatedAt: settings?.updatedAt || null,
     },
     'Sales timer fetched successfully'
@@ -51,6 +61,8 @@ export const PATCH = asyncHandler(async (req: NextRequest) => {
   const inputTickerMessage = typeof body?.salesTickerMessage === 'string' ? body.salesTickerMessage : '';
   const inputTickerSpeed = Number(body?.salesTickerSpeed);
   const inputFlatSalePercent = Number(body?.flatSalePercent);
+  const inputTickerBgColor = body?.salesTickerBgColor;
+  const inputTickerTextColor = body?.salesTickerTextColor;
 
   let salesEndsAt: Date | null = null;
 
@@ -69,6 +81,8 @@ export const PATCH = asyncHandler(async (req: NextRequest) => {
   const flatSalePercent = Number.isFinite(inputFlatSalePercent)
     ? Math.min(100, Math.max(0, Math.round(inputFlatSalePercent)))
     : 0;
+  const salesTickerBgColor = normalizeHexColor(inputTickerBgColor, '#C20F1E');
+  const salesTickerTextColor = normalizeHexColor(inputTickerTextColor, '#FFFFFF');
 
   const settings = await SiteSettings.findOneAndUpdate(
     { key: 'global' },
@@ -79,6 +93,8 @@ export const PATCH = asyncHandler(async (req: NextRequest) => {
         salesTickerMessage,
         salesTickerSpeed,
         flatSalePercent,
+        salesTickerBgColor,
+        salesTickerTextColor,
         updatedBy: 'admin-panel',
       },
     },
@@ -87,7 +103,7 @@ export const PATCH = asyncHandler(async (req: NextRequest) => {
       new: true,
       setDefaultsOnInsert: true,
     }
-  ).select('salesEndsAt salesTickerMessage salesTickerSpeed flatSalePercent updatedAt');
+  ).select('salesEndsAt salesTickerMessage salesTickerSpeed flatSalePercent salesTickerBgColor salesTickerTextColor updatedAt');
 
   return successResponse(
     {
@@ -95,6 +111,8 @@ export const PATCH = asyncHandler(async (req: NextRequest) => {
       salesTickerMessage: settings?.salesTickerMessage || '',
       salesTickerSpeed: Number(settings?.salesTickerSpeed || 18),
       flatSalePercent: Number(settings?.flatSalePercent || 0),
+      salesTickerBgColor: normalizeHexColor(settings?.salesTickerBgColor, '#C20F1E'),
+      salesTickerTextColor: normalizeHexColor(settings?.salesTickerTextColor, '#FFFFFF'),
       updatedAt: settings?.updatedAt || null,
     },
     'Sales timer updated successfully'

@@ -345,6 +345,8 @@ export default function AdminPanel() {
   const [timerUnit, setTimerUnit] = useState<'seconds' | 'minutes' | 'hours' | 'days' | 'weeks' | 'months' | 'years'>('days');
   const [tickerMessage, setTickerMessage] = useState('');
   const [tickerSpeed, setTickerSpeed] = useState<number>(18);
+  const [tickerBgColor, setTickerBgColor] = useState('#C20F1E');
+  const [tickerTextColor, setTickerTextColor] = useState('#FFFFFF');
   const [flatSalePercent, setFlatSalePercent] = useState<number>(25);
   const [flatSaleProductIds, setFlatSaleProductIds] = useState<string[]>([]);
   const [removeFlatSaleProductIds, setRemoveFlatSaleProductIds] = useState<string[]>([]);
@@ -474,6 +476,8 @@ export default function AdminPanel() {
           const endsAt = result?.data?.salesEndsAt;
           setTickerMessage(result?.data?.salesTickerMessage || '');
           setTickerSpeed(Number(result?.data?.salesTickerSpeed || 18));
+          setTickerBgColor(result?.data?.salesTickerBgColor || '#C20F1E');
+          setTickerTextColor(result?.data?.salesTickerTextColor || '#FFFFFF');
           setFlatSalePercent(Math.min(100, Math.max(1, Number(result?.data?.flatSalePercent || 25))));
           if (endsAt) {
             const date = new Date(endsAt);
@@ -529,6 +533,8 @@ export default function AdminPanel() {
           salesEndsAt: endDateTime,
           salesTickerMessage: tickerMessage,
           salesTickerSpeed: tickerSpeed,
+          salesTickerBgColor: tickerBgColor,
+          salesTickerTextColor: tickerTextColor,
           flatSalePercent,
         }),
       });
@@ -2025,6 +2031,26 @@ export default function AdminPanel() {
                 <div className="bg-[#0B101E] border border-white/10 rounded-xl px-4 py-3 text-xs text-white/70 flex items-center">
                   Lower value = faster ticker | Higher value = slower ticker
                 </div>
+
+                <div>
+                  <label className="text-[10px] uppercase tracking-[0.16em] text-white/60 mb-2 block">Slider Color</label>
+                  <input
+                    type="color"
+                    value={tickerBgColor}
+                    onChange={(e) => setTickerBgColor(e.target.value)}
+                    className="h-11 w-full rounded-xl border border-white/10 bg-[#0B101E] p-1"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[10px] uppercase tracking-[0.16em] text-white/60 mb-2 block">Text Color</label>
+                  <input
+                    type="color"
+                    value={tickerTextColor}
+                    onChange={(e) => setTickerTextColor(e.target.value)}
+                    className="h-11 w-full rounded-xl border border-white/10 bg-[#0B101E] p-1"
+                  />
+                </div>
               </div>
 
               <div className="mb-6">
@@ -2049,17 +2075,20 @@ export default function AdminPanel() {
                 </div>
 
                 <div className={`rounded-xl overflow-hidden border border-white/10 ${previewDevice === 'mobile' ? 'max-w-[390px] mx-auto' : ''}`}>
-                  <div className="bg-gradient-to-r from-[#7B0000] via-[#C20F1E] to-[#7B0000] text-white border-b border-[#FF9AA2]/30 shadow-[0_8px_28px_-12px_rgba(194,15,30,0.9)]">
+                  <div
+                    style={{ backgroundColor: tickerBgColor, color: tickerTextColor }}
+                    className="border-b border-white/20 shadow-[0_8px_28px_-12px_rgba(0,0,0,0.65)]"
+                  >
                     {previewDevice === 'desktop' ? (
-                      <div className="px-3 py-2.5 flex items-center gap-3">
-                        <span className="inline-flex items-center gap-2 rounded-md bg-[#2C0000] border border-[#FFB3BC]/30 px-2.5 py-1 text-[10px] font-extrabold tracking-[0.22em] uppercase whitespace-nowrap sales-badge-pulse">
+                      <div className="px-3 py-2.5 flex items-center gap-2.5">
+                        <span className="inline-flex items-center gap-2 rounded-full bg-black/35 border border-white/25 px-3 py-1 text-[10px] font-extrabold tracking-[0.2em] uppercase whitespace-nowrap sales-badge-pulse">
                           <span className="sales-live-dot" />
                           Live
                         </span>
-                        <div className="sales-marquee group flex-1 overflow-hidden rounded-md border border-white/15 bg-white/5 px-2 py-1.5">
+                        <div className="sales-marquee group flex-1 overflow-hidden rounded-full border border-white/25 bg-black/20 px-2.5 py-1.5">
                           <div className="sales-marquee-track" style={{ animationDuration: `${previewTickerDurationSeconds}s` }}>
                             {[1, 2].map((copy) => (
-                              <span key={copy} className="sales-marquee-content text-[11px] md:text-xs font-bold tracking-[0.12em] uppercase">
+                              <span key={copy} className="sales-marquee-content text-[11px] md:text-xs font-extrabold tracking-[0.12em] uppercase">
                                 {previewTickerText}
                               </span>
                             ))}
@@ -2067,11 +2096,11 @@ export default function AdminPanel() {
                         </div>
                       </div>
                     ) : (
-                      <div className="px-2 py-2">
-                        <div className="sales-marquee group flex-1 overflow-hidden rounded-md border border-white/15 bg-white/5 px-2 py-1.5">
+                      <div className="px-2.5 py-2">
+                        <div className="sales-marquee group flex-1 overflow-hidden rounded-full border border-white/25 bg-black/20 px-2 py-1.5">
                           <div className="sales-marquee-track" style={{ animationDuration: `${previewTickerDurationSeconds}s` }}>
                             {[1, 2].map((copy) => (
-                              <span key={copy} className="sales-marquee-content text-[10px] font-bold tracking-[0.1em] uppercase">
+                              <span key={copy} className="sales-marquee-content text-[10px] font-extrabold tracking-[0.1em] uppercase">
                                 {previewTickerText}
                               </span>
                             ))}
@@ -2100,6 +2129,8 @@ export default function AdminPanel() {
                     setTimerMode('duration');
                     setTickerMessage('');
                     setTickerSpeed(18);
+                    setTickerBgColor('#C20F1E');
+                    setTickerTextColor('#FFFFFF');
                     setFlatSalePercent(25);
                     setFlatSaleProductIds([]);
                     setRemoveFlatSaleProductIds([]);
