@@ -16,6 +16,7 @@ interface SeasonalBannerSummary {
   linkUrl?: string
   startDate?: string
   endDate?: string
+  isActive?: boolean
 }
 
 export default function HeroSection() {
@@ -42,6 +43,7 @@ export default function HeroSection() {
   useEffect(() => {
     let isMounted = true
     let refreshTimer: number | null = null
+    let syncInterval: number | null = null
 
     const clearRefreshTimer = () => {
       if (refreshTimer !== null) {
@@ -73,7 +75,7 @@ export default function HeroSection() {
       try {
         const response = await fetch('/api/settings/seasonal-banners', { cache: 'no-store' })
         const result = await response.json()
-        const banners = Array.isArray(result?.data) ? result.data : []
+        const banners = response.ok && Array.isArray(result?.data) ? result.data : []
 
         if (!isMounted) {
           return
@@ -90,14 +92,24 @@ export default function HeroSection() {
     }
 
     fetchFeaturedBanner()
+    syncInterval = window.setInterval(() => {
+      fetchFeaturedBanner()
+    }, 20000)
 
     return () => {
       isMounted = false
       clearRefreshTimer()
+      if (syncInterval !== null) {
+        window.clearInterval(syncInterval)
+      }
     }
   }, [])
 
   const activeFeaturedBanners = featuredBanners.filter((banner) => {
+    if (banner.isActive === false) {
+      return false
+    }
+
     const startTime = banner.startDate ? new Date(banner.startDate).getTime() : Number.NEGATIVE_INFINITY
     const endTime = banner.endDate ? new Date(banner.endDate).getTime() : Number.POSITIVE_INFINITY
 

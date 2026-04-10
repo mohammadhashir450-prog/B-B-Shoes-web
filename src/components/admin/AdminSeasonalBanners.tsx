@@ -21,6 +21,24 @@ interface ISeasonalBanner {
   displayOrder: number;
 }
 
+const toInputDateTime = (value: string | Date) => {
+  const date = value instanceof Date ? value : new Date(value)
+  if (!Number.isFinite(date.getTime())) return ''
+
+  const pad = (segment: number) => segment.toString().padStart(2, '0')
+  const year = date.getFullYear()
+  const month = pad(date.getMonth() + 1)
+  const day = pad(date.getDate())
+  const hours = pad(date.getHours())
+  const minutes = pad(date.getMinutes())
+  return `${year}-${month}-${day}T${hours}:${minutes}`
+}
+
+const toApiDate = (value: string) => {
+  const date = new Date(value)
+  return Number.isFinite(date.getTime()) ? date.toISOString() : value
+}
+
 export default function AdminSeasonalBanners() {
   const [banners, setBanners] = useState<ISeasonalBanner[]>([])
   const [loading, setLoading] = useState(true)
@@ -133,6 +151,8 @@ export default function AdminSeasonalBanners() {
   const handleEdit = (banner: ISeasonalBanner) => {
     setFormData({
       ...banner,
+      startDate: toInputDateTime(banner.startDate),
+      endDate: toInputDateTime(banner.endDate),
       galleryImages: banner.galleryImages || [],
     })
     setEditingId(banner._id)
@@ -179,10 +199,16 @@ export default function AdminSeasonalBanners() {
         ? `/api/settings/seasonal-banners/${editingId}`
         : '/api/settings/seasonal-banners'
 
+      const payload = {
+        ...formData,
+        startDate: toApiDate(formData.startDate),
+        endDate: toApiDate(formData.endDate),
+      }
+
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       })
 
       const result = await response.json()
@@ -201,16 +227,6 @@ export default function AdminSeasonalBanners() {
     } finally {
       setSaving(false)
     }
-  }
-
-  const toInputDateTime = (date: Date) => {
-    const pad = (value: number) => value.toString().padStart(2, '0')
-    const year = date.getFullYear()
-    const month = pad(date.getMonth() + 1)
-    const day = pad(date.getDate())
-    const hours = pad(date.getHours())
-    const minutes = pad(date.getMinutes())
-    return `${year}-${month}-${day}T${hours}:${minutes}`
   }
 
   const formatDuration = (milliseconds: number) => {
@@ -409,15 +425,17 @@ export default function AdminSeasonalBanners() {
 
               <div>
                 <p className="text-xs text-white/60 mb-3">One-click Templates</p>
-                <div className="flex flex-wrap gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {seasonalTemplates.map((template) => (
                     <button
                       key={template.label}
                       type="button"
                       onClick={() => applyTemplate(template)}
-                      className="px-4 py-2 rounded-full bg-white/5 border border-white/10 text-white/75 text-[10px] font-bold tracking-[0.14em] uppercase hover:border-[#D4AF37] hover:text-[#D4AF37] transition-all"
+                      className="text-left px-4 py-3 rounded-xl bg-white/10 border border-white/20 hover:border-[#D4AF37] hover:bg-[#D4AF37]/10 transition-all"
                     >
-                      {template.label}
+                      <p className="text-white font-bold text-xs tracking-[0.1em] uppercase">{template.label}</p>
+                      <p className="text-white/70 text-[11px] mt-1 truncate">{template.description}</p>
+                      <p className="text-[#D4AF37] text-[10px] font-bold mt-2 tracking-[0.1em] uppercase">{template.discountPercent}% off - {template.scheduleDays} days</p>
                     </button>
                   ))}
                 </div>
