@@ -52,11 +52,11 @@ export default function SeasonalBanners() {
       clearRefreshTimer()
 
       const now = Date.now()
-      const activeEndTimes = items
-        .map((item) => new Date(item.endDate).getTime())
-        .filter((endTime) => Number.isFinite(endTime) && endTime > now)
+      const transitionTimes = items
+        .flatMap((item) => [new Date(item.startDate).getTime(), new Date(item.endDate).getTime()])
+        .filter((time) => Number.isFinite(time) && time > now)
 
-      const nextRefreshAt = activeEndTimes.length > 0 ? Math.min(...activeEndTimes) + 1000 : now + 30000
+      const nextRefreshAt = transitionTimes.length > 0 ? Math.min(...transitionTimes) + 1000 : now + 30000
       const delay = Math.max(5000, nextRefreshAt - now)
 
       refreshTimerRef.current = window.setTimeout(() => {
@@ -139,7 +139,7 @@ export default function SeasonalBanners() {
 
     const imageTimer = window.setInterval(() => {
       setCurrentImageIndex((prev) => (prev + 1) % currentBannerImages.length)
-    }, 3500)
+    }, 3000)
 
     return () => window.clearInterval(imageTimer)
   }, [currentBannerImages.length])

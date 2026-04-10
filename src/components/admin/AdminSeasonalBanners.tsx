@@ -758,6 +758,7 @@ export default function AdminSeasonalBanners() {
                   )}
                 </button>
                 <p className="text-[11px] text-white/40 mt-1">Total slider images on home: up to 3.</p>
+                <p className="text-[11px] text-white/40 mt-1">If more than 1 image is added, slides auto-switch every 3 seconds.</p>
 
                 {(formData.galleryImages || []).length > 0 && (
                   <div className="mt-4 grid grid-cols-2 gap-3">

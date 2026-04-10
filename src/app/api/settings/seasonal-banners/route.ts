@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { dbConnect } from '@/lib/dbService';
 import SeasonalBanner from '@/models/SeasonalBanner';
 import { successResponse, errorResponse, createdResponse, validationErrorResponse } from '@/lib/apiResponse';
@@ -17,12 +17,10 @@ export async function GET(request: NextRequest) {
     let query: any = {};
     
     if (!isAdmin) {
-      // For public: only active banners within date range
-      const now = new Date();
+      // For public: return active banners and let client-side timer decide when to show/hide.
+      // This allows exact start/end switching without waiting for backend polling.
       query = {
         isActive: true,
-        startDate: { $lte: now },
-        endDate: { $gte: now },
       };
     }
 
@@ -63,6 +61,10 @@ export async function POST(request: NextRequest) {
     // Validate dates
     const start = new Date(startDate);
     const end = new Date(endDate);
+
+    if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime())) {
+      return validationErrorResponse(['Start date and end date must be valid date values']);
+    }
 
     if (start >= end) {
       return validationErrorResponse(['End date must be after start date']);

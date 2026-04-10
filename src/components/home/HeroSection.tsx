@@ -54,11 +54,14 @@ export default function HeroSection() {
       clearRefreshTimer()
 
       const now = Date.now()
-      const activeEndTimes = items
-        .map((item) => item.endDate ? new Date(item.endDate).getTime() : NaN)
-        .filter((endTime) => Number.isFinite(endTime) && endTime > now)
+      const transitionTimes = items
+        .flatMap((item) => [
+          item.startDate ? new Date(item.startDate).getTime() : NaN,
+          item.endDate ? new Date(item.endDate).getTime() : NaN,
+        ])
+        .filter((time) => Number.isFinite(time) && time > now)
 
-      const nextRefreshAt = activeEndTimes.length > 0 ? Math.min(...activeEndTimes) + 1000 : now + 30000
+      const nextRefreshAt = transitionTimes.length > 0 ? Math.min(...transitionTimes) + 1000 : now + 30000
       const delay = Math.max(5000, nextRefreshAt - now)
 
       refreshTimer = window.setTimeout(() => {
@@ -129,7 +132,7 @@ export default function HeroSection() {
 
     const timer = window.setInterval(() => {
       setCurrentSlideIndex((prev) => (prev + 1) % heroSlides.length)
-    }, 4500)
+    }, 3000)
 
     return () => window.clearInterval(timer)
   }, [heroSlides.length, shouldReduceMotion])

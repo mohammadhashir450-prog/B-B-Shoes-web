@@ -44,13 +44,15 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       return errorResponse('Banner not found', 404);
     }
 
-    // Validate dates if provided
-    if (body.startDate && body.endDate) {
-      const start = new Date(body.startDate);
-      const end = new Date(body.endDate);
-      if (start >= end) {
-        return validationErrorResponse(['End date must be after start date']);
-      }
+    const nextStartDate = body.startDate ? new Date(body.startDate) : new Date(banner.startDate);
+    const nextEndDate = body.endDate ? new Date(body.endDate) : new Date(banner.endDate);
+
+    if (!Number.isFinite(nextStartDate.getTime()) || !Number.isFinite(nextEndDate.getTime())) {
+      return validationErrorResponse(['Start date and end date must be valid date values']);
+    }
+
+    if (nextStartDate >= nextEndDate) {
+      return validationErrorResponse(['End date must be after start date']);
     }
 
     // Update fields
