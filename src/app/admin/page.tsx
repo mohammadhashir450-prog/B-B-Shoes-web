@@ -71,6 +71,7 @@ const getRemainingLabel = (ms: number) => {
 export default function AdminPanel() {
   const DEFAULT_SIZES = ['7', '8', '9', '10', '11'];
   const DEFAULT_COLORS = ['Black'];
+  const PRODUCT_CATEGORIES = ['Men', 'Women', 'Kids', 'Accessories'] as const;
   const makeSizeColorKey = (size: string | number, color: string) => `${String(size)}__${String(color)}`;
 
   const buildInventoryMap = (
@@ -1453,10 +1454,11 @@ export default function AdminPanel() {
                       }} 
                       className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white focus:outline-none focus:border-[#D4AF37]/50 focus:bg-[#121A2F] transition-all appearance-none"
                     >
-                      <option value="Men" className="bg-[#0B101E] text-white py-2">Men</option>
-                      <option value="Women" className="bg-[#0B101E] text-white py-2">Women</option>
-                      <option value="Kids" className="bg-[#0B101E] text-white py-2">Kids</option>
-                      <option value="Accessories" className="bg-[#0B101E] text-white py-2">Accessories</option>
+                        {PRODUCT_CATEGORIES.map((category) => (
+                          <option key={category} value={category} className="bg-[#0B101E] text-white py-2">
+                            {category}
+                          </option>
+                        ))}
                     </select>
                   </div>
 
@@ -1803,7 +1805,7 @@ export default function AdminPanel() {
                 setShowAddForm(true);
                 setNewProduct({
                   id: '', name: '', price: 0, originalPrice: 0, discount: 0, image: '', secondaryImage: '', sizeColorImages: [],
-                  category: 'Men', subcategory: '', brand: 'B&B', sizes: [], colors: [], description: '',
+                  category: PRODUCT_CATEGORIES[0], subcategory: '', brand: 'B&B', sizes: [], colors: [], description: '',
                   rating: 4.5, reviews: 0, inStock: true, stock: 100, sold: 0, isOnSale: false, isNewArrival: false
                 });
                 setSelectedSizes(DEFAULT_SIZES); setSelectedColors(DEFAULT_COLORS); setSizeInventory(buildInventoryMap(DEFAULT_SIZES, DEFAULT_COLORS));
@@ -2316,7 +2318,7 @@ export default function AdminPanel() {
                 setShowAddSaleForm(true);
                 setNewProduct({
                   id: '', name: '', price: 0, originalPrice: 0, discount: 0, image: '', secondaryImage: '', sizeColorImages: [],
-                  category: 'Men', subcategory: '', brand: 'B&B', sizes: [], colors: [], description: '',
+                  category: PRODUCT_CATEGORIES[0], subcategory: '', brand: 'B&B', sizes: [], colors: [], description: '',
                   rating: 4.5, reviews: 0, inStock: true, stock: 100, sold: 0, isOnSale: true, isNewArrival: false
                 });
                 setSelectedSizes(DEFAULT_SIZES); setSelectedColors(DEFAULT_COLORS); setSizeInventory(buildInventoryMap(DEFAULT_SIZES, DEFAULT_COLORS));
@@ -2406,7 +2408,7 @@ export default function AdminPanel() {
                 setShowAddNewArrivalForm(true);
                 setNewProduct({
                   id: '', name: '', price: 0, originalPrice: 0, discount: 0, image: '', secondaryImage: '', sizeColorImages: [],
-                  category: 'Men', subcategory: '', brand: 'B&B', sizes: [], colors: [], description: '',
+                  category: PRODUCT_CATEGORIES[0], subcategory: '', brand: 'B&B', sizes: [], colors: [], description: '',
                   rating: 4.5, reviews: 0, inStock: true, stock: 100, sold: 0, isOnSale: false, isNewArrival: true
                 });
                 setSelectedSizes(DEFAULT_SIZES); setSelectedColors(DEFAULT_COLORS); setSizeInventory(buildInventoryMap(DEFAULT_SIZES, DEFAULT_COLORS));
