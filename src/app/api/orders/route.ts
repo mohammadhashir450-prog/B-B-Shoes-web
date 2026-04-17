@@ -241,6 +241,7 @@ export const POST = asyncHandler(async (req: NextRequest) => {
     customerPhone: normalizedOrder.customerPhone,
     customerEmail: normalizedOrder.customerEmail,
     customerAddress: normalizedOrder.customerAddress,
+    paymentDetails: normalizedPaymentDetails,
     paymentMethod: normalizedOrder.paymentMethod,
     paymentStatus: normalizedOrder.paymentStatus,
     subtotal,
