@@ -3,7 +3,7 @@ export const ADMIN_WHATSAPP_E164 = '923068846624'
 const BRAND_NAME = 'B&B Shoes'
 const WEBSITE_URL = 'bnbshoes.online'
 
-type WhatsAppOrderItem = {
+export type WhatsAppOrderItem = {
   name?: string
   productName?: string
   quantity?: number
@@ -12,7 +12,7 @@ type WhatsAppOrderItem = {
   price?: number
 }
 
-type WhatsAppOrderPayload = {
+export type WhatsAppOrderPayload = {
   orderId?: string
   customerName?: string
   customerPhone?: string
@@ -70,41 +70,41 @@ const resolveAddressAndCity = (order: WhatsAppOrderPayload) => {
   return { address: fullAddress, city: 'N/A' }
 }
 
-export const buildWhatsAppUrl = (phoneNumber: string, message: string) => {
-  const digits = String(phoneNumber || '').replace(/\D/g, '')
-  return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`
-}
-
 export const buildAdminOrderMessage = (order: WhatsAppOrderPayload) => {
   const itemLines = (order.items || []).map((item, index) => formatItem(item, index))
-  const orderedItemsText = itemLines.length > 0 ? itemLines.join(' | ') : 'No items found'
+  const orderedItemsText = itemLines.length > 0 ? itemLines.join('\n') : 'No items found'
   const { address, city } = resolveAddressAndCity(order)
   const customerName = String(order.customerName || 'Customer').trim()
   const orderId = String(order.orderId || 'N/A').trim()
 
   const lines = [
-    `Hey ${customerName}`,
+    `🚨 *New Order Received!* 🚨`,
     '',
-    `Your order has been successfully received on our website ${BRAND_NAME}.`,
+    `A new order has been placed on ${BRAND_NAME}.`,
     '',
-    'Order Detail',
-    `Order: ${orderId}`,
+    '*Order Details*',
+    `Order ID: ${orderId}`,
+    `Customer: ${customerName}`,
+    `Phone: ${order.customerPhone || 'N/A'}`,
+    `Email: ${order.customerEmail || 'N/A'}`,
     `Address: ${address}`,
     `City: ${city}`,
-    `Item Ordered : ${orderedItemsText}`,
-    `Total Price : ${formatMoney(order.total)}`,
     '',
-    'Delivery Information',
-    'If the provided address is complete, your order will be dispatched promptly and delivered within 2-6 business days. Should there be any missing details, our team will contact you to confirm and update the necessary information.',
-    'اگر فراہم کردہ پتہ مکمل ہے تو آپ کا آرڈر فوری طور پر بھیج دیا جائے گا اور یہ 2-6 کاروباری دنوں کے اندر پہنچا دیا جائے گا۔ کسی بھی تفصیل کی کمی کی صورت میں، ہماری ٹیم آپ سے رابطہ کرے گی۔',
-    `Thank you for choosing ${BRAND_NAME}.`,
+    '*Items Ordered:*',
+    `${orderedItemsText}`,
+    '',
+    `*Total Price:* ${formatMoney(order.total)}`,
+    '',
+    `Check admin panel for more details.`,
     WEBSITE_URL,
-    '',
-    `Customer Phone: ${order.customerPhone || 'N/A'}`,
-    `Customer Email: ${order.customerEmail || 'N/A'}`,
   ]
 
   return lines.join('\n')
+}
+
+export const buildWhatsAppUrl = (phoneNumber: string, message: string) => {
+  const digits = String(phoneNumber || '').replace(/\D/g, '')
+  return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`
 }
 
 export const buildAdminOrderWhatsAppUrl = (order: WhatsAppOrderPayload) => {
