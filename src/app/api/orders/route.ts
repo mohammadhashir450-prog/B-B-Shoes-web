@@ -6,7 +6,8 @@ import User from '@/models/User';
 import { asyncHandler } from '@/lib/errorHandler';
 import { successResponse, createdResponse, validationErrorResponse, errorResponse } from '@/lib/apiResponse';
 import { validateOrder } from '@/lib/validation';
-import { buildAdminOrderWhatsAppUrl, ADMIN_WHATSAPP_DISPLAY } from '@/lib/whatsapp';
+import { buildAdminOrderMessage, buildAdminOrderWhatsAppUrl, ADMIN_WHATSAPP_DISPLAY } from '@/lib/whatsapp';
+import { sendAdminWhatsAppMessage } from '@/lib/whatsappServer';
 
 const formatOrderForClient = (order: any) => ({
   id: order._id.toString(),
@@ -250,6 +251,27 @@ export const POST = asyncHandler(async (req: NextRequest) => {
     items: normalizedItems,
   });
 
+  const whatsappMessage = buildAdminOrderMessage({
+    orderId,
+    customerName: normalizedOrder.customerName,
+    customerPhone: normalizedOrder.customerPhone,
+    customerEmail: normalizedOrder.customerEmail,
+    customerAddress: normalizedOrder.customerAddress,
+    paymentDetails: normalizedPaymentDetails,
+    paymentMethod: normalizedOrder.paymentMethod,
+    paymentStatus: normalizedOrder.paymentStatus,
+    subtotal,
+    shippingFee,
+    total,
+    items: normalizedItems,
+  });
+
+  const whatsappDispatch = await sendAdminWhatsAppMessage(whatsappMessage);
+
+  if (!whatsappDispatch.sent) {
+    console.error('⚠️ WhatsApp auto-send failed:', whatsappDispatch.error || 'Unknown error');
+  }
+
   console.log('✅ Order created:', orderId);
 
   return createdResponse(
@@ -257,6 +279,8 @@ export const POST = asyncHandler(async (req: NextRequest) => {
       ...formattedOrder,
       adminWhatsappUrl,
       adminWhatsappNumber: ADMIN_WHATSAPP_DISPLAY,
+      adminWhatsappSent: whatsappDispatch.sent,
+      adminWhatsappMessageId: whatsappDispatch.messageId || null,
     },
     'Order created successfully'
   );

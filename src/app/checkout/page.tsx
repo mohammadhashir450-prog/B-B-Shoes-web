@@ -8,7 +8,7 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { CreditCard, Smartphone, Banknote, Check, ChevronRight, Shield, AlertCircle, Save, CheckCircle2 } from 'lucide-react';
 import { maskCardNumber } from '@/lib/security';
-import { ADMIN_WHATSAPP_DISPLAY, ADMIN_WHATSAPP_E164, buildAdminOrderMessage, buildWhatsAppUrl } from '@/lib/whatsapp';
+import { ADMIN_WHATSAPP_DISPLAY } from '@/lib/whatsapp';
 
 const STORE_BANK_ACCOUNT = {
   name: 'Meezan Bank',
@@ -493,22 +493,9 @@ export default function CheckoutPage() {
       }
 
       const placedOrderId = result.data?.orderId || result.data?.id || `ORD-${Date.now()}`;
-      const whatsappUrl = result.data?.adminWhatsappUrl || buildWhatsAppUrl(ADMIN_WHATSAPP_E164, buildAdminOrderMessage({
-        orderId: placedOrderId,
-        customerName: payload.customerName,
-        customerPhone: payload.customerPhone,
-        customerEmail: payload.customerEmail,
-        customerAddress: payload.customerAddress,
-        paymentMethod: payload.paymentMethod,
-        paymentStatus: payload.paymentStatus,
-        subtotal: payload.subtotal,
-        shippingFee: payload.shippingFee,
-        total: payload.total,
-        items: payload.items,
-      }));
+      const whatsappUrl = result.data?.adminWhatsappUrl || `https://wa.me/923068846624`;
 
       setAdminWhatsappUrl(whatsappUrl);
-      window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
 
       setShowSuccess(true);
       setTimeout(() => {
@@ -1134,7 +1121,7 @@ export default function CheckoutPage() {
               <Check className="w-8 h-8 text-black" />
             </div>
             <h2 className="text-2xl font-bold text-center mb-2">Order Placed!</h2>
-            <p className="text-gray-400 text-center">Your order has been successfully placed. Admin WhatsApp open ho gaya hai with order details.</p>
+            <p className="text-gray-400 text-center">Your order has been successfully placed. Admin ko WhatsApp details automatically send ho chuki hain.</p>
             <a
               href={adminWhatsappUrl || `https://wa.me/923068846624`}
               target="_blank"
