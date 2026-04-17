@@ -94,3 +94,25 @@ export const buildWhatsAppUrl = (phoneNumber: string, message: string) => {
 export const buildAdminOrderWhatsAppUrl = (order: WhatsAppOrderPayload) => {
   return buildWhatsAppUrl(ADMIN_WHATSAPP_E164, buildAdminOrderMessage(order))
 }
+
+/**
+ * Default customer message when initiating chat with admin.
+ * Used in WhatsApp contact cards across user pages.
+ */
+export const buildCustomerDefaultMessage = (customerName?: string): string => {
+  const name = String(customerName || 'I').trim()
+  const lines = [
+    `Hi, I'm ${name}.`,
+    '',
+    'I would like to inquire about:',
+    '• Product information',
+    '• Order status',
+    '• Payment & delivery details',
+    '• Custom sizing/color queries',
+    '• Any other support',
+    '',
+    `Thank you!`,
+    `${WEBSITE_URL}`,
+  ]
+  return lines.join('\n')
+}
