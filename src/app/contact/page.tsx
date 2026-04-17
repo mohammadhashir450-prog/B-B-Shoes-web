@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import { ChevronDown, ChevronRight, Mail, Phone, MapPin, Send, CreditCard, ArrowRightLeft, Store, Truck, ReceiptText } from 'lucide-react'
+import WhatsAppContactCard from '@/components/common/WhatsAppContactCard'
 
 export default function ContactPage() {
   const [isReturnPolicyOpen, setIsReturnPolicyOpen] = useState(true)
@@ -177,6 +178,12 @@ export default function ContactPage() {
                   </div>
                 </div>
               </div>
+
+              <WhatsAppContactCard
+                title="Message us on WhatsApp"
+                description="Get quick help for orders, product availability, delivery updates, and payment support."
+                message={`Hello B&B Shoes, I need help regarding my order/payment.`}
+              />
 
               <div className="rounded-2xl border border-[#D4AF37]/20 bg-gradient-to-br from-white via-[#FFFAF0] to-[#F5F5F5] p-6 shadow-[0_8px_24px_rgba(212,175,55,0.08)] transform-gpu transition-all duration-500 hover:-translate-y-1">
                 <button

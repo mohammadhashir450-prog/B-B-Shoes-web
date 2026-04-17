@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
+import WhatsAppContactCard from '@/components/common/WhatsAppContactCard'
 import { ChevronRight, User, Mail, Phone, MapPin, Package, Heart, Settings, Loader2 } from 'lucide-react'
 
 export default function ProfilePage() {
@@ -85,6 +86,12 @@ export default function ProfilePage() {
                   <span className="text-sm">Settings</span>
                 </Link>
               </nav>
+
+              <WhatsAppContactCard
+                title="Need order help?"
+                description="Chat with admin on WhatsApp for order status, product details, payment help, or any quick support."
+                message={`Hello B&B Shoes, I need help with my account or order.`}
+              />
             </aside>
 
             {/* Profile Content */}

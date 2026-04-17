@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import WhatsAppContactCard from '@/components/common/WhatsAppContactCard'
 import { Package, Clock, CheckCircle, XCircle, Eye, MapPin, Calendar, Loader2 } from 'lucide-react';
 
 interface Order {
@@ -191,6 +192,14 @@ function MyOrdersContent() {
           <div className="mb-12">
             <h1 className="text-4xl md:text-5xl font-bold mb-4">My Orders</h1>
             <p className="text-gray-400">Track your orders and shopping bag</p>
+          </div>
+
+          <div className="mb-8">
+            <WhatsAppContactCard
+              title="Need help with an order?"
+              description="Contact the admin directly on WhatsApp for order updates, product questions, or payment support."
+              message={`Hello B&B Shoes, I need help with my order.`}
+            />
           </div>
 
           {/* Tabs */}

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
+import WhatsAppContactCard from '@/components/common/WhatsAppContactCard'
 import { ChevronRight, User, Bell, Lock, Eye, Globe, Palette, Loader2 } from 'lucide-react'
 
 export default function SettingsPage() {
@@ -108,6 +109,12 @@ export default function SettingsPage() {
                 </div>
               </div>
             </div>
+
+            <WhatsAppContactCard
+              title="Contact admin on WhatsApp"
+              description="For order details, product questions, payment support, or custom help, message the admin directly on WhatsApp."
+              message={`Hello B&B Shoes, I need help with my order/account.`}
+            />
 
             {/* Preferences */}
             <div className="bg-[#1A2435] rounded-lg border border-white/5 overflow-hidden">

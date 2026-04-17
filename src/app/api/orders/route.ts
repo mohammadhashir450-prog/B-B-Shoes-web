@@ -6,6 +6,7 @@ import User from '@/models/User';
 import { asyncHandler } from '@/lib/errorHandler';
 import { successResponse, createdResponse, validationErrorResponse, errorResponse } from '@/lib/apiResponse';
 import { validateOrder } from '@/lib/validation';
+import { buildAdminOrderWhatsAppUrl, ADMIN_WHATSAPP_DISPLAY } from '@/lib/whatsapp';
 
 const formatOrderForClient = (order: any) => ({
   id: order._id.toString(),
@@ -234,10 +235,30 @@ export const POST = asyncHandler(async (req: NextRequest) => {
   console.log('✅ Order persisted to DB with _id:', order._id?.toString());
 
   const formattedOrder = formatOrderForClient(order);
+  const adminWhatsappUrl = buildAdminOrderWhatsAppUrl({
+    orderId,
+    customerName: normalizedOrder.customerName,
+    customerPhone: normalizedOrder.customerPhone,
+    customerEmail: normalizedOrder.customerEmail,
+    customerAddress: normalizedOrder.customerAddress,
+    paymentMethod: normalizedOrder.paymentMethod,
+    paymentStatus: normalizedOrder.paymentStatus,
+    subtotal,
+    shippingFee,
+    total,
+    items: normalizedItems,
+  });
 
   console.log('✅ Order created:', orderId);
 
-  return createdResponse(formattedOrder, 'Order created successfully');
+  return createdResponse(
+    {
+      ...formattedOrder,
+      adminWhatsappUrl,
+      adminWhatsappNumber: ADMIN_WHATSAPP_DISPLAY,
+    },
+    'Order created successfully'
+  );
 });
 
 /**
