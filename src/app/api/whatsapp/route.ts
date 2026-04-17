@@ -6,6 +6,7 @@ import {
   buildAdminOrderMessage,
   type WhatsAppOrderPayload,
 } from '@/lib/whatsapp'
+import { sendAdminWhatsAppMessage } from '@/lib/whatsappServer'
 
 /**
  * GET /api/whatsapp
@@ -44,50 +45,25 @@ export async function POST(req: NextRequest) {
     // 1. Message ka text generate karein
     const whatsappMessage = buildAdminOrderMessage(order)
 
-    // 2. Meta API Credentials (.env file se)
-    const token = process.env.META_WA_TOKEN;
-    const phoneNumberId = process.env.META_PHONE_NUMBER_ID;
-    const adminWhatsAppNumber = "923068846624"; // Aapka verify kiya hua admin number
+    // 2. Shared server sender use karte hain taake orders flow aur manual API flow consistent rahen.
+    const dispatch = await sendAdminWhatsAppMessage(whatsappMessage)
 
-    if (!token || !phoneNumberId) {
-      console.error("Missing Meta API Credentials in .env file");
-      return errorResponse('WhatsApp API credentials are not configured properly.', 500)
-    }
-
-    // 3. Meta ko Server-to-Server POST request bhejein
-    const response = await fetch(`https://graph.facebook.com/v18.0/${phoneNumberId}/messages`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        messaging_product: "whatsapp",
-        to: adminWhatsAppNumber,
-        type: "text",
-        text: { body: whatsappMessage }
-      })
-    });
-
-    const result = await response.json();
-
-    // Agar Meta ki taraf se koi error aata hai
-    if (!response.ok) {
-      console.error("Meta API Error Details:", result);
-      return errorResponse(result?.error?.message || 'Failed to send WhatsApp message via Meta API', 400);
+    if (!dispatch.sent) {
+      console.error('Meta API Error Details:', dispatch.error)
+      return errorResponse(dispatch.error || 'Failed to send WhatsApp message via Meta API', 400)
     }
 
     // Agar message successfully chala jaye
     return successResponse(
       { 
-        messageId: result.messages?.[0]?.id,
+        messageId: dispatch.messageId,
         adminWhatsappNumber: ADMIN_WHATSAPP_DISPLAY
       },
       'WhatsApp order alert sent successfully via API!'
     )
 
   } catch (error) {
-    console.error("Internal Server Error in WhatsApp API:", error);
+    console.error("Internal Server Error in WhatsApp API:", error)
     const message = error instanceof Error ? error.message : 'Failed to process WhatsApp API request'
     return errorResponse(message, 500)
   }

@@ -281,6 +281,7 @@ export const POST = asyncHandler(async (req: NextRequest) => {
       adminWhatsappNumber: ADMIN_WHATSAPP_DISPLAY,
       adminWhatsappSent: whatsappDispatch.sent,
       adminWhatsappMessageId: whatsappDispatch.messageId || null,
+      adminWhatsappError: whatsappDispatch.sent ? null : whatsappDispatch.error || 'Unknown error',
     },
     'Order created successfully'
   );
