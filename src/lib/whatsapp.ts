@@ -46,28 +46,12 @@ const formatItem = (item: WhatsAppOrderItem, index: number) => {
 const resolveAddressAndCity = (order: WhatsAppOrderPayload) => {
   const codAddress = String(order.paymentDetails?.cod?.address || '').trim()
   const codCity = String(order.paymentDetails?.cod?.city || '').trim()
+  const customerAddress = String(order.customerAddress || '').trim()
 
-  if (codAddress || codCity) {
-    return {
-      address: codAddress || String(order.customerAddress || '').trim() || 'N/A',
-      city: codCity || 'N/A',
-    }
+  return {
+    address: codAddress || customerAddress || 'N/A',
+    city: codCity || 'N/A',
   }
-
-  const fullAddress = String(order.customerAddress || '').trim()
-  if (!fullAddress) {
-    return { address: 'N/A', city: 'N/A' }
-  }
-
-  const segments = fullAddress.split(',').map((segment) => segment.trim()).filter(Boolean)
-  if (segments.length >= 2) {
-    return {
-      address: segments.slice(0, -1).join(', '),
-      city: segments[segments.length - 1],
-    }
-  }
-
-  return { address: fullAddress, city: 'N/A' }
 }
 
 export const buildAdminOrderMessage = (order: WhatsAppOrderPayload) => {
