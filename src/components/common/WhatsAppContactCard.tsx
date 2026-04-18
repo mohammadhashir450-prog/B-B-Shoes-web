@@ -1,13 +1,14 @@
 'use client'
 
 import Link from 'next/link'
-import { buildWhatsAppUrl, buildCustomerDefaultMessage, ADMIN_WHATSAPP_DISPLAY } from '@/lib/whatsapp'
+import { buildWhatsAppUrl, buildCustomerDefaultMessage, ADMIN_WHATSAPP_DISPLAY, ADMIN_WHATSAPP_E164, type WhatsAppCustomerMessageContext } from '@/lib/whatsapp'
 
 type WhatsAppContactCardProps = {
   title: string
   description: string
   message?: string
   customerName?: string
+  templateData?: WhatsAppCustomerMessageContext
   numberDisplay?: string
   buttonLabel?: string
   className?: string
@@ -25,12 +26,13 @@ export default function WhatsAppContactCard({
   description,
   message,
   customerName,
+  templateData,
   numberDisplay = ADMIN_WHATSAPP_DISPLAY,
   buttonLabel = 'Chat on WhatsApp',
   className = '',
 }: WhatsAppContactCardProps) {
-  const finalMessage = message || buildCustomerDefaultMessage(customerName)
-  const href = buildWhatsAppUrl('923068846624', finalMessage)
+  const finalMessage = message || buildCustomerDefaultMessage(templateData || { customerName })
+  const href = buildWhatsAppUrl(ADMIN_WHATSAPP_E164, finalMessage)
 
   return (
     <div className={`rounded-2xl border border-emerald-500/25 bg-gradient-to-br from-emerald-500/10 to-[#0B101E] p-6 shadow-[0_12px_28px_-18px_rgba(16,185,129,0.35)] ${className}`}>

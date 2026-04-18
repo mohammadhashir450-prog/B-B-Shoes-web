@@ -113,7 +113,11 @@ export default function SettingsPage() {
             <WhatsAppContactCard
               title="Contact admin on WhatsApp"
               description="For order details, product questions, payment support, or custom help, message the admin directly on WhatsApp."
-              message={`Hello B&B Shoes, I need help with my order/account.`}
+              templateData={{
+                customerName: user.name || 'Customer',
+                customerEmail: userEmail,
+                note: 'I need help with my order/account.',
+              }}
             />
 
             {/* Preferences */}

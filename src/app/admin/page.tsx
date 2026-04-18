@@ -19,6 +19,8 @@ interface Order {
   customerPhone: string;
   customerAddress: string;
   items: any[];
+  subtotal?: number;
+  shippingFee?: number;
   total: number;
   status: string;
   paymentMethod?: string;
@@ -2636,8 +2638,56 @@ export default function AdminPanel() {
                               </>
                             ) : null}
                           </div>
+
+                          <div className="grid gap-3 xl:grid-cols-3 mb-4">
+                            <div className="rounded-2xl border border-white/5 bg-white/5 p-4">
+                              <p className="text-[10px] text-white/40 uppercase tracking-[0.2em] font-bold mb-3">Customer / Order</p>
+                              <div className="space-y-1 text-xs text-white/65">
+                                <p>Order ID: {o.orderId || o.id}</p>
+                                <p>User ID: {o.user_id || 'N/A'}</p>
+                                <p>Name: {o.customerName || 'N/A'}</p>
+                                <p>Email: {o.customerEmail || 'N/A'}</p>
+                                <p>Phone: {o.customerPhone || 'N/A'}</p>
+                                <p>Address: {o.customerAddress || 'N/A'}</p>
+                              </div>
+                            </div>
+
+                            <div className="rounded-2xl border border-white/5 bg-white/5 p-4">
+                              <p className="text-[10px] text-white/40 uppercase tracking-[0.2em] font-bold mb-3">Products</p>
+                              <div className="space-y-3 max-h-56 overflow-y-auto pr-1">
+                                {o.items.map((item, index) => (
+                                  <div key={`${o.id}-${item.productId || item.name || index}`} className="rounded-xl border border-white/5 bg-[#0B101E]/80 p-3">
+                                    <div className="flex items-start justify-between gap-3">
+                                      <div className="min-w-0">
+                                        <p className="text-sm font-semibold text-white truncate">{item.productName || item.name || 'Product'}</p>
+                                        <p className="text-[11px] text-white/50 mt-1 break-all">Product ID: {item.productId || 'N/A'}</p>
+                                        <p className="text-[11px] text-white/50">Size: {item.size || 'N/A'} | Color: {item.color || 'N/A'}</p>
+                                      </div>
+                                      <p className="text-xs font-bold text-[#D4AF37] whitespace-nowrap">PKR {(Number(item.price) || 0).toLocaleString()}</p>
+                                    </div>
+                                    <div className="mt-2 flex items-center justify-between text-[11px] text-white/55">
+                                      <span>Qty: {item.quantity || 1}</span>
+                                      <span>Line Total: PKR {((Number(item.price) || 0) * (Number(item.quantity) || 1)).toLocaleString()}</span>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+
+                            <div className="rounded-2xl border border-white/5 bg-white/5 p-4">
+                              <p className="text-[10px] text-white/40 uppercase tracking-[0.2em] font-bold mb-3">Payment / Totals</p>
+                              <div className="space-y-1 text-xs text-white/65">
+                                <p>Subtotal: PKR {(Number(o.subtotal) || 0).toLocaleString()}</p>
+                                <p>Shipping Fee: PKR {(Number(o.shippingFee) || 0).toLocaleString()}</p>
+                                <p>Total: PKR {Number(o.total || 0).toLocaleString()}</p>
+                                <p>Method: {o.paymentMethod || 'cod'}</p>
+                                <p>Status: {(o.paymentStatus || 'pending').toUpperCase()}</p>
+                              </div>
+                            </div>
+                          </div>
+
                           <div className="flex items-center gap-2 text-sm">
-                            <span className="text-white/40">{o.items.length} Assets</span>
+                            <span className="text-white/40">{o.items.length} Products</span>
                             <span className="w-1 h-1 rounded-full bg-white/20" />
                             <span className="font-bold text-white">PKR {o.total.toLocaleString()}</span>
                           </div>

@@ -90,7 +90,11 @@ export default function ProfilePage() {
               <WhatsAppContactCard
                 title="Need order help?"
                 description="Chat with admin on WhatsApp for order status, product details, payment help, or any quick support."
-                message={`Hello B&B Shoes, I need help with my account or order.`}
+                templateData={{
+                  customerName: userName,
+                  customerEmail: userEmail,
+                  note: 'I need help with my account or order.',
+                }}
               />
             </aside>
 

@@ -65,6 +65,7 @@ function MyOrdersContent() {
   const [ordersLoading, setOrdersLoading] = useState(true);
   const [ordersError, setOrdersError] = useState<string | null>(null);
   const [cancellingOrderId, setCancellingOrderId] = useState<string | null>(null);
+  const latestOrder = orders[0];
 
   const canCancelOrder = (status: Order['status']) => status === 'pending' || status === 'confirmed';
 
@@ -198,7 +199,19 @@ function MyOrdersContent() {
             <WhatsAppContactCard
               title="Need help with an order?"
               description="Contact the admin directly on WhatsApp for order updates, product questions, or payment support."
-              message={`Hello B&B Shoes, I need help with my order.`}
+              templateData={{
+                customerName: session?.user?.name || 'Customer',
+                customerEmail: session?.user?.email || undefined,
+                orderId: latestOrder?.id,
+                productName: latestOrder?.items?.[0]?.name,
+                itemsSummary: latestOrder?.items
+                  ?.map((item) => `${item.name}${item.size ? ` - ${item.size}` : ''}${item.color ? ` (${item.color})` : ''} x${item.quantity}`)
+                  ?.join(', '),
+                orderStatus: latestOrder?.status,
+                paymentMethod: latestOrder?.paymentMethod,
+                total: latestOrder?.total,
+                note: 'I need help with my order.',
+              }}
             />
           </div>
 

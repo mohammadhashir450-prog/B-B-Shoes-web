@@ -182,7 +182,9 @@ export default function ContactPage() {
               <WhatsAppContactCard
                 title="Message us on WhatsApp"
                 description="Get quick help for orders, product availability, delivery updates, and payment support."
-                message={`Hello B&B Shoes, I need help regarding my order/payment.`}
+                templateData={{
+                  note: 'I need help regarding my order, payment, delivery, or product details.',
+                }}
               />
 
               <div className="rounded-2xl border border-[#D4AF37]/20 bg-gradient-to-br from-white via-[#FFFAF0] to-[#F5F5F5] p-6 shadow-[0_8px_24px_rgba(212,175,55,0.08)] transform-gpu transition-all duration-500 hover:-translate-y-1">

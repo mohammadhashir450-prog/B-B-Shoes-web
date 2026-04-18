@@ -32,6 +32,19 @@ export type WhatsAppOrderPayload = {
   items?: WhatsAppOrderItem[]
 }
 
+export type WhatsAppCustomerMessageContext = {
+  customerName?: string
+  customerEmail?: string
+  customerPhone?: string
+  orderId?: string
+  productName?: string
+  itemsSummary?: string
+  orderStatus?: string
+  paymentMethod?: string
+  total?: number
+  note?: string
+}
+
 const formatMoney = (value: number | undefined) => `Rs${(Number(value) || 0).toFixed(2)}`
 
 const formatItem = (item: WhatsAppOrderItem, index: number) => {
@@ -97,22 +110,50 @@ export const buildAdminOrderWhatsAppUrl = (order: WhatsAppOrderPayload) => {
 
 /**
  * Default customer message when initiating chat with admin.
- * Used in WhatsApp contact cards across user pages.
+ * Mirrors the order-alert style so customer chats look professional and structured.
  */
-export const buildCustomerDefaultMessage = (customerName?: string): string => {
-  const name = String(customerName || 'I').trim()
+export const buildCustomerDefaultMessage = (context: WhatsAppCustomerMessageContext = {}): string => {
+  const customerName = String(context.customerName || 'Customer').trim()
+  const customerEmail = String(context.customerEmail || 'N/A').trim()
+  const customerPhone = String(context.customerPhone || 'N/A').trim()
+  const orderId = String(context.orderId || '').trim()
+  const productName = String(context.productName || '').trim()
+  const itemsSummary = String(context.itemsSummary || '').trim()
+  const orderStatus = String(context.orderStatus || '').trim()
+  const paymentMethod = String(context.paymentMethod || '').trim()
+  const note = String(context.note || '').trim()
+
   const lines = [
-    `Hi, I'm ${name}.`,
+    `🚨 *Customer Support Request!* 🚨`,
     '',
-    'I would like to inquire about:',
-    '• Product information',
-    '• Order status',
-    '• Payment & delivery details',
-    '• Custom sizing/color queries',
-    '• Any other support',
+    `A customer has started a WhatsApp chat on ${BRAND_NAME}.`,
     '',
-    `Thank you!`,
-    `${WEBSITE_URL}`,
+    '*Customer Details*',
+    `Name: ${customerName}`,
+    `Phone: ${customerPhone}`,
+    `Email: ${customerEmail}`,
   ]
+
+  if (orderId || productName || itemsSummary || orderStatus || paymentMethod) {
+    lines.push(
+      '',
+      '*Order / Product Details*',
+      `Order ID: ${orderId || 'N/A'}`,
+      `Product: ${productName || 'N/A'}`,
+      `Items: ${itemsSummary || 'N/A'}`,
+      `Order Status: ${orderStatus || 'N/A'}`,
+      `Payment Method: ${paymentMethod || 'N/A'}`,
+    )
+  }
+
+  lines.push(
+    '',
+    '*Message*',
+    note || 'Please assist me with my order, product, payment, or delivery details.',
+    '',
+    `Check admin panel for more details.`,
+    WEBSITE_URL,
+  )
+
   return lines.join('\n')
 }
