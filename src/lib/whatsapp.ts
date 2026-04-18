@@ -73,6 +73,11 @@ export const buildAdminOrderMessage = (order: WhatsAppOrderPayload) => {
   const { address, city } = resolveAddressAndCity(order)
   const customerName = String(order.customerName || 'Customer').trim()
   const orderId = String(order.orderId || 'N/A').trim()
+  const paymentMethod = String(order.paymentMethod || 'cod').toUpperCase()
+  const paymentStatus = String(order.paymentStatus || 'pending').toUpperCase()
+  const subtotal = formatMoney(order.subtotal)
+  const shippingFee = formatMoney(order.shippingFee)
+  const total = formatMoney(order.total)
 
   const lines = [
     `🚨 *New Order Received!* 🚨`,
@@ -86,11 +91,15 @@ export const buildAdminOrderMessage = (order: WhatsAppOrderPayload) => {
     `Email: ${order.customerEmail || 'N/A'}`,
     `Address: ${address}`,
     `City: ${city}`,
+    `Payment Method: ${paymentMethod}`,
+    `Payment Status: ${paymentStatus}`,
     '',
     '*Items Ordered:*',
     `${orderedItemsText}`,
     '',
-    `*Total Price:* ${formatMoney(order.total)}`,
+    `Subtotal: ${subtotal}`,
+    `Shipping Fee: ${shippingFee}`,
+    `*Total Price:* ${total}`,
     '',
     `Check admin panel for more details.`,
     WEBSITE_URL,
