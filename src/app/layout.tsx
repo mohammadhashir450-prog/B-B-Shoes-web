@@ -20,12 +20,14 @@ export const metadata: Metadata = {
   authors: [{ name: "B&B Shoes" }],
   icons: {
     icon: [
-      { url: '/icon.png?v=3', sizes: '512x512', type: 'image/png' },
-      { url: '/icon-192.png?v=3', sizes: '192x192', type: 'image/png' },
-      { url: '/icon-512.png?v=3', sizes: '512x512', type: 'image/png' },
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icon-512.png', sizes: '512x512', type: 'image/png' },
     ],
-    shortcut: '/icon.png?v=3',
-    apple: [{ url: '/apple-touch-icon.png?v=3', sizes: '180x180', type: 'image/png' }],
+    shortcut: '/favicon.ico',
+    apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
   },
   robots: {
     index: true,
@@ -47,7 +49,7 @@ export const metadata: Metadata = {
     type: 'website',
     images: [
       {
-        url: '/icon.png?v=3',
+        url: '/icon-512.png',
         width: 512,
         height: 512,
         alt: 'B&B Shoes Logo',
@@ -58,7 +60,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'B&B Shoes | Premium Experience',
     description: "Discover Pakistan's finest collection of premium footwear.",
-    images: ['/icon.png?v=3'],
+    images: ['/icon-512.png'],
   },
 }
 

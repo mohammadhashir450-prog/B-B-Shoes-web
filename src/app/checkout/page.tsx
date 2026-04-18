@@ -65,6 +65,8 @@ export default function CheckoutPage() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [adminWhatsappUrl, setAdminWhatsappUrl] = useState('');
+  const [adminWhatsappSent, setAdminWhatsappSent] = useState<boolean | null>(null);
+  const [adminWhatsappSendError, setAdminWhatsappSendError] = useState('');
 
   // Payment Form States
   const [jazzCashNumber, setJazzCashNumber] = useState('');
@@ -385,6 +387,8 @@ export default function CheckoutPage() {
     }
 
     setIsPlacingOrder(true);
+    setAdminWhatsappSent(null);
+    setAdminWhatsappSendError('');
 
     try {
       const normalizedItems = items.map((item) => ({
@@ -469,7 +473,7 @@ export default function CheckoutPage() {
         subtotal: totalPrice,
         shippingFee: deliveryFee,
         total: orderTotal,
-        paymentMethod: 'cod',
+        paymentMethod: selectedMethod,
         paymentStatus: 'pending',
         paymentDetails,
       };
@@ -494,8 +498,16 @@ export default function CheckoutPage() {
 
       const placedOrderId = result.data?.orderId || result.data?.id || `ORD-${Date.now()}`;
       const whatsappUrl = result.data?.adminWhatsappUrl || `https://wa.me/923068846624`;
+      const wasSent = result.data?.adminWhatsappSent !== false;
+      const sendError = result.data?.adminWhatsappError || '';
 
       setAdminWhatsappUrl(whatsappUrl);
+      setAdminWhatsappSent(wasSent);
+      setAdminWhatsappSendError(sendError);
+
+      if (!wasSent) {
+        setFormError(`Order placed, but WhatsApp auto-send failed: ${sendError}`);
+      }
 
       setShowSuccess(true);
       setTimeout(() => {
@@ -1121,7 +1133,16 @@ export default function CheckoutPage() {
               <Check className="w-8 h-8 text-black" />
             </div>
             <h2 className="text-2xl font-bold text-center mb-2">Order Placed!</h2>
-            <p className="text-gray-400 text-center">Your order has been successfully placed. Admin ko WhatsApp details automatically send ho chuki hain.</p>
+            <p className="text-gray-400 text-center">
+              {adminWhatsappSent
+                ? 'Your order has been successfully placed. Admin ko WhatsApp details automatically send ho chuki hain.'
+                : 'Your order has been placed. Admin WhatsApp auto-send fail hua, please review the error and use manual WhatsApp link below.'}
+            </p>
+            {!adminWhatsappSent && adminWhatsappSendError ? (
+              <p className="mt-3 rounded-lg border border-amber-400/30 bg-amber-400/10 px-3 py-2 text-xs text-amber-200">
+                {adminWhatsappSendError}
+              </p>
+            ) : null}
             <a
               href={adminWhatsappUrl || `https://wa.me/923068846624`}
               target="_blank"
