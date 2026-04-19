@@ -89,13 +89,8 @@ export default function CuratedCollections() {
     )
   }
 
-  // If current category is empty, switch to first available category
-  const validCategory = displayedProducts.length > 0 ? activeCategory : (
-    Object.entries(categoryProducts).find(([_, products]) => products.length > 0)?.[0] as CategoryType
-  ) || 'Women'
-
-  const finalProducts = categoryProducts[validCategory].slice(0, 4)
-  const currentRouteLink = categories.find((c) => c.key === validCategory)?.route || '/women'
+  const finalProducts = displayedProducts
+  const currentRouteLink = categories.find((c) => c.key === activeCategory)?.route || '/women'
 
   return (
     <section className="relative bg-[#FCFBF8] py-12 md:py-20 overflow-hidden">
@@ -127,19 +122,16 @@ export default function CuratedCollections() {
         {/* Category Tabs */}
         <div className="flex gap-2 md:gap-4 mb-8 md:mb-10 overflow-x-auto pb-2">
           {categories.map((category) => {
-            const isActive = validCategory === category.key
+            const isActive = activeCategory === category.key
             const productCount = categoryProducts[category.key].length
             
             return (
               <button
                 key={category.key}
                 onClick={() => setActiveCategory(category.key)}
-                disabled={productCount === 0}
                 className={`flex-shrink-0 px-4 md:px-6 py-2.5 md:py-3 rounded-full text-[11px] md:text-[12px] font-bold tracking-[0.15em] uppercase transition-all relative group ${
                   isActive
                     ? 'bg-[#D4AF37] text-[#18202B] shadow-[0_8px_24px_rgba(212,175,55,0.3)]'
-                    : productCount === 0
-                    ? 'bg-white/20 text-white/40 cursor-not-allowed'
                     : 'bg-white/5 text-[#374151] hover:bg-white/10 border border-white/10 hover:border-[#D4AF37]/30'
                 }`}
               >
@@ -154,7 +146,7 @@ export default function CuratedCollections() {
 
         {/* Products Section */}
         <motion.div
-          key={validCategory}
+          key={activeCategory}
           initial={shouldReduceMotion ? false : { opacity: 0, y: 10 }}
           animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
           transition={{ duration: shouldReduceMotion ? 0.2 : 0.4 }}
@@ -184,7 +176,7 @@ export default function CuratedCollections() {
               </button>
 
               <Link
-                href={`${currentRouteLink}?category=${validCategory.toLowerCase()}`}
+                href={`${currentRouteLink}?category=${activeCategory.toLowerCase()}`}
                 className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-full border border-[#DCCFB6] bg-white/90 text-[#253041] text-[10px] sm:text-[11px] font-bold tracking-[0.14em] uppercase hover:border-[#D4AF37] hover:bg-[#D4AF37] transition-all duration-300"
               >
                 See More
@@ -269,6 +261,12 @@ export default function CuratedCollections() {
                   </Link>
                 </motion.div>
               ))}
+
+              {finalProducts.length === 0 ? (
+                <div className="w-full rounded-2xl border border-[#E7E0D1] bg-white p-6 text-center text-sm text-[#6A7483]">
+                  No products currently available in {activeCategory}. Add products in admin with category {activeCategory}.
+                </div>
+              ) : null}
             </div>
 
             <div className="hidden sm:block pointer-events-none absolute inset-y-0 left-0 w-8 sm:w-10 bg-gradient-to-r from-[#FCFBF8] to-transparent" />
@@ -282,7 +280,7 @@ export default function CuratedCollections() {
               className="md:hidden mt-3 flex items-center justify-center"
             >
               <Link
-                href={`${currentRouteLink}?category=${validCategory.toLowerCase()}`}
+                href={`${currentRouteLink}?category=${activeCategory.toLowerCase()}`}
                 className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#F5EFE1] border border-[#E2D6BF] text-[#6A7483] text-[10px] tracking-[0.14em] uppercase font-bold hover:bg-[#EEDED4] transition-all duration-300"
               >
                 <span>See More Products</span>
