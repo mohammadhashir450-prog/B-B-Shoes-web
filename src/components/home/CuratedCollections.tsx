@@ -8,10 +8,10 @@ import { useProducts } from '@/context/ProductContext'
 import { useWishlist } from '@/context/WishlistContext'
 import HoverSwapImage from '@/components/common/HoverSwapImage'
 
-type CategoryType = 'Women' | 'Kids' | 'Accessories'
+type CategoryType = 'Men' | 'Women' | 'Kids'
 
 export default function CuratedCollections() {
-  const { allProducts, loading } = useProducts()
+  const { getProductsByCategory, loading } = useProducts()
   const { isWishlisted, toggleWishlist } = useWishlist()
   const shouldReduceMotion = useReducedMotion()
   const [activeCategory, setActiveCategory] = useState<CategoryType>('Women')
@@ -19,19 +19,23 @@ export default function CuratedCollections() {
   const [showSwipeHint, setShowSwipeHint] = useState(true)
 
   const categories: Array<{ key: CategoryType; label: string; route: string }> = [
+    { key: 'Men', label: 'Men', route: '/men' },
     { key: 'Women', label: 'Women', route: '/women' },
     { key: 'Kids', label: 'Kids', route: '/kids' },
-    { key: 'Accessories', label: 'Accessories', route: '/accessories' },
   ]
 
-  // Get products for all three categories (not on sale, not new arrivals)
+  // Pull category products from ProductContext to keep filtering aligned with DB/category normalization.
   const categoryProducts = useMemo(() => {
-    return {
-      Women: allProducts.filter((p) => p.category === 'Women' && !p.isOnSale && !p.isNewArrival),
-      Kids: allProducts.filter((p) => p.category === 'Kids' && !p.isOnSale && !p.isNewArrival),
-      Accessories: allProducts.filter((p) => p.category === 'Accessories' && !p.isOnSale && !p.isNewArrival),
+    const getVisibleProducts = (category: CategoryType) => {
+      return getProductsByCategory(category).filter((p) => !p.isOnSale && !p.isNewArrival)
     }
-  }, [allProducts])
+
+    return {
+      Men: getVisibleProducts('Men'),
+      Women: getVisibleProducts('Women'),
+      Kids: getVisibleProducts('Kids'),
+    }
+  }, [getProductsByCategory])
 
   const displayedProducts = categoryProducts[activeCategory].slice(0, 4)
   const currentRouteLink = categories.find(c => c.key === activeCategory)?.route || '/women'
