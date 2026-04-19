@@ -81,6 +81,17 @@ export function ProductProvider({ children }: { children: ReactNode }) {
       .replace(/['’]/g, '')
       .replace(/\s+/g, '');
 
+  const canonicalCategory = (value?: string) => {
+    const normalized = normalizeCategory(value)
+
+    if (normalized === 'men' || normalized === 'mens' || normalized === 'man') return 'men'
+    if (normalized === 'women' || normalized === 'womens' || normalized === 'woman') return 'women'
+    if (normalized === 'kids' || normalized === 'kid') return 'kids'
+    if (normalized === 'accessories' || normalized === 'accessory' || normalized === 'accessorys') return 'accessories'
+
+    return normalized
+  }
+
   const isSaleTaggedProduct = (product: Product): boolean => {
     return product.isOnSale === true || (product.discount || 0) > 0 || ((product.originalPrice || 0) > product.price);
   };
@@ -134,14 +145,14 @@ export function ProductProvider({ children }: { children: ReactNode }) {
     setAllProducts(products);
 
     const men = products.filter((p: Product) => {
-      const category = normalizeCategory(p.category);
-      return category === 'men' || category === 'mens';
+      const category = canonicalCategory(p.category);
+      return category === 'men';
     });
     setMenProducts(men);
 
     const women = products.filter((p: Product) => {
-      const category = normalizeCategory(p.category);
-      return category === 'women' || category === 'womens';
+      const category = canonicalCategory(p.category);
+      return category === 'women';
     });
     setWomenProducts(women);
   };
@@ -261,16 +272,16 @@ export function ProductProvider({ children }: { children: ReactNode }) {
 
   // Helper: Get products by category
   const getProductsByCategory = (category: string): Product[] => {
-    const searchCategory = normalizeCategory(category);
+    const searchCategory = canonicalCategory(category);
 
     if (searchCategory === 'all') return allProducts;
-    if (searchCategory === 'men' || searchCategory === 'mens') return menProducts;
-    if (searchCategory === 'women' || searchCategory === 'womens') return womenProducts;
+    if (searchCategory === 'men') return menProducts;
+    if (searchCategory === 'women') return womenProducts;
     
     // Handle exact category/subcategory mapping for section pages and filters.
     return allProducts.filter(p => {
-      const productCategory = normalizeCategory(p.category);
-      const productSubcategory = normalizeCategory((p as any).subcategory);
+      const productCategory = canonicalCategory(p.category);
+      const productSubcategory = canonicalCategory((p as any).subcategory);
       
       return productSubcategory === searchCategory || productCategory === searchCategory;
     });
