@@ -8,7 +8,7 @@ import { useProducts } from '@/context/ProductContext'
 import { useWishlist } from '@/context/WishlistContext'
 import HoverSwapImage from '@/components/common/HoverSwapImage'
 
-type CategoryType = 'Men' | 'Women' | 'Kids'
+type CategoryType = 'Women' | 'Kids' | 'Men' | 'Accessories'
 
 export default function CuratedCollections() {
   const { getProductsByCategory, loading } = useProducts()
@@ -19,26 +19,30 @@ export default function CuratedCollections() {
   const [showSwipeHint, setShowSwipeHint] = useState(true)
 
   const categories: Array<{ key: CategoryType; label: string; route: string }> = [
-    { key: 'Men', label: 'Men', route: '/men' },
     { key: 'Women', label: 'Women', route: '/women' },
     { key: 'Kids', label: 'Kids', route: '/kids' },
+    { key: 'Men', label: 'Men', route: '/men' },
+    { key: 'Accessories', label: 'Accessories', route: '/accessories' },
   ]
 
-  // Pull category products from ProductContext to keep filtering aligned with DB/category normalization.
+  // Pull category products from ProductContext and keep fallback so tabs never break
+  // when products are tagged as sale/new-arrival in admin.
   const categoryProducts = useMemo(() => {
-    const getVisibleProducts = (category: CategoryType) => {
-      return getProductsByCategory(category).filter((p) => !p.isOnSale && !p.isNewArrival)
+    const getTabProducts = (category: CategoryType) => {
+      const allCategoryProducts = getProductsByCategory(category)
+      const regularProducts = allCategoryProducts.filter((p) => !p.isOnSale && !p.isNewArrival)
+      return regularProducts.length > 0 ? regularProducts : allCategoryProducts
     }
 
     return {
-      Men: getVisibleProducts('Men'),
-      Women: getVisibleProducts('Women'),
-      Kids: getVisibleProducts('Kids'),
+      Women: getTabProducts('Women'),
+      Kids: getTabProducts('Kids'),
+      Men: getTabProducts('Men'),
+      Accessories: getTabProducts('Accessories'),
     }
   }, [getProductsByCategory])
 
   const displayedProducts = categoryProducts[activeCategory].slice(0, 4)
-  const currentRouteLink = categories.find(c => c.key === activeCategory)?.route || '/women'
 
   const scrollSlider = (direction: 'left' | 'right') => {
     if (!sliderRef.current) return
@@ -91,6 +95,7 @@ export default function CuratedCollections() {
   ) || 'Women'
 
   const finalProducts = categoryProducts[validCategory].slice(0, 4)
+  const currentRouteLink = categories.find((c) => c.key === validCategory)?.route || '/women'
 
   return (
     <section className="relative bg-[#FCFBF8] py-12 md:py-20 overflow-hidden">
