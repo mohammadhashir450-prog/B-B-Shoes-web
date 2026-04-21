@@ -2609,10 +2609,47 @@ export default function AdminPanel() {
                   {/* Orders List */}
                   <div className="p-4 space-y-4">
                     {userOrders.map((o) => {
-                      const displayAddress = o.customerAddress || o.paymentDetails?.cod?.address || 'N/A';
-                      const displayPhone = o.customerPhone || o.paymentDetails?.cod?.phone || 'Phone not provided';
-                      const displayMethod = formatPaymentMethod(o.paymentMethod);
-                      const displayStatus = (o.paymentStatus || 'pending').toLowerCase();
+                      const rawOrder = o as any;
+                      const firstText = (...values: any[]) => {
+                        for (const value of values) {
+                          if (typeof value === 'string' && value.trim().length > 0) {
+                            return value.trim();
+                          }
+                        }
+                        return '';
+                      };
+
+                      const rawAddressValue = rawOrder.shippingAddress || rawOrder.address;
+                      const structuredAddress =
+                        rawAddressValue && typeof rawAddressValue === 'object'
+                          ? [
+                              rawAddressValue.street,
+                              rawAddressValue.address,
+                              rawAddressValue.city,
+                              rawAddressValue.state,
+                              rawAddressValue.zip,
+                              rawAddressValue.country,
+                            ]
+                              .filter((part: any) => typeof part === 'string' && part.trim().length > 0)
+                              .join(', ')
+                          : '';
+
+                      const displayName =
+                        firstText(o.customerName, rawOrder.name, rawOrder.customer?.name, o.paymentDetails?.cod?.name) || 'N/A';
+                      const displayEmail =
+                        firstText(o.customerEmail, rawOrder.email, rawOrder.customer?.email) || 'N/A';
+                      const displayPhone =
+                        firstText(o.customerPhone, rawOrder.phone, rawOrder.customer?.phone, o.paymentDetails?.cod?.phone) || 'Phone not provided';
+                      const displayAddress =
+                        firstText(o.customerAddress, structuredAddress, String(rawAddressValue || ''), o.paymentDetails?.cod?.address) || 'N/A';
+
+                      const normalizedPaymentMethod =
+                        firstText(o.paymentMethod, rawOrder.paymentMethod, rawOrder.payment?.method) || 'cod';
+                      const normalizedPaymentStatus =
+                        firstText(o.paymentStatus, rawOrder.paymentStatus, rawOrder.payment?.status) || 'pending';
+
+                      const displayMethod = formatPaymentMethod(normalizedPaymentMethod);
+                      const displayStatus = normalizedPaymentStatus.toLowerCase();
 
                       return (
                       <div key={o.id} className="bg-[#0B101E]/80 border border-white/5 p-6 rounded-2xl flex flex-col lg:flex-row lg:items-center justify-between gap-6 hover:border-white/10 transition-colors">
@@ -2624,8 +2661,8 @@ export default function AdminPanel() {
                             </span>
                             <span className="text-xs text-white/40">{new Date(o.date).toLocaleDateString()}</span>
                           </div>
-                          <h4 className="font-serif text-lg text-white mb-1">{o.customerName}</h4>
-                          <p className="text-xs text-white/50 mb-3">{o.customerEmail}</p>
+                          <h4 className="font-serif text-lg text-white mb-1">{displayName}</h4>
+                          <p className="text-xs text-white/50 mb-3">{displayEmail}</p>
                           <p className="text-xs text-white/50 mb-3">{displayPhone}</p>
                           <div className="space-y-1 mb-3">
                             <p className="text-[11px] text-[#D4AF37]/80 uppercase tracking-[0.18em]">Payment Method: {displayMethod}</p>
@@ -2638,19 +2675,19 @@ export default function AdminPanel() {
                                     ? 'text-red-400'
                                     : 'text-amber-400'
                               }>
-                                {formatPaymentStatus(o.paymentStatus)}
+                                {formatPaymentStatus(normalizedPaymentStatus)}
                               </span>
                             </p>
-                            {o.paymentMethod === 'cod' ? (
+                            {normalizedPaymentMethod === 'cod' ? (
                               <p className="text-xs text-white/50">COD - Pay on delivery</p>
                             ) : null}
-                            {o.paymentMethod === 'jazzcash' ? (
+                            {normalizedPaymentMethod === 'jazzcash' ? (
                               <>
                                 <p className="text-xs text-white/50">Sender JazzCash: {o.paymentDetails?.jazzcash?.senderNumber || 'N/A'}</p>
                                 <p className="text-xs text-white/50">Transaction ID: {o.paymentDetails?.jazzcash?.transactionId || 'N/A'}</p>
                               </>
                             ) : null}
-                            {o.paymentMethod === 'bank' ? (
+                            {normalizedPaymentMethod === 'bank' ? (
                               <>
                                 <p className="text-xs text-white/50">Bank: {o.paymentDetails?.bank?.bankName || 'N/A'}</p>
                                 <p className="text-xs text-white/50">Receiver Account: {o.paymentDetails?.bank?.receiverAccountNumber || 'N/A'}</p>
@@ -2658,7 +2695,7 @@ export default function AdminPanel() {
                                 <p className="text-xs text-white/50">Transaction ID: {o.paymentDetails?.bank?.transactionId || 'N/A'}</p>
                               </>
                             ) : null}
-                            {o.paymentMethod === 'card' ? (
+                            {normalizedPaymentMethod === 'card' ? (
                               <>
                                 <p className="text-xs text-white/50">Card Holder: {o.paymentDetails?.card?.cardHolderName || 'N/A'}</p>
                                 <p className="text-xs text-white/50">Card: {o.paymentDetails?.card?.cardBrand || 'Card'} {o.paymentDetails?.card?.cardMasked || (o.paymentDetails?.card?.cardLast4 ? `**** **** **** ${o.paymentDetails.card.cardLast4}` : 'N/A')}</p>
@@ -2673,8 +2710,8 @@ export default function AdminPanel() {
                               <div className="space-y-1 text-xs text-white/65">
                                 <p>Order ID: {o.orderId || o.id}</p>
                                 <p>User ID: {o.user_id || 'N/A'}</p>
-                                <p>Name: {o.customerName || 'N/A'}</p>
-                                <p>Email: {o.customerEmail || 'N/A'}</p>
+                                <p>Name: {displayName}</p>
+                                <p>Email: {displayEmail}</p>
                                 <p>Phone: {displayPhone}</p>
                                 <p>Address: {displayAddress}</p>
                               </div>
@@ -2709,7 +2746,8 @@ export default function AdminPanel() {
                                 <p>Shipping Fee: PKR {(Number(o.shippingFee) || 0).toLocaleString()}</p>
                                 <p>Total: PKR {Number(o.total || 0).toLocaleString()}</p>
                                 <p>Method: {displayMethod}</p>
-                                <p>Status: {formatPaymentStatus(o.paymentStatus)}</p>
+                                <p>Status: {formatPaymentStatus(normalizedPaymentStatus)}</p>
+                                <p>Order Status: {(o.status || 'pending').toUpperCase()}</p>
                               </div>
                             </div>
                           </div>
@@ -2772,7 +2810,7 @@ export default function AdminPanel() {
                             ))}
                           </div>
 
-                          {(o.paymentStatus || 'pending') === 'paid' ? (
+                          {normalizedPaymentStatus === 'paid' ? (
                             <p className="text-[10px] text-emerald-400 uppercase tracking-[0.14em] font-bold">Payment received - Ready for delivery</p>
                           ) : (
                             <p className="text-[10px] text-amber-300 uppercase tracking-[0.14em] font-bold">Payment not verified yet</p>
