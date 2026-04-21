@@ -221,13 +221,13 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
     if (normalizedColorOptions.length === 0) return;
 
     const availableColor = normalizedColorOptions.find((entry) => {
-      const quantity = colorAvailability.get(entry.key);
+      const quantity = colorAvailability.get(entry.key) ?? null;
       return quantity === null || quantity > 0;
     });
 
     if (availableColor) {
       const selectedExists = normalizedColorOptions.some((entry) => entry.key === selectedColorKey);
-      const selectedQuantity = colorAvailability.get(selectedColorKey);
+      const selectedQuantity = colorAvailability.get(selectedColorKey) ?? null;
 
       if (!selectedExists || (selectedQuantity !== null && selectedQuantity <= 0)) {
         setSelectedColor(availableColor.label);
@@ -300,7 +300,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
           key: entry.key,
           color: entry.label,
           image: String(colorImageMap.get(entry.key) || product.image || '').trim(),
-          quantity,
+          quantity: quantity ?? null,
         };
       })
       .filter((entry) => entry.image)
@@ -530,7 +530,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                   <div className="flex gap-3 flex-wrap">
                     {normalizedColorOptions.map((colorOption) => (
                       (() => {
-                        const quantity = colorAvailability.get(colorOption.key);
+                        const quantity = colorAvailability.get(colorOption.key) ?? null;
                         const isOutOfStock = quantity !== null && quantity <= 0;
 
                         return (
