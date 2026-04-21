@@ -167,6 +167,21 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
     return bySize.reduce((sum, ss) => sum + Number(ss.quantity || 0), 0);
   };
 
+  const getColorQuantity = (colorValue: string): number | null => {
+    if (!product || !Array.isArray(product.sizeStock) || product.sizeStock.length === 0) {
+      return null;
+    }
+
+    const normalizedTarget = normalizeColor(colorValue);
+    const byColor = product.sizeStock.filter((ss) => normalizeColor(ss.color) === normalizedTarget);
+
+    if (byColor.length === 0) {
+      return 0;
+    }
+
+    return byColor.reduce((sum, ss) => sum + Number(ss.quantity || 0), 0);
+  };
+
   useEffect(() => {
     if (!selectedSize || !product) return;
 
@@ -190,16 +205,35 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
     return Array.from(map.entries()).map(([key, label]) => ({ key, label }));
   }, [product]);
 
+  const colorAvailability = useMemo(() => {
+    const availability = new Map<string, number | null>();
+
+    normalizedColorOptions.forEach((entry) => {
+      availability.set(entry.key, getColorQuantity(entry.label));
+    });
+
+    return availability;
+  }, [normalizedColorOptions, product]);
+
   const selectedColorKey = normalizeColor(selectedColor);
 
   useEffect(() => {
     if (normalizedColorOptions.length === 0) return;
 
-    const selectedExists = normalizedColorOptions.some((entry) => entry.key === selectedColorKey);
-    if (!selectedExists) {
-      setSelectedColor(normalizedColorOptions[0].label);
+    const availableColor = normalizedColorOptions.find((entry) => {
+      const quantity = colorAvailability.get(entry.key);
+      return quantity === null || quantity > 0;
+    });
+
+    if (availableColor) {
+      const selectedExists = normalizedColorOptions.some((entry) => entry.key === selectedColorKey);
+      const selectedQuantity = colorAvailability.get(selectedColorKey);
+
+      if (!selectedExists || (selectedQuantity !== null && selectedQuantity <= 0)) {
+        setSelectedColor(availableColor.label);
+      }
     }
-  }, [normalizedColorOptions, selectedColorKey]);
+  }, [normalizedColorOptions, selectedColorKey, colorAvailability]);
 
   const colorImageMap = useMemo(() => {
     if (!product) return new Map<string, string>();
@@ -258,14 +292,20 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
   const colorImageOptions = useMemo(() => {
     if (!product) return [];
 
-    return normalizedColorOptions.map((entry) => {
-      return {
-        key: entry.key,
-        color: entry.label,
-        image: String(colorImageMap.get(entry.key) || product.image || '').trim(),
-      };
-    }).filter((entry) => entry.image);
-  }, [product, colorImageMap, normalizedColorOptions]);
+    return normalizedColorOptions
+      .map((entry) => {
+        const quantity = colorAvailability.get(entry.key);
+
+        return {
+          key: entry.key,
+          color: entry.label,
+          image: String(colorImageMap.get(entry.key) || product.image || '').trim(),
+          quantity,
+        };
+      })
+      .filter((entry) => entry.image)
+      .filter((entry) => entry.quantity === null || entry.quantity > 0);
+  }, [product, colorImageMap, normalizedColorOptions, colorAvailability]);
 
   const handleSubmitReview = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -489,17 +529,27 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                   </div>
                   <div className="flex gap-3 flex-wrap">
                     {normalizedColorOptions.map((colorOption) => (
-                      <button
-                        key={colorOption.key}
-                        onClick={() => setSelectedColor(colorOption.label)}
-                        className={`px-4 py-2 rounded-lg border-2 transition-all ${
-                          selectedColorKey === colorOption.key
-                            ? 'border-[#0B101E] bg-[#0B101E] text-white shadow-sm' 
-                            : 'bg-white text-[#0B101E] border-gray-300 hover:border-[#0B101E]'
-                        }`}
-                      >
-                        {colorOption.label}
-                      </button>
+                      (() => {
+                        const quantity = colorAvailability.get(colorOption.key);
+                        const isOutOfStock = quantity !== null && quantity <= 0;
+
+                        return (
+                          <button
+                            key={colorOption.key}
+                            onClick={() => setSelectedColor(colorOption.label)}
+                            disabled={isOutOfStock}
+                            className={`px-4 py-2 rounded-lg border-2 transition-all ${
+                              selectedColorKey === colorOption.key
+                                ? 'border-[#0B101E] bg-[#0B101E] text-white shadow-sm'
+                                : isOutOfStock
+                                ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed opacity-70'
+                                : 'bg-white text-[#0B101E] border-gray-300 hover:border-[#0B101E]'
+                            }`}
+                          >
+                            {colorOption.label}
+                          </button>
+                        );
+                      })()
                     ))}
                   </div>
                 </div>

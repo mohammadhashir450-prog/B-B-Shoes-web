@@ -70,6 +70,29 @@ const getRemainingLabel = (ms: number) => {
   return `${days > 0 ? `${two(days)}d ` : ''}${two(hours)}h ${two(minutes)}m ${two(seconds)}s`;
 };
 
+const formatPaymentMethod = (value?: string) => {
+  switch ((value || 'cod').toLowerCase()) {
+    case 'cod':
+      return 'Cash on Delivery';
+    case 'jazzcash':
+      return 'JazzCash';
+    case 'bank':
+      return 'Bank Transfer';
+    case 'card':
+      return 'Card Payment';
+    case 'easypaisa':
+      return 'EasyPaisa';
+    case 'stripe':
+      return 'Stripe';
+    case 'paypal':
+      return 'PayPal';
+    default:
+      return value || 'Cash on Delivery';
+  }
+};
+
+const formatPaymentStatus = (value?: string) => (value || 'pending').toUpperCase();
+
 export default function AdminPanel() {
   const DEFAULT_SIZES = ['7', '8', '9', '10', '11'];
   const DEFAULT_COLORS = ['Black'];
@@ -2585,9 +2608,14 @@ export default function AdminPanel() {
 
                   {/* Orders List */}
                   <div className="p-4 space-y-4">
-                    {userOrders.map((o) => (
+                    {userOrders.map((o) => {
+                      const displayAddress = o.customerAddress || o.paymentDetails?.cod?.address || 'N/A';
+                      const displayPhone = o.customerPhone || o.paymentDetails?.cod?.phone || 'Phone not provided';
+                      const displayMethod = formatPaymentMethod(o.paymentMethod);
+                      const displayStatus = (o.paymentStatus || 'pending').toLowerCase();
+
+                      return (
                       <div key={o.id} className="bg-[#0B101E]/80 border border-white/5 p-6 rounded-2xl flex flex-col lg:flex-row lg:items-center justify-between gap-6 hover:border-white/10 transition-colors">
-                        
                         {/* Details */}
                         <div>
                           <div className="flex items-center gap-3 mb-2">
@@ -2598,19 +2626,19 @@ export default function AdminPanel() {
                           </div>
                           <h4 className="font-serif text-lg text-white mb-1">{o.customerName}</h4>
                           <p className="text-xs text-white/50 mb-3">{o.customerEmail}</p>
-                          <p className="text-xs text-white/50 mb-3">{o.customerPhone || 'Phone not provided'}</p>
+                          <p className="text-xs text-white/50 mb-3">{displayPhone}</p>
                           <div className="space-y-1 mb-3">
-                            <p className="text-[11px] text-[#D4AF37]/80 uppercase tracking-[0.18em]">Payment Method: {o.paymentMethod || 'cod'}</p>
+                            <p className="text-[11px] text-[#D4AF37]/80 uppercase tracking-[0.18em]">Payment Method: {displayMethod}</p>
                             <p className="text-[11px] uppercase tracking-[0.18em]">
                               Payment Status:{' '}
                               <span className={
-                                (o.paymentStatus || 'pending') === 'paid'
+                                displayStatus === 'paid'
                                   ? 'text-emerald-400'
-                                  : (o.paymentStatus || 'pending') === 'failed'
+                                  : displayStatus === 'failed'
                                     ? 'text-red-400'
                                     : 'text-amber-400'
                               }>
-                                {(o.paymentStatus || 'pending').toUpperCase()}
+                                {formatPaymentStatus(o.paymentStatus)}
                               </span>
                             </p>
                             {o.paymentMethod === 'cod' ? (
@@ -2647,8 +2675,8 @@ export default function AdminPanel() {
                                 <p>User ID: {o.user_id || 'N/A'}</p>
                                 <p>Name: {o.customerName || 'N/A'}</p>
                                 <p>Email: {o.customerEmail || 'N/A'}</p>
-                                <p>Phone: {o.customerPhone || 'N/A'}</p>
-                                <p>Address: {o.customerAddress || 'N/A'}</p>
+                                <p>Phone: {displayPhone}</p>
+                                <p>Address: {displayAddress}</p>
                               </div>
                             </div>
 
@@ -2680,8 +2708,8 @@ export default function AdminPanel() {
                                 <p>Subtotal: PKR {(Number(o.subtotal) || 0).toLocaleString()}</p>
                                 <p>Shipping Fee: PKR {(Number(o.shippingFee) || 0).toLocaleString()}</p>
                                 <p>Total: PKR {Number(o.total || 0).toLocaleString()}</p>
-                                <p>Method: {o.paymentMethod || 'cod'}</p>
-                                <p>Status: {(o.paymentStatus || 'pending').toUpperCase()}</p>
+                                <p>Method: {displayMethod}</p>
+                                <p>Status: {formatPaymentStatus(o.paymentStatus)}</p>
                               </div>
                             </div>
                           </div>
@@ -2695,7 +2723,6 @@ export default function AdminPanel() {
 
                         {/* Status & Actions */}
                         <div className="flex flex-col items-start lg:items-end gap-4">
-                          
                           {/* Dynamic Status Badge */}
                           <div className={`px-4 py-1.5 rounded-full text-[9px] font-black tracking-[0.2em] uppercase border ${
                             o.status === 'pending' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
@@ -2753,7 +2780,8 @@ export default function AdminPanel() {
                         </div>
 
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               ))
