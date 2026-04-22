@@ -2595,15 +2595,15 @@ export default function AdminPanel() {
                   return acc;
                 }, {})
               ).map(([userId, userOrders]) => (
-                <div key={userId} className="bg-[#121A2F]/30 backdrop-blur-md rounded-3xl border border-white/5 overflow-hidden">
+                <div key={userId} className="bg-white rounded-3xl border border-gray-200 overflow-hidden shadow-[0_18px_36px_-26px_rgba(15,23,42,0.3)]">
                   
                   {/* User Group Header */}
-                  <div className="bg-white/5 border-b border-white/5 px-6 py-4 flex items-center justify-between">
+                  <div className="bg-[#F8FAFC] border-b border-gray-200 px-6 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <Users size={16} className="text-[#D4AF37]" />
-                      <span className="text-[10px] tracking-[0.2em] uppercase font-bold text-white/70">Client ID: {userId.substring(0,8)}...</span>
+                      <span className="text-[10px] tracking-[0.2em] uppercase font-bold text-[#1F2937]">Client ID: {userId.substring(0,8)}...</span>
                     </div>
-                    <span className="text-[10px] text-white/40">{userOrders.length} Active Ledgers</span>
+                    <span className="text-[10px] text-[#6B7280]">{userOrders.length} Active Ledgers</span>
                   </div>
 
                   {/* Orders List */}
@@ -2658,20 +2658,20 @@ export default function AdminPanel() {
                       const displayStatus = normalizedPaymentStatus.toLowerCase();
 
                       return (
-                      <div key={o.id} className="bg-[#0B101E]/85 border border-white/10 p-6 rounded-2xl flex flex-col lg:flex-row lg:items-start justify-between gap-6 hover:border-[#D4AF37]/30 transition-colors shadow-[0_20px_40px_-28px_rgba(0,0,0,0.65)]">
+                      <div key={o.id} className="bg-white border border-gray-200 p-6 rounded-2xl flex flex-col lg:flex-row lg:items-start justify-between gap-6 hover:border-[#D4AF37]/40 transition-colors shadow-[0_18px_34px_-24px_rgba(15,23,42,0.2)]">
                         {/* Details */}
                         <div>
                           <div className="flex items-center gap-3 mb-2">
                             <span className="text-[9px] text-[#D4AF37] border border-[#D4AF37]/30 bg-[#D4AF37]/10 px-2 py-0.5 rounded-md uppercase tracking-wider font-bold">
                               #{o.orderId?.substring(0,8) || o.id.substring(0,8)}
                             </span>
-                            <span className="text-xs text-white/40">{new Date(o.date).toLocaleDateString()}</span>
+                            <span className="text-xs text-[#6B7280]">{new Date(o.date).toLocaleDateString()}</span>
                           </div>
-                          <h4 className="font-serif text-lg text-white mb-1">{displayName}</h4>
-                          <p className="text-xs text-white/50 mb-3">{displayEmail}</p>
-                          <p className="text-xs text-white/50 mb-3">{displayPhone}</p>
+                          <h4 className="font-serif text-lg text-[#111827] mb-1">{displayName}</h4>
+                          <p className="text-xs text-[#374151] mb-3">{displayEmail}</p>
+                          <p className="text-xs text-[#374151] mb-3">{displayPhone}</p>
                           <div className="flex flex-wrap items-center gap-2 mb-4">
-                            <span className="text-[10px] uppercase tracking-[0.15em] px-2.5 py-1 rounded-full border border-white/15 bg-white/5 text-white/70">
+                            <span className="text-[10px] uppercase tracking-[0.15em] px-2.5 py-1 rounded-full border border-gray-300 bg-gray-50 text-[#374151]">
                               {displayMethod}
                             </span>
                             <span className={`text-[10px] uppercase tracking-[0.15em] px-2.5 py-1 rounded-full border ${
@@ -2699,35 +2699,35 @@ export default function AdminPanel() {
                               </span>
                             </p>
                             {normalizedPaymentMethod === 'cod' ? (
-                              <p className="text-xs text-white/50">COD - Pay on delivery</p>
+                              <p className="text-xs text-[#4B5563]">COD - Pay on delivery</p>
                             ) : null}
                             {normalizedPaymentMethod === 'jazzcash' ? (
                               <>
-                                <p className="text-xs text-white/50">Sender JazzCash: {o.paymentDetails?.jazzcash?.senderNumber || 'N/A'}</p>
-                                <p className="text-xs text-white/50">Transaction ID: {o.paymentDetails?.jazzcash?.transactionId || 'N/A'}</p>
+                                <p className="text-xs text-[#4B5563]">Sender JazzCash: {o.paymentDetails?.jazzcash?.senderNumber || 'N/A'}</p>
+                                <p className="text-xs text-[#4B5563]">Transaction ID: {o.paymentDetails?.jazzcash?.transactionId || 'N/A'}</p>
                               </>
                             ) : null}
                             {normalizedPaymentMethod === 'bank' ? (
                               <>
-                                <p className="text-xs text-white/50">Bank: {o.paymentDetails?.bank?.bankName || 'N/A'}</p>
-                                <p className="text-xs text-white/50">Receiver Account: {o.paymentDetails?.bank?.receiverAccountNumber || 'N/A'}</p>
-                                <p className="text-xs text-white/50">Sender Account: {o.paymentDetails?.bank?.senderAccountNumber || 'N/A'}</p>
-                                <p className="text-xs text-white/50">Transaction ID: {o.paymentDetails?.bank?.transactionId || 'N/A'}</p>
+                                <p className="text-xs text-[#4B5563]">Bank: {o.paymentDetails?.bank?.bankName || 'N/A'}</p>
+                                <p className="text-xs text-[#4B5563]">Receiver Account: {o.paymentDetails?.bank?.receiverAccountNumber || 'N/A'}</p>
+                                <p className="text-xs text-[#4B5563]">Sender Account: {o.paymentDetails?.bank?.senderAccountNumber || 'N/A'}</p>
+                                <p className="text-xs text-[#4B5563]">Transaction ID: {o.paymentDetails?.bank?.transactionId || 'N/A'}</p>
                               </>
                             ) : null}
                             {normalizedPaymentMethod === 'card' ? (
                               <>
-                                <p className="text-xs text-white/50">Card Holder: {o.paymentDetails?.card?.cardHolderName || 'N/A'}</p>
-                                <p className="text-xs text-white/50">Card: {o.paymentDetails?.card?.cardBrand || 'Card'} {o.paymentDetails?.card?.cardMasked || (o.paymentDetails?.card?.cardLast4 ? `**** **** **** ${o.paymentDetails.card.cardLast4}` : 'N/A')}</p>
-                                <p className="text-xs text-white/50">Transaction ID: {o.paymentDetails?.card?.transactionId || 'N/A'}</p>
+                                <p className="text-xs text-[#4B5563]">Card Holder: {o.paymentDetails?.card?.cardHolderName || 'N/A'}</p>
+                                <p className="text-xs text-[#4B5563]">Card: {o.paymentDetails?.card?.cardBrand || 'Card'} {o.paymentDetails?.card?.cardMasked || (o.paymentDetails?.card?.cardLast4 ? `**** **** **** ${o.paymentDetails.card.cardLast4}` : 'N/A')}</p>
+                                <p className="text-xs text-[#4B5563]">Transaction ID: {o.paymentDetails?.card?.transactionId || 'N/A'}</p>
                               </>
                             ) : null}
                           </div>
 
                           <div className="grid gap-3 xl:grid-cols-4 mb-4">
-                            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                              <p className="text-[10px] text-white/50 uppercase tracking-[0.2em] font-bold mb-3">Customer / Order</p>
-                              <div className="space-y-2 text-xs text-white/75">
+                            <div className="rounded-2xl border border-gray-200 bg-[#F8FAFC] p-4">
+                              <p className="text-[10px] text-[#4B5563] uppercase tracking-[0.2em] font-bold mb-3">Customer / Order</p>
+                              <div className="space-y-2 text-xs text-[#1F2937]">
                                 <p>Order ID: {o.orderId || o.id}</p>
                                 <p>User ID: {o.user_id || 'N/A'}</p>
                                 <p>Name: {displayName}</p>
@@ -2736,9 +2736,9 @@ export default function AdminPanel() {
                               </div>
                             </div>
 
-                            <div className="rounded-2xl border border-[#D4AF37]/25 bg-gradient-to-b from-[#D4AF37]/10 to-transparent p-4">
+                            <div className="rounded-2xl border border-[#D4AF37]/35 bg-gradient-to-b from-[#FFF6DA] to-white p-4">
                               <p className="text-[10px] text-[#D4AF37] uppercase tracking-[0.2em] font-bold mb-3">Home Delivery Address</p>
-                              <div className="space-y-2 text-xs text-white/85">
+                              <div className="space-y-2 text-xs text-[#1F2937]">
                                 <p className="flex items-start gap-2 leading-relaxed">
                                   <MapPin size={14} className="text-[#D4AF37] mt-0.5 shrink-0" />
                                   <span>{fullDeliveryAddress}</span>
@@ -2749,22 +2749,22 @@ export default function AdminPanel() {
                               </div>
                             </div>
 
-                            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                              <p className="text-[10px] text-white/50 uppercase tracking-[0.2em] font-bold mb-3">Products</p>
+                            <div className="rounded-2xl border border-gray-200 bg-[#F8FAFC] p-4">
+                              <p className="text-[10px] text-[#4B5563] uppercase tracking-[0.2em] font-bold mb-3">Products</p>
                               <div className="space-y-3 max-h-56 overflow-y-auto pr-1">
                                 {safeItems.length === 0 ? (
-                                  <p className="text-xs text-white/55">No line items found for this order.</p>
+                                  <p className="text-xs text-[#6B7280]">No line items found for this order.</p>
                                 ) : safeItems.map((item, index) => (
-                                  <div key={`${o.id}-${item.productId || item.name || index}`} className="rounded-xl border border-white/5 bg-[#0B101E]/80 p-3">
+                                  <div key={`${o.id}-${item.productId || item.name || index}`} className="rounded-xl border border-gray-200 bg-white p-3">
                                     <div className="flex items-start justify-between gap-3">
                                       <div className="min-w-0">
-                                        <p className="text-sm font-semibold text-white truncate">{item.productName || item.name || 'Product'}</p>
-                                        <p className="text-[11px] text-white/50 mt-1 break-all">Product ID: {item.productId || 'N/A'}</p>
-                                        <p className="text-[11px] text-white/50">Size: {item.size || 'N/A'} | Color: {item.color || 'N/A'}</p>
+                                        <p className="text-sm font-semibold text-[#111827] truncate">{item.productName || item.name || 'Product'}</p>
+                                        <p className="text-[11px] text-[#6B7280] mt-1 break-all">Product ID: {item.productId || 'N/A'}</p>
+                                        <p className="text-[11px] text-[#6B7280]">Size: {item.size || 'N/A'} | Color: {item.color || 'N/A'}</p>
                                       </div>
                                       <p className="text-xs font-bold text-[#D4AF37] whitespace-nowrap">PKR {(Number(item.price) || 0).toLocaleString()}</p>
                                     </div>
-                                    <div className="mt-2 flex items-center justify-between text-[11px] text-white/55">
+                                    <div className="mt-2 flex items-center justify-between text-[11px] text-[#4B5563]">
                                       <span>Qty: {item.quantity || 1}</span>
                                       <span>Line Total: PKR {((Number(item.price) || 0) * (Number(item.quantity) || 1)).toLocaleString()}</span>
                                     </div>
@@ -2773,9 +2773,9 @@ export default function AdminPanel() {
                               </div>
                             </div>
 
-                            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                              <p className="text-[10px] text-white/50 uppercase tracking-[0.2em] font-bold mb-3">Payment / Totals</p>
-                              <div className="space-y-2 text-xs text-white/75">
+                            <div className="rounded-2xl border border-gray-200 bg-[#F8FAFC] p-4">
+                              <p className="text-[10px] text-[#4B5563] uppercase tracking-[0.2em] font-bold mb-3">Payment / Totals</p>
+                              <div className="space-y-2 text-xs text-[#1F2937]">
                                 <p>Subtotal: PKR {(Number(o.subtotal) || 0).toLocaleString()}</p>
                                 <p>Shipping Fee: PKR {(Number(o.shippingFee) || 0).toLocaleString()}</p>
                                 <p>Total: PKR {Number(o.total || 0).toLocaleString()}</p>
@@ -2787,9 +2787,9 @@ export default function AdminPanel() {
                           </div>
 
                           <div className="flex items-center gap-2 text-sm">
-                            <span className="text-white/40">{safeItems.length} Products</span>
-                            <span className="w-1 h-1 rounded-full bg-white/20" />
-                            <span className="font-bold text-white">PKR {o.total.toLocaleString()}</span>
+                            <span className="text-[#6B7280]">{safeItems.length} Products</span>
+                            <span className="w-1 h-1 rounded-full bg-gray-400" />
+                            <span className="font-bold text-[#111827]">PKR {o.total.toLocaleString()}</span>
                           </div>
                         </div>
 
@@ -2805,7 +2805,7 @@ export default function AdminPanel() {
                           </div>
 
                           {/* Control Buttons */}
-                          <div className="flex bg-white/5 border border-white/5 rounded-xl p-1">
+                          <div className="flex bg-[#F3F4F6] border border-gray-200 rounded-xl p-1">
                             {(['pending', 'processing', 'delivered'] as const).map((status) => (
                               <button
                                 key={status}
@@ -2814,7 +2814,7 @@ export default function AdminPanel() {
                                 className={`px-4 py-2 rounded-lg text-[9px] font-bold tracking-widest uppercase transition-all ${
                                   o.status === status
                                     ? 'bg-[#D4AF37] text-[#0B101E] shadow-md'
-                                    : 'text-white/40 hover:text-white hover:bg-white/5'
+                                    : 'text-[#6B7280] hover:text-[#111827] hover:bg-white'
                                 } disabled:opacity-50`}
                               >
                                 {statusSavingId === o.id && o.status !== status ? '...' : status}
@@ -2823,7 +2823,7 @@ export default function AdminPanel() {
                           </div>
 
                           {/* Payment Verification */}
-                          <div className="flex bg-white/5 border border-white/5 rounded-xl p-1">
+                          <div className="flex bg-[#F3F4F6] border border-gray-200 rounded-xl p-1">
                             {(['pending', 'paid', 'failed'] as const).map((paymentState) => (
                               <button
                                 key={paymentState}
@@ -2836,7 +2836,7 @@ export default function AdminPanel() {
                                       : paymentState === 'failed'
                                         ? 'bg-red-500/20 text-red-200 shadow-md'
                                         : 'bg-amber-500/20 text-amber-200 shadow-md'
-                                    : 'text-white/40 hover:text-white hover:bg-white/5'
+                                    : 'text-[#6B7280] hover:text-[#111827] hover:bg-white'
                                 } disabled:opacity-50`}
                               >
                                 {paymentSavingId === o.id && (o.paymentStatus || 'pending') !== paymentState ? '...' : paymentState}

@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import connectDB, { getMongoRuntimeInfo } from '@/lib/mongodb';
 import Order from '@/models/Order';
 import User from '@/models/User';
+import Product from '@/models/Product';
 import { asyncHandler } from '@/lib/errorHandler';
 import { successResponse, createdResponse, validationErrorResponse, errorResponse } from '@/lib/apiResponse';
 import { validateOrder } from '@/lib/validation';
@@ -38,6 +39,84 @@ const formatOrderForClient = (order: any) => ({
   paymentDetails: order.paymentDetails || null,
   date: order.createdAt,
 });
+
+class InventoryError extends Error {
+  statusCode: number;
+
+  constructor(message: string, statusCode = 409) {
+    super(message);
+    this.name = 'InventoryError';
+    this.statusCode = statusCode;
+  }
+}
+
+const normalize = (value: unknown) => String(value || '').trim().toLowerCase();
+
+const reserveInventoryForItem = async (
+  item: { productId: string; productName?: string; quantity: number; size?: string; color?: string },
+  session: mongoose.ClientSession
+) => {
+  const productId = String(item.productId || '').trim();
+  if (!productId || !mongoose.Types.ObjectId.isValid(productId)) {
+    throw new InventoryError(`Invalid product id in order item: ${productId || 'N/A'}`);
+  }
+
+  const product = await Product.findById(productId).session(session);
+  if (!product) {
+    throw new InventoryError(`Product not found for id: ${productId}`);
+  }
+
+  const requestedQty = Math.max(1, Number(item.quantity) || 1);
+  const requestedSize = normalize(item.size);
+  const requestedColor = normalize(item.color);
+  const sizeStock = Array.isArray((product as any).sizeStock) ? (product as any).sizeStock : [];
+
+  if (sizeStock.length > 0) {
+    const byExactVariant = sizeStock.filter((entry: any) => (
+      normalize(entry.size) === requestedSize && normalize(entry.color) === requestedColor
+    ));
+
+    const bySizeOnly = sizeStock.filter((entry: any) => normalize(entry.size) === requestedSize);
+    const byColorOnly = sizeStock.filter((entry: any) => normalize(entry.color) === requestedColor);
+
+    const candidate =
+      byExactVariant[0] ||
+      bySizeOnly.find((entry: any) => Number(entry.quantity || 0) > 0) ||
+      byColorOnly.find((entry: any) => Number(entry.quantity || 0) > 0) ||
+      sizeStock.find((entry: any) => Number(entry.quantity || 0) > 0);
+
+    if (!candidate) {
+      throw new InventoryError(`${product.name} is out of stock.`);
+    }
+
+    const availableQty = Number(candidate.quantity || 0);
+    if (availableQty < requestedQty) {
+      const variantLabel = `${String(candidate.size || item.size || 'N/A')}${candidate.color || item.color ? ` / ${String(candidate.color || item.color)}` : ''}`;
+      throw new InventoryError(`${product.name} (${variantLabel}) has only ${availableQty} item(s) left.`);
+    }
+
+    candidate.quantity = availableQty - requestedQty;
+
+    const remainingVariantStock = sizeStock.reduce((sum: number, entry: any) => {
+      return sum + Math.max(0, Number(entry.quantity || 0));
+    }, 0);
+
+    (product as any).sizeStock = sizeStock;
+    product.stock = remainingVariantStock;
+    product.inStock = remainingVariantStock > 0;
+  } else {
+    const availableQty = Math.max(0, Number(product.stock || 0));
+    if (availableQty < requestedQty) {
+      throw new InventoryError(`${product.name} has only ${availableQty} item(s) left.`);
+    }
+
+    product.stock = Math.max(0, availableQty - requestedQty);
+    product.inStock = product.stock > 0;
+  }
+
+  product.sold = Math.max(0, Number(product.sold || 0)) + requestedQty;
+  await product.save({ session, validateBeforeSave: false });
+};
 
 /**
  * GET /api/orders
@@ -227,11 +306,39 @@ export const POST = asyncHandler(async (req: NextRequest) => {
   // Generate unique order ID
   const orderId = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
 
-  // Create order
-  const order = await Order.create({
-    ...normalizedOrder,
-    orderId,
-  });
+  let order: any;
+  const session = await mongoose.startSession();
+
+  try {
+    await session.withTransaction(async () => {
+      for (const item of normalizedItems) {
+        await reserveInventoryForItem(item, session);
+      }
+
+      const createdOrders = await Order.create(
+        [{
+          ...normalizedOrder,
+          orderId,
+        }],
+        { session }
+      );
+
+      order = createdOrders[0];
+    });
+  } catch (error: any) {
+    if (error instanceof InventoryError) {
+      return errorResponse(error.message, error.statusCode || 409);
+    }
+
+    console.error('❌ Order transaction failed:', error);
+    return errorResponse('Failed to place order. Please try again.', 500);
+  } finally {
+    await session.endSession();
+  }
+
+  if (!order) {
+    return errorResponse('Order was not created. Please try again.', 500);
+  }
 
   console.log('✅ Order persisted to DB with _id:', order._id?.toString());
 
