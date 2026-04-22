@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Package, ShoppingCart, Users, Plus, Edit2, Trash2, X, Save, Camera, Upload, Tag, Lock, Eye, EyeOff, TrendingUp, Sparkles, Crown, Check, ArrowRight, ChevronRight, Clock3, BarChart3, Wallet, PackageCheck, Search } from 'lucide-react';
+import { Package, ShoppingCart, Users, Plus, Edit2, Trash2, X, Save, Camera, Upload, Tag, Lock, Eye, EyeOff, TrendingUp, Sparkles, Crown, Check, ArrowRight, ChevronRight, Clock3, BarChart3, Wallet, PackageCheck, Search, MapPin, Mail, Phone } from 'lucide-react';
 import { CldUploadWidget } from 'next-cloudinary';
 import { useProducts, Product } from '@/context/ProductContext';
 import StockControl from '@/components/admin/StockControl';
@@ -2640,8 +2640,14 @@ export default function AdminPanel() {
                         firstText(o.customerEmail, rawOrder.email, rawOrder.customer?.email) || 'N/A';
                       const displayPhone =
                         firstText(o.customerPhone, rawOrder.phone, rawOrder.customer?.phone, o.paymentDetails?.cod?.phone) || 'Phone not provided';
+                      const displayCity =
+                        firstText(o.paymentDetails?.cod?.city, rawOrder.city, rawOrder.shippingAddress?.city, rawOrder.address?.city) || 'N/A';
                       const displayAddress =
                         firstText(o.customerAddress, structuredAddress, String(rawAddressValue || ''), o.paymentDetails?.cod?.address) || 'N/A';
+                      const fullDeliveryAddress = displayCity !== 'N/A' && !displayAddress.toLowerCase().includes(displayCity.toLowerCase())
+                        ? `${displayAddress}, ${displayCity}`
+                        : displayAddress;
+                      const safeItems = Array.isArray(o.items) ? o.items : [];
 
                       const normalizedPaymentMethod =
                         firstText(o.paymentMethod, rawOrder.paymentMethod, rawOrder.payment?.method) || 'cod';
@@ -2652,7 +2658,7 @@ export default function AdminPanel() {
                       const displayStatus = normalizedPaymentStatus.toLowerCase();
 
                       return (
-                      <div key={o.id} className="bg-[#0B101E]/80 border border-white/5 p-6 rounded-2xl flex flex-col lg:flex-row lg:items-center justify-between gap-6 hover:border-white/10 transition-colors">
+                      <div key={o.id} className="bg-[#0B101E]/85 border border-white/10 p-6 rounded-2xl flex flex-col lg:flex-row lg:items-start justify-between gap-6 hover:border-[#D4AF37]/30 transition-colors shadow-[0_20px_40px_-28px_rgba(0,0,0,0.65)]">
                         {/* Details */}
                         <div>
                           <div className="flex items-center gap-3 mb-2">
@@ -2664,6 +2670,20 @@ export default function AdminPanel() {
                           <h4 className="font-serif text-lg text-white mb-1">{displayName}</h4>
                           <p className="text-xs text-white/50 mb-3">{displayEmail}</p>
                           <p className="text-xs text-white/50 mb-3">{displayPhone}</p>
+                          <div className="flex flex-wrap items-center gap-2 mb-4">
+                            <span className="text-[10px] uppercase tracking-[0.15em] px-2.5 py-1 rounded-full border border-white/15 bg-white/5 text-white/70">
+                              {displayMethod}
+                            </span>
+                            <span className={`text-[10px] uppercase tracking-[0.15em] px-2.5 py-1 rounded-full border ${
+                              displayStatus === 'paid'
+                                ? 'border-emerald-500/35 bg-emerald-500/10 text-emerald-300'
+                                : displayStatus === 'failed'
+                                  ? 'border-red-500/35 bg-red-500/10 text-red-300'
+                                  : 'border-amber-500/35 bg-amber-500/10 text-amber-300'
+                            }`}>
+                              {formatPaymentStatus(normalizedPaymentStatus)}
+                            </span>
+                          </div>
                           <div className="space-y-1 mb-3">
                             <p className="text-[11px] text-[#D4AF37]/80 uppercase tracking-[0.18em]">Payment Method: {displayMethod}</p>
                             <p className="text-[11px] uppercase tracking-[0.18em]">
@@ -2704,23 +2724,37 @@ export default function AdminPanel() {
                             ) : null}
                           </div>
 
-                          <div className="grid gap-3 xl:grid-cols-3 mb-4">
-                            <div className="rounded-2xl border border-white/5 bg-white/5 p-4">
-                              <p className="text-[10px] text-white/40 uppercase tracking-[0.2em] font-bold mb-3">Customer / Order</p>
-                              <div className="space-y-1 text-xs text-white/65">
+                          <div className="grid gap-3 xl:grid-cols-4 mb-4">
+                            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                              <p className="text-[10px] text-white/50 uppercase tracking-[0.2em] font-bold mb-3">Customer / Order</p>
+                              <div className="space-y-2 text-xs text-white/75">
                                 <p>Order ID: {o.orderId || o.id}</p>
                                 <p>User ID: {o.user_id || 'N/A'}</p>
                                 <p>Name: {displayName}</p>
-                                <p>Email: {displayEmail}</p>
-                                <p>Phone: {displayPhone}</p>
-                                <p>Address: {displayAddress}</p>
+                                <p className="flex items-center gap-2 break-all"><Mail size={12} className="text-[#D4AF37]" />{displayEmail}</p>
+                                <p className="flex items-center gap-2"><Phone size={12} className="text-[#D4AF37]" />{displayPhone}</p>
                               </div>
                             </div>
 
-                            <div className="rounded-2xl border border-white/5 bg-white/5 p-4">
-                              <p className="text-[10px] text-white/40 uppercase tracking-[0.2em] font-bold mb-3">Products</p>
+                            <div className="rounded-2xl border border-[#D4AF37]/25 bg-gradient-to-b from-[#D4AF37]/10 to-transparent p-4">
+                              <p className="text-[10px] text-[#D4AF37] uppercase tracking-[0.2em] font-bold mb-3">Home Delivery Address</p>
+                              <div className="space-y-2 text-xs text-white/85">
+                                <p className="flex items-start gap-2 leading-relaxed">
+                                  <MapPin size={14} className="text-[#D4AF37] mt-0.5 shrink-0" />
+                                  <span>{fullDeliveryAddress}</span>
+                                </p>
+                                <p>City: {displayCity}</p>
+                                <p>Receiver: {displayName}</p>
+                                <p>Phone: {displayPhone}</p>
+                              </div>
+                            </div>
+
+                            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                              <p className="text-[10px] text-white/50 uppercase tracking-[0.2em] font-bold mb-3">Products</p>
                               <div className="space-y-3 max-h-56 overflow-y-auto pr-1">
-                                {o.items.map((item, index) => (
+                                {safeItems.length === 0 ? (
+                                  <p className="text-xs text-white/55">No line items found for this order.</p>
+                                ) : safeItems.map((item, index) => (
                                   <div key={`${o.id}-${item.productId || item.name || index}`} className="rounded-xl border border-white/5 bg-[#0B101E]/80 p-3">
                                     <div className="flex items-start justify-between gap-3">
                                       <div className="min-w-0">
@@ -2739,9 +2773,9 @@ export default function AdminPanel() {
                               </div>
                             </div>
 
-                            <div className="rounded-2xl border border-white/5 bg-white/5 p-4">
-                              <p className="text-[10px] text-white/40 uppercase tracking-[0.2em] font-bold mb-3">Payment / Totals</p>
-                              <div className="space-y-1 text-xs text-white/65">
+                            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                              <p className="text-[10px] text-white/50 uppercase tracking-[0.2em] font-bold mb-3">Payment / Totals</p>
+                              <div className="space-y-2 text-xs text-white/75">
                                 <p>Subtotal: PKR {(Number(o.subtotal) || 0).toLocaleString()}</p>
                                 <p>Shipping Fee: PKR {(Number(o.shippingFee) || 0).toLocaleString()}</p>
                                 <p>Total: PKR {Number(o.total || 0).toLocaleString()}</p>
@@ -2753,7 +2787,7 @@ export default function AdminPanel() {
                           </div>
 
                           <div className="flex items-center gap-2 text-sm">
-                            <span className="text-white/40">{o.items.length} Products</span>
+                            <span className="text-white/40">{safeItems.length} Products</span>
                             <span className="w-1 h-1 rounded-full bg-white/20" />
                             <span className="font-bold text-white">PKR {o.total.toLocaleString()}</span>
                           </div>
