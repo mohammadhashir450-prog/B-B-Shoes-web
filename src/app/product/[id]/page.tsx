@@ -131,6 +131,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
 
     addToCart({
       id: `${product.id}-${selectedSize}-${selectedColor}`,
+      productId: product.id,
       name: product.name,
       price: product.price,
       image: selectedDisplayImage || product.image,
@@ -173,7 +174,16 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
     }
 
     const normalizedTarget = normalizeColor(colorValue);
-    const byColor = product.sizeStock.filter((ss) => normalizeColor(ss.color) === normalizedTarget);
+    const byColor = product.sizeStock.filter((ss) => {
+      const colorMatch = normalizeColor(ss.color) === normalizedTarget;
+      if (!colorMatch) return false;
+
+      if (selectedSize) {
+        return String(ss.size) === String(selectedSize);
+      }
+
+      return true;
+    });
 
     if (byColor.length === 0) {
       return 0;
@@ -213,7 +223,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
     });
 
     return availability;
-  }, [normalizedColorOptions, product]);
+  }, [normalizedColorOptions, product, selectedSize]);
 
   const selectedColorKey = normalizeColor(selectedColor);
 

@@ -52,13 +52,27 @@ class InventoryError extends Error {
 
 const normalize = (value: unknown) => String(value || '').trim().toLowerCase();
 
+const extractMongoProductId = (value: unknown) => {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  if (mongoose.Types.ObjectId.isValid(raw)) return raw;
+
+  const prefixed = raw.match(/^[a-fA-F0-9]{24}/);
+  if (prefixed && mongoose.Types.ObjectId.isValid(prefixed[0])) {
+    return prefixed[0];
+  }
+
+  return '';
+};
+
 const reserveInventoryForItem = async (
   item: { productId: string; productName?: string; quantity: number; size?: string; color?: string },
   session: mongoose.ClientSession
 ) => {
-  const productId = String(item.productId || '').trim();
-  if (!productId || !mongoose.Types.ObjectId.isValid(productId)) {
-    throw new InventoryError(`Invalid product id in order item: ${productId || 'N/A'}`);
+  const rawItemId = String(item.productId || '').trim();
+  const productId = extractMongoProductId(rawItemId);
+  if (!productId) {
+    throw new InventoryError(`Invalid product id in order item: ${rawItemId || 'N/A'}`);
   }
 
   const product = await Product.findById(productId).session(session);
@@ -72,21 +86,40 @@ const reserveInventoryForItem = async (
   const sizeStock = Array.isArray((product as any).sizeStock) ? (product as any).sizeStock : [];
 
   if (sizeStock.length > 0) {
-    const byExactVariant = sizeStock.filter((entry: any) => (
-      normalize(entry.size) === requestedSize && normalize(entry.color) === requestedColor
-    ));
+    const hasColorDimension = sizeStock.some((entry: any) => normalize(entry.color).length > 0);
 
-    const bySizeOnly = sizeStock.filter((entry: any) => normalize(entry.size) === requestedSize);
-    const byColorOnly = sizeStock.filter((entry: any) => normalize(entry.color) === requestedColor);
+    let candidate: any | undefined;
 
-    const candidate =
-      byExactVariant[0] ||
-      bySizeOnly.find((entry: any) => Number(entry.quantity || 0) > 0) ||
-      byColorOnly.find((entry: any) => Number(entry.quantity || 0) > 0) ||
-      sizeStock.find((entry: any) => Number(entry.quantity || 0) > 0);
+    if (requestedSize && requestedColor && hasColorDimension) {
+      candidate = sizeStock.find((entry: any) => (
+        normalize(entry.size) === requestedSize && normalize(entry.color) === requestedColor
+      ));
+    }
+
+    if (!candidate && requestedSize) {
+      candidate = sizeStock.find((entry: any) => (
+        normalize(entry.size) === requestedSize && Number(entry.quantity || 0) > 0 &&
+        (!hasColorDimension || !requestedColor || normalize(entry.color) === requestedColor || normalize(entry.color) === '')
+      ));
+    }
+
+    if (!candidate && requestedColor && !requestedSize) {
+      candidate = sizeStock.find((entry: any) => (
+        normalize(entry.color) === requestedColor && Number(entry.quantity || 0) > 0
+      ));
+    }
+
+    if (!candidate && !requestedSize && !requestedColor) {
+      candidate = sizeStock.find((entry: any) => Number(entry.quantity || 0) > 0);
+    }
 
     if (!candidate) {
-      throw new InventoryError(`${product.name} is out of stock.`);
+      const requestLabel = [item.size, item.color].filter(Boolean).join(' / ');
+      throw new InventoryError(
+        requestLabel
+          ? `${product.name} (${requestLabel}) is out of stock.`
+          : `${product.name} is out of stock.`
+      );
     }
 
     const availableQty = Number(candidate.quantity || 0);
@@ -220,7 +253,7 @@ export const POST = asyncHandler(async (req: NextRequest) => {
   }
 
   const normalizedItems = (body.items || []).map((item: any) => ({
-    productId: String(item.productId || item.id || ''),
+    productId: extractMongoProductId(item.productId || item.id || ''),
     productName: item.productName || item.name || 'Product',
     productImage: item.productImage || item.image || '',
     quantity: Number(item.quantity) > 0 ? Number(item.quantity) : 1,

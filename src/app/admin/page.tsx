@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Package, ShoppingCart, Users, Plus, Edit2, Trash2, X, Save, Camera, Upload, Tag, Lock, Eye, EyeOff, TrendingUp, Sparkles, Crown, Check, ArrowRight, ChevronRight, Clock3, BarChart3, Wallet, PackageCheck, Search, MapPin, Mail, Phone } from 'lucide-react';
+import { Package, ShoppingCart, Users, Plus, Edit2, Trash2, X, Save, Camera, Upload, Tag, Lock, Eye, EyeOff, TrendingUp, Sparkles, Crown, Check, ArrowRight, ChevronRight, Clock3, BarChart3, Wallet, PackageCheck, Search, MapPin, Mail, Phone, AlertTriangle } from 'lucide-react';
 import { CldUploadWidget } from 'next-cloudinary';
 import { useProducts, Product } from '@/context/ProductContext';
 import StockControl from '@/components/admin/StockControl';
@@ -175,6 +175,36 @@ export default function AdminPanel() {
   const newArrivals = useMemo(() => {
     return getNewArrivals();
   }, [getNewArrivals]);
+
+  const lowStockAlerts = useMemo(() => {
+    const alerts: Array<{ productId: string; productName: string; size: string; color: string }> = [];
+
+    allProducts.forEach((product) => {
+      const stockMatrix = Array.isArray((product as any).sizeStock) ? (product as any).sizeStock : [];
+
+      if (stockMatrix.length > 0) {
+        stockMatrix.forEach((entry: any) => {
+          if (Number(entry?.quantity || 0) === 1) {
+            alerts.push({
+              productId: String(product.id || ''),
+              productName: String(product.name || 'Product'),
+              size: String(entry?.size || 'N/A'),
+              color: String(entry?.color || 'Default'),
+            });
+          }
+        });
+      } else if (Number(product.stock || 0) === 1) {
+        alerts.push({
+          productId: String(product.id || ''),
+          productName: String(product.name || 'Product'),
+          size: 'N/A',
+          color: 'Default',
+        });
+      }
+    });
+
+    return alerts;
+  }, [allProducts]);
 
   const [analyticsRange, setAnalyticsRange] = useState<'7d' | '30d' | 'custom'>('30d');
   const [customDateFrom, setCustomDateFrom] = useState('');
@@ -1077,6 +1107,29 @@ export default function AdminPanel() {
             );
           })}
         </div>
+
+        {lowStockAlerts.length > 0 && (
+          <div className="mb-8 rounded-2xl border border-amber-300 bg-amber-50 px-5 py-4">
+            <div className="flex items-start gap-3">
+              <AlertTriangle size={18} className="text-amber-600 mt-0.5 shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-[11px] uppercase tracking-[0.16em] font-black text-amber-700">Low Stock Alert</p>
+                <p className="text-sm text-amber-900 mt-1">{lowStockAlerts.length} variant(s) have only 1 piece left. Restock before next sale.</p>
+                <div className="mt-3 grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+                  {lowStockAlerts.slice(0, 12).map((alert) => (
+                    <div key={`${alert.productId}-${alert.size}-${alert.color}`} className="rounded-xl border border-amber-200 bg-white px-3 py-2">
+                      <p className="text-xs font-semibold text-[#111827] truncate">{alert.productName}</p>
+                      <p className="text-[11px] text-[#4B5563]">Size: {alert.size} | Color: {alert.color}</p>
+                    </div>
+                  ))}
+                </div>
+                {lowStockAlerts.length > 12 && (
+                  <p className="mt-2 text-[11px] text-amber-700">+{lowStockAlerts.length - 12} more variant alerts</p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Global Form for Adding/Editing */}
         <AnimatePresence>

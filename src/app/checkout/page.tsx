@@ -392,7 +392,7 @@ export default function CheckoutPage() {
 
     try {
       const normalizedItems = items.map((item) => ({
-        productId: item.id,
+        productId: item.productId || item.id,
         productName: item.name,
         productImage: item.image,
         quantity: item.quantity,
