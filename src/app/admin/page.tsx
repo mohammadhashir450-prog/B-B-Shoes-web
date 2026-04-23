@@ -1108,29 +1108,6 @@ export default function AdminPanel() {
           })}
         </div>
 
-        {lowStockAlerts.length > 0 && (
-          <div className="mb-8 rounded-2xl border border-amber-300 bg-amber-50 px-5 py-4">
-            <div className="flex items-start gap-3">
-              <AlertTriangle size={18} className="text-amber-600 mt-0.5 shrink-0" />
-              <div className="flex-1 min-w-0">
-                <p className="text-[11px] uppercase tracking-[0.16em] font-black text-amber-700">Low Stock Alert</p>
-                <p className="text-sm text-amber-900 mt-1">{lowStockAlerts.length} variant(s) have only 1 piece left. Restock before next sale.</p>
-                <div className="mt-3 grid gap-2 md:grid-cols-2 xl:grid-cols-3">
-                  {lowStockAlerts.slice(0, 12).map((alert) => (
-                    <div key={`${alert.productId}-${alert.size}-${alert.color}`} className="rounded-xl border border-amber-200 bg-white px-3 py-2">
-                      <p className="text-xs font-semibold text-[#111827] truncate">{alert.productName}</p>
-                      <p className="text-[11px] text-[#4B5563]">Size: {alert.size} | Color: {alert.color}</p>
-                    </div>
-                  ))}
-                </div>
-                {lowStockAlerts.length > 12 && (
-                  <p className="mt-2 text-[11px] text-amber-700">+{lowStockAlerts.length - 12} more variant alerts</p>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Global Form for Adding/Editing */}
         <AnimatePresence>
           {(showAddForm || showAddSaleForm || showAddNewArrivalForm || editingProduct || editingSaleProduct || editingNewArrival) && (
@@ -2571,6 +2548,41 @@ export default function AdminPanel() {
         {/* --- STOCK CONTROL TAB --- */}
         {activeTab === 'stock' && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }} className="space-y-6">
+            <div className="rounded-2xl border border-[#D4AF37]/35 bg-[linear-gradient(180deg,#FFF8DF_0%,#FFFBEE_100%)] px-5 py-4 shadow-[0_16px_30px_-24px_rgba(180,122,0,0.45)]">
+              <div className="flex items-start gap-3">
+                <AlertTriangle size={18} className="text-[#B45309] mt-0.5 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-3 flex-wrap">
+                    <p className="text-[11px] uppercase tracking-[0.16em] font-black text-[#92400E]">Low Stock Alerts (Qty = 1)</p>
+                    <span className="inline-flex items-center rounded-full border border-[#D4AF37]/45 bg-white px-3 py-1 text-[10px] font-bold tracking-[0.1em] uppercase text-[#92400E]">
+                      {lowStockAlerts.length} Variant{lowStockAlerts.length === 1 ? '' : 's'}
+                    </span>
+                  </div>
+                  <p className="text-sm text-[#7C2D12] mt-1">
+                    This panel appears only in Stock Control so you can restock critical variants quickly.
+                  </p>
+
+                  {lowStockAlerts.length === 0 ? (
+                    <p className="mt-3 text-xs text-emerald-700 font-semibold">All variants are healthy. No immediate restock needed.</p>
+                  ) : (
+                    <>
+                      <div className="mt-3 grid gap-2 md:grid-cols-2 xl:grid-cols-3 max-h-80 overflow-y-auto pr-1">
+                        {lowStockAlerts.slice(0, 15).map((alert) => (
+                          <div key={`${alert.productId}-${alert.size}-${alert.color}`} className="rounded-xl border border-[#E7D39A] bg-white px-3 py-2">
+                            <p className="text-xs font-semibold text-[#111827] truncate">{alert.productName}</p>
+                            <p className="text-[11px] text-[#4B5563]">Size: {alert.size} | Color: {alert.color}</p>
+                          </div>
+                        ))}
+                      </div>
+                      {lowStockAlerts.length > 15 && (
+                        <p className="mt-2 text-[11px] text-[#92400E] font-semibold">+{lowStockAlerts.length - 15} more variant alerts</p>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+
             {allProducts.length === 0 ? (
               <div className="text-center py-32 bg-[#121A2F]/40 backdrop-blur-sm rounded-3xl border border-white/5">
                 <PackageCheck size={48} className="mx-auto text-white/20 mb-6" strokeWidth={1} />
