@@ -202,8 +202,6 @@ const OrderSchema = new Schema<IOrder>(
 );
 
 // Create indexes
-OrderSchema.index({ orderId: 1 });
-OrderSchema.index({ user_id: 1 });
 OrderSchema.index({ customerEmail: 1 });
 OrderSchema.index({ status: 1 });
 OrderSchema.index({ createdAt: -1 });

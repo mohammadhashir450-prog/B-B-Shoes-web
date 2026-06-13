@@ -1,4 +1,15 @@
 import mongoose from 'mongoose';
+import dns from 'dns';
+
+// Override DNS servers to Google DNS to bypass local router DNS resolution failures with Atlas
+if (typeof window === 'undefined') {
+  try {
+    dns.setServers(['8.8.8.8', '8.8.4.4']);
+    console.log('📡 Google DNS configured for database connections.');
+  } catch (dnsErr: any) {
+    console.warn('⚠️ Failed to configure Google DNS:', dnsErr.message);
+  }
+}
 
 // Globally disable command buffering — fail fast instead of waiting 10s
 mongoose.set('bufferCommands', false);
