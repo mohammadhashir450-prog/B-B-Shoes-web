@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 // OTP Interface
-interface IOTP extends Document {
+export interface IOTP extends Document {
   email: string;
   otp: string;
   purpose: 'login' | 'register' | 'password-reset';

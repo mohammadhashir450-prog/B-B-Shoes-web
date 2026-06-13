@@ -92,29 +92,27 @@ async function main() {
     if (!dummyOrder) {
       console.log('⚠️ No existing order found. Creating a temporary dummy order for reference keys...');
       dummyOrder = await Order.create({
-        user: dummyUser._id,
+        orderId: 'ORD-DUMMY-' + Date.now(),
+        user_id: dummyUser._id.toString(),
+        customerName: 'Dummy Name',
+        customerEmail: 'dummy_ref@bnbshoes.com',
+        customerPhone: '03331234567',
+        customerAddress: 'Khanewal Rd, Multan',
         items: [{
-          product: dummyProduct._id,
-          name: dummyProduct.name,
-          price: dummyProduct.price,
+          productId: dummyProduct._id.toString(),
+          productName: dummyProduct.name,
+          productImage: dummyProduct.image,
           quantity: 1,
-          size: 9,
+          size: '9',
           color: 'Black',
-          image: dummyProduct.image
+          price: dummyProduct.price
         }],
-        totalAmount: 9999,
-        shippingAddress: {
-          fullName: 'Dummy Name',
-          phone: '03331234567',
-          addressLine1: 'Dummy Address',
-          city: 'Lahore',
-          state: 'Punjab',
-          zipCode: '54000',
-          country: 'Pakistan'
-        },
+        subtotal: 9999,
+        shippingFee: 200,
+        total: 10199,
         paymentMethod: 'cod',
         paymentStatus: 'pending',
-        orderStatus: 'pending'
+        status: 'pending'
       });
       console.log('✅ Temporary order created.');
     }
@@ -126,7 +124,7 @@ async function main() {
         model: Cart,
         dummyData: {
           user: dummyUser._id,
-          items: [{ product: dummyProduct._id, quantity: 1, size: 9, color: 'Black' }],
+          items: [{ product: dummyProduct._id, quantity: 1, size: '9', color: 'Black' }],
         },
       },
       {
@@ -185,7 +183,7 @@ async function main() {
         model: InventoryLog,
         dummyData: {
           product: dummyProduct._id,
-          size: 9,
+          size: '9',
           color: 'Black',
           quantityChange: 10,
           actionType: 'restock',

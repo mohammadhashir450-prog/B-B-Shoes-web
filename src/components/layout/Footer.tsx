@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { Instagram } from 'lucide-react'
 
 export default function Footer() {
   return (
@@ -19,10 +20,22 @@ export default function Footer() {
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-[#4F5A69] pt-1 w-full md:w-auto">
-            <Link href="/collections" className="hover:text-[#18202B] transition-colors">Collections</Link>
-            <Link href="/contact" className="hover:text-[#18202B] transition-colors">Contact</Link>
-            <Link href="/about" className="hover:text-[#18202B] transition-colors">About</Link>
+          <div className="flex flex-wrap items-center justify-between gap-6 pt-1 w-full md:w-auto">
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-[#4F5A69]">
+              <Link href="/collections" className="hover:text-[#18202B] transition-colors">Collections</Link>
+              <Link href="/contact" className="hover:text-[#18202B] transition-colors">Contact</Link>
+              <Link href="/about" className="hover:text-[#18202B] transition-colors">About</Link>
+            </div>
+            
+            <a 
+              href="https://www.instagram.com/bandbshoes_pk/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-[#FDFBF7] border border-[#EBE3D3] hover:border-[#D4AF37] text-xs font-bold tracking-widest text-[#18202B] hover:text-[#A97A18] rounded-full transition-all duration-300 shadow-[0_2px_8px_rgba(24,32,43,0.04)]"
+            >
+              <Instagram size={14} className="text-[#A97A18]" />
+              <span>FOLLOW US</span>
+            </a>
           </div>
         </div>
 

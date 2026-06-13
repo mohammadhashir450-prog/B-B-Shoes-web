@@ -762,9 +762,19 @@ export default function Navbar() {
                 >
                    <div className="flex flex-wrap items-center justify-between gap-6">
                       <div className="flex gap-4">
-                        {['Instagram', 'Twitter', 'Facebook'].map(social => (
-                           <a key={social} href="#" className="text-white/40 hover:text-[#D4AF37] text-xs font-medium tracking-widest uppercase transition-colors">
-                              {social}
+                        {[
+                          { name: 'Instagram', href: 'https://www.instagram.com/bandbshoes_pk/' },
+                          { name: 'Twitter', href: '#' },
+                          { name: 'Facebook', href: '#' }
+                        ].map(social => (
+                           <a 
+                             key={social.name} 
+                             href={social.href} 
+                             target={social.href !== '#' ? '_blank' : undefined}
+                             rel={social.href !== '#' ? 'noopener noreferrer' : undefined}
+                             className="text-white/40 hover:text-[#D4AF37] text-xs font-medium tracking-widest uppercase transition-colors"
+                           >
+                              {social.name}
                            </a>
                         ))}
                       </div>
