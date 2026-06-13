@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import mongoose from 'mongoose';
 import connectDB from '@/lib/mongodb';
 import { Order } from '@/models';
 
@@ -10,7 +11,14 @@ export async function GET(
   try {
     await connectDB();
 
-    const order = await Order.findById(params.id);
+    let order = null;
+    if (mongoose.Types.ObjectId.isValid(params.id)) {
+      order = await Order.findById(params.id);
+    }
+    
+    if (!order) {
+      order = await Order.findOne({ orderId: params.id });
+    }
 
     if (!order) {
       return NextResponse.json(

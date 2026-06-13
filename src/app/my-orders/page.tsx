@@ -374,7 +374,14 @@ function MyOrdersContent() {
                             </div>
                           </div>
 
-                          <div className="flex items-center justify-end">
+                          <div className="flex items-center justify-between gap-4 mt-2">
+                            <Link
+                              href={`/track-order/${order.id}`}
+                              className="text-xs font-bold px-5 py-2.5 rounded-full bg-[#D4AF37] hover:bg-[#F4CE5C] text-black transition-colors"
+                            >
+                              Track Order 🚚
+                            </Link>
+
                             {canCancelOrder(order.status) ? (
                               <button
                                 type="button"
