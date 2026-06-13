@@ -1,22 +1,33 @@
 import nodemailer from 'nodemailer';
 
-// 1. Transporter Configuration (Using EMAIL_PASS for consistency)
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_APP_PASSWORD, // Match this with your .env file
-  },
-});
+// 1. Transporter Configuration (Lazy Initialization to ensure env is loaded)
+let transporter: nodemailer.Transporter | null = null;
 
-// Verify connection on startup
-transporter.verify((error) => {
-  if (error) {
-    console.log('❌ Email Transporter Error. Check your App Password in .env');
-  } else {
-    console.log('✅ Email server is ready for B&B Shoes');
+function getTransporter(): nodemailer.Transporter {
+  if (!transporter) {
+    console.log('✉️ Initializing Nodemailer transporter for B&B Shoes...');
+    console.log('EMAIL_USER:', process.env.EMAIL_USER);
+    console.log('EMAIL_APP_PASSWORD Length:', process.env.EMAIL_APP_PASSWORD ? process.env.EMAIL_APP_PASSWORD.length : 0);
+    
+    transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_APP_PASSWORD,
+      },
+    });
+
+    // Verify connection
+    transporter.verify((error) => {
+      if (error) {
+        console.error('❌ Email Transporter Error. Check your App Password in .env:', error);
+      } else {
+        console.log('✅ Email server is ready for B&B Shoes');
+      }
+    });
   }
-});
+  return transporter;
+}
 
 // Helper: Generate OTP
 export function generateOTP(): string {
@@ -26,7 +37,8 @@ export function generateOTP(): string {
 // Helper: Generic Email Sender
 async function sendMail(to: string, subject: string, html: string): Promise<boolean> {
   try {
-    await transporter.sendMail({
+    const activeTransporter = getTransporter();
+    await activeTransporter.sendMail({
       from: `"B&B Shoes" <${process.env.EMAIL_USER}>`,
       to,
       subject,
