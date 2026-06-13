@@ -42,7 +42,7 @@ const ReviewSchema = new Schema<IReview>(
       type: String,
       required: [true, 'Review comment is required'],
       trim: true,
-      maxlength: [500, 'Comment cannot exceed 500 characters'],
+      maxlength: [200, 'Comment cannot exceed 200 characters'],
     },
     isVerified: {
       type: Boolean,

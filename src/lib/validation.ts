@@ -186,8 +186,8 @@ export function validateReview(review: any): {
 
   if (!comment) {
     errors.push('Review comment is required');
-  } else if (comment.length < 10 || comment.length > 500) {
-    errors.push('Review comment must be between 10 and 500 characters');
+  } else if (comment.length < 10 || comment.length > 200) {
+    errors.push('Review comment must be between 10 and 200 characters');
   }
 
   return {

@@ -326,7 +326,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
       setReviewSubmitting(true);
       setReviewError('');
 
-      const response = await fetch(`/api/products/${product.id}/reviews`, {
+      const response = await fetch(`/api/products/${params.id}/reviews`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(reviewForm),
@@ -769,13 +769,13 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                     value={reviewForm.comment}
                     onChange={(e) => setReviewForm((prev) => ({ ...prev, comment: e.target.value }))}
                     minLength={10}
-                    maxLength={500}
+                    maxLength={200}
                     required
                     rows={5}
                     className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm resize-none focus:outline-none focus:border-[#D4AF37]"
                     placeholder="Fit, comfort, quality aur overall experience share karein..."
                   />
-                  <p className="text-xs text-gray-500 mt-2">{reviewForm.comment.length}/500</p>
+                  <p className="text-xs text-gray-500 mt-2">{reviewForm.comment.length}/200</p>
                 </div>
 
                 {reviewError ? (

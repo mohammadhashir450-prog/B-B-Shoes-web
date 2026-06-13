@@ -17,6 +17,10 @@ const InstagramBanner = dynamic(() => import('@/components/home/InstagramBanner'
   loading: () => <div className="home-section-skeleton" aria-hidden />,
 })
 
+const FloatingSocials = dynamic(() => import('@/components/common/FloatingSocials'), {
+  ssr: false,
+})
+
 export default function HomePage() {
   return (
     <>
@@ -36,6 +40,7 @@ export default function HomePage() {
         <div className="home-deferred-section">
           <InstagramBanner />
         </div>
+        <FloatingSocials />
       </main>
       <Footer />
     </>
