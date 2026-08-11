@@ -13,9 +13,6 @@ const Story = dynamic(() => import('@/components/home/Story'), {
   loading: () => <div className="home-section-skeleton" aria-hidden />,
 })
 
-const InstagramBanner = dynamic(() => import('@/components/home/InstagramBanner'), {
-  loading: () => <div className="home-section-skeleton" aria-hidden />,
-})
 
 const FloatingSocials = dynamic(() => import('@/components/common/FloatingSocials'), {
   ssr: false,
@@ -36,9 +33,6 @@ export default function HomePage() {
         </div>
         <div className="home-deferred-section">
           <Story />
-        </div>
-        <div className="home-deferred-section">
-          <InstagramBanner />
         </div>
         <FloatingSocials />
       </main>
