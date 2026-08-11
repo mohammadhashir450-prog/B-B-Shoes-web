@@ -187,8 +187,8 @@ export default function SizeChartModal({ isOpen, onClose, category }: SizeChartM
                 How to Measure
               </p>
               <p style={{ margin: 0, fontSize: '12px', color: '#5C4A2A', lineHeight: '1.6' }}>
-                Apne pair ko zameen par rakhein aur eidi se sab se aage ki ungali tak ka fasla tape se napein.
-                Woh measurement <strong>centimeters</strong> mein neeche wali table se match karein.
+                Stand on a flat surface and measure from the back of your heel to the tip of your longest toe.
+                Match that measurement in <strong>centimeters</strong> to the chart below to find your perfect size.
               </p>
             </div>
           </div>
