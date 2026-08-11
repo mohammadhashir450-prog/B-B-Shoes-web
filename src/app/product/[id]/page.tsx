@@ -9,6 +9,7 @@ import { useWishlist } from '@/context/WishlistContext';
 import { ChevronRight, ChevronDown, Star, Heart, ShoppingBag, Check, Loader2 } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import SizeChartModal from '@/components/common/SizeChartModal';
 
 interface ProductReview {
   id: string;
@@ -37,6 +38,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showSizeChart, setShowSizeChart] = useState(false);
   const [reviews, setReviews] = useState<ProductReview[]>([]);
   const [reviewSummary, setReviewSummary] = useState<ReviewSummary | null>(null);
   const [reviewsLoading, setReviewsLoading] = useState(true);
@@ -572,6 +574,13 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                     <label className="text-sm font-semibold tracking-wider uppercase text-gray-700">
                       SELECT SIZE: <span className="text-[#D4AF37]">{selectedSize || 'Choose'}</span>
                     </label>
+                    <button
+                      onClick={() => setShowSizeChart(true)}
+                      className="flex items-center gap-1.5 text-xs font-semibold text-[#A97A18] bg-[#FFF9EB] border border-[#D4AF37]/40 hover:border-[#D4AF37] hover:bg-[#FFF3CC] px-3 py-1.5 rounded-full transition-all"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12h20"/><path d="M2 12L7 7"/><path d="M2 12l5 5"/><path d="M22 12l-5-5"/><path d="M22 12l-5 5"/></svg>
+                      Size Guide
+                    </button>
                   </div>
                   <div className="grid grid-cols-4 gap-3">
                     {product.sizes.map((size) => {
@@ -896,6 +905,13 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
           </div>
         </div>
       </div>
+
+      {/* Size Chart Modal */}
+      <SizeChartModal
+        isOpen={showSizeChart}
+        onClose={() => setShowSizeChart(false)}
+        category={product?.category}
+      />
 
       {/* Success Notification */}
       {showSuccess && (
