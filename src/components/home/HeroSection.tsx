@@ -1,10 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Image from 'next/image'
 import Link from 'next/link'
 import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
+import dynamic from 'next/dynamic'
+
+const Hero3DShowcase = dynamic(() => import('@/components/home/Hero3DShowcase'), { ssr: false })
 
 interface SeasonalBannerSummary {
   _id: string
@@ -199,56 +201,10 @@ export default function HeroSection() {
           initial={false}
           animate={mounted ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
           transition={{ duration: 0.65, delay: 0.15 }}
-          className="relative mt-20 md:mt-24"
+          className="relative mt-16 md:mt-20"
         >
-          <div className="absolute left-1/2 -translate-x-1/2 -top-6 w-[82%] h-24 bg-[#111827]/8 blur-3xl rounded-full" />
-
-          <div className="relative rounded-[2rem] md:rounded-[2.5rem] border border-[#D8DEE6] bg-white p-3 md:p-4 shadow-[0_30px_80px_-30px_rgba(6,8,15,0.42)]">
-            <div className="relative overflow-hidden rounded-[1.5rem] md:rounded-[2rem] h-[380px] md:h-[560px] lg:h-[640px]">
-              <motion.div
-                initial={false}
-                animate={
-                  mounted && !shouldReduceMotion
-                    ? { scale: [1.02, 1.04, 1.02], y: [0, -4, 0] }
-                    : { scale: 1.02, y: 0 }
-                }
-                transition={{ duration: 24, repeat: shouldReduceMotion ? 0 : Infinity, ease: 'easeInOut' }}
-                className="w-full h-full"
-              >
-                <Image
-                  src={currentSlide?.image || 'https://res.cloudinary.com/dt2ikjlfc/image/upload/v1775127417/bb-shoes/hero/hero-purple-sandals.jpg'}
-                  alt={currentSlide?.banner.title || 'B&B Premium Stylish Sandals'}
-                  fill
-                  priority
-                  quality={90}
-                  sizes="100vw"
-                  className="object-cover object-center"
-                />
-              </motion.div>
-
-              {heroSlides.length > 1 && (
-                <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-black/20 backdrop-blur-sm px-3 py-2 rounded-full">
-                  {heroSlides.map((slide, index) => (
-                    <button
-                      key={slide.id}
-                      type="button"
-                      onClick={() => setCurrentSlideIndex(index)}
-                      className={`h-2 rounded-full transition-all ${
-                        index === currentSlideIndex ? 'w-6 bg-white' : 'w-2 bg-white/45 hover:bg-white/70'
-                      }`}
-                      aria-label={`Go to hero slide ${index + 1}`}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="mt-7 md:mt-8 flex flex-wrap items-center justify-center gap-3 md:gap-10 text-[10px] md:text-[11px] tracking-[0.15em] uppercase text-[#374151]">
-            <span>50K+ Clients</span>
-            <span className="w-1 h-1 rounded-full bg-[#9CA3AF]" />
-            <span>100% Authentic</span>
-          </div>
+          {/* 3D Shoe Showcase */}
+          <Hero3DShowcase />
         </motion.div>
       </div>
     </section>

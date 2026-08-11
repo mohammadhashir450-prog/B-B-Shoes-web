@@ -19,6 +19,7 @@
     "@auth/mongodb-adapter": "^3.11.1",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/nodemailer": "^7.0.10",
+    "@types/three": "^0.185.4",
     "cloudinary": "^2.9.0",
     "framer-motion": "^11.0.0",
     "jsonwebtoken": "^9.0.3",
@@ -30,7 +31,8 @@
     "next-cloudinary": "^6.17.5",
     "nodemailer": "^8.0.2",
     "react": "^18.3.0",
-    "react-dom": "^18.3.0"
+    "react-dom": "^18.3.0",
+    "three": "^0.185.1"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
