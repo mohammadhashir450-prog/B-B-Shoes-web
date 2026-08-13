@@ -2,7 +2,6 @@ import dynamic from 'next/dynamic'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import HeroSection from '@/components/home/HeroSection'
-import SeasonalBanners from '../components/home/SeasonalBanners'
 import CuratedCollections from '@/components/home/CuratedCollections'
 
 const Products = dynamic(() => import('@/components/home/Products'), {
@@ -24,7 +23,6 @@ export default function HomePage() {
       <Navbar />
       <main className="min-h-screen">
         <HeroSection />
-        <SeasonalBanners />
         <div className="home-deferred-section">
           <CuratedCollections />
         </div>

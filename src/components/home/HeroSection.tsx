@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 
 interface SeasonalBannerSummary {
@@ -33,7 +34,7 @@ export default function HeroSection() {
     return () => window.clearInterval(timer)
   }, [])
 
-  // Fetch banners + schedule next re-fetch exactly at banner start/end boundaries
+  // Fetch banners + schedule re-fetch pinned to exact banner start/end boundaries
   useEffect(() => {
     let isMounted = true
     let refreshTimer: number | null = null
@@ -53,8 +54,7 @@ export default function HeroSection() {
         ])
         .filter(t => Number.isFinite(t) && t > now)
       const nextAt = transitionTimes.length > 0 ? Math.min(...transitionTimes) + 500 : now + 30_000
-      const delay  = Math.max(2000, nextAt - now)
-      refreshTimer = window.setTimeout(() => fetchBanners(), delay)
+      refreshTimer = window.setTimeout(() => fetchBanners(), Math.max(2000, nextAt - now))
     }
 
     const fetchBanners = async () => {
@@ -71,7 +71,6 @@ export default function HeroSection() {
     }
 
     fetchBanners()
-    // Background sync every 15 s as safety net
     syncInterval = window.setInterval(() => fetchBanners(), 15_000)
 
     return () => {
@@ -81,38 +80,30 @@ export default function HeroSection() {
     }
   }, [])
 
-  // ── 100% accurate time-based filter — re-evaluated every second via nowTick ──
+  // 100% accurate time-based filter — re-evaluated every second
   const activeBanners = featuredBanners.filter(banner => {
     if (banner.isActive === false) return false
     const start = banner.startDate ? new Date(banner.startDate).getTime() : Number.NEGATIVE_INFINITY
     const end   = banner.endDate   ? new Date(banner.endDate).getTime()   : Number.POSITIVE_INFINITY
-    // Both dates present → strict window
     if (banner.startDate && banner.endDate) return start <= nowTick && nowTick < end
-    // Only end date → active until expiry
-    if (banner.endDate) return nowTick < end
-    // Only start date → active from start onward
+    if (banner.endDate)   return nowTick < end
     if (banner.startDate) return nowTick >= start
-    // No dates → always active
     return true
   })
 
-  // Flatten banner + gallery images into slide list (bannerImage only — no gallery split)
-  // Each banner contributes ONE slide (its bannerImage).
-  // If admin added gallery images they appear as additional slides within the same banner.
-  const heroSlides = activeBanners.flatMap(banner => {
-    const imgs = [banner.bannerImage, ...(banner.galleryImages ?? [])]
-      .filter(img => Boolean(img?.trim()))
-    return imgs.map((image, i) => ({ id: `${banner._id}-${i}`, image, banner }))
-  })
+  // Each active banner = one slide (bannerImage only, no gallery splitting)
+  const heroSlides = activeBanners
+    .filter(b => Boolean(b.bannerImage?.trim()))
+    .map(banner => ({ id: banner._id, image: banner.bannerImage, banner }))
 
-  // Guard slide index in range
+  // Guard slide index
   useEffect(() => {
     if (!heroSlides.length) { setCurrentSlideIndex(0); return }
     setCurrentSlideIndex(prev => (prev >= heroSlides.length ? 0 : prev))
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [heroSlides.length])
 
-  // Auto-advance slides (only when multiple slides exist)
+  // Auto-advance when multiple banners
   useEffect(() => {
     if (heroSlides.length <= 1 || shouldReduceMotion) return
     const t = window.setInterval(
@@ -128,23 +119,27 @@ export default function HeroSection() {
   return (
     <section className="relative overflow-hidden bg-white" suppressHydrationWarning>
 
-      {/* ══════════════════════════════════════════════════
-          TOP AREA — Banner image OR "Quiet Power" heading
-          ══════════════════════════════════════════════════ */}
       <AnimatePresence mode="wait" initial={false}>
         {hasBanner ? (
-          /* ── BANNER MODE: pure admin image, zero overlays ── */
+
+          /* ══════════════════════════════════════════
+             BANNER MODE — full image, zero overlays
+             ══════════════════════════════════════════ */
           <motion.div
             key="banner"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5 }}
-            className="w-full pt-16 md:pt-20"   /* offset for fixed navbar */
+            className="w-full"
           >
-            {/* Image wrapper — aspect-ratio based so it scales perfectly on all viewports */}
-            <div className="relative w-full overflow-hidden"
-              style={{ aspectRatio: '21/9', minHeight: '200px', maxHeight: '640px' }}>
+            {/* Navbar spacer */}
+            <div className="pt-16 md:pt-20" />
+
+            {/* Full-width banner image — fills all available width, natural height */}
+            <div className="relative w-full overflow-hidden bg-black"
+              style={{ minHeight: '220px', maxHeight: '90vh' }}>
+
               <AnimatePresence mode="wait" initial={false}>
                 <motion.div
                   key={currentSlide!.id}
@@ -152,23 +147,24 @@ export default function HeroSection() {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.55, ease: 'easeInOut' }}
-                  className="absolute inset-0"
+                  className="relative w-full"
+                  style={{ aspectRatio: '16/9' }}
                 >
                   <Image
                     src={currentSlide!.image}
                     alt={currentSlide!.banner.title}
                     fill
                     priority
-                    quality={92}
+                    quality={95}
                     sizes="100vw"
                     className="object-cover object-center"
                   />
                 </motion.div>
               </AnimatePresence>
 
-              {/* Slide dots — only when multiple slides, minimal & unobtrusive */}
+              {/* Dot indicators — only when multiple slides, minimal */}
               {heroSlides.length > 1 && (
-                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-10">
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 z-10">
                   {heroSlides.map((slide, i) => (
                     <button
                       key={slide.id}
@@ -177,7 +173,7 @@ export default function HeroSection() {
                       aria-label={`Slide ${i + 1}`}
                       className={`h-1.5 rounded-full transition-all duration-300 ${
                         i === currentSlideIndex
-                          ? 'w-6 bg-white shadow-md'
+                          ? 'w-6 bg-white shadow'
                           : 'w-1.5 bg-white/50 hover:bg-white/80'
                       }`}
                     />
@@ -186,22 +182,28 @@ export default function HeroSection() {
               )}
             </div>
           </motion.div>
+
         ) : (
-          /* ── DEFAULT MODE: "Quiet Power" heading when no banner is active ── */
+
+          /* ══════════════════════════════════════════════════════
+             DEFAULT MODE — "Quiet Power" + shoe card (no banner)
+             ══════════════════════════════════════════════════════ */
           <motion.div
             key="default"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5 }}
-            className="relative pt-24 md:pt-28 pb-0"
+            className="relative min-h-screen bg-white pt-24 md:pt-28 pb-16 md:pb-24"
           >
             <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(180deg,#ffffff_0%,#FCFCFC_58%,#ffffff_100%)]" />
-            <div className="relative z-10 max-w-[1320px] mx-auto px-6 md:px-10 text-center">
+
+            <div className="relative z-10 max-w-[1320px] mx-auto px-6 md:px-10">
               <motion.div
                 initial={false}
                 animate={mounted ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
                 transition={{ duration: 0.55 }}
+                className="text-center"
               >
                 <div className="inline-flex items-center px-4 py-2 rounded-full border border-[#D7DCE2] bg-white mb-10">
                   <span className="text-[10px] md:text-[11px] font-bold tracking-[0.22em] text-[#111827] uppercase">
@@ -216,57 +218,69 @@ export default function HeroSection() {
                 <p className="mt-8 text-sm md:text-base text-[#374151] max-w-[440px] mx-auto leading-relaxed tracking-[0.08em] uppercase">
                   Crafted for presence.
                 </p>
+
+                <div className="mt-10 md:mt-12 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2.5 w-full max-w-[520px] mx-auto">
+                  <Link
+                    href="/collections#all-products-grid"
+                    className="group inline-flex w-full sm:w-auto justify-center items-center gap-2 px-6 md:px-7 py-3 rounded-full bg-[#06080F] !text-white text-xs md:text-sm font-bold tracking-[0.14em] uppercase hover:bg-[#161B26] transition-colors"
+                  >
+                    Explore Collection
+                    <svg className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M12 5l7 7-7 7"/></svg>
+                  </Link>
+                  <Link
+                    href="/new-arrivals"
+                    className="inline-flex w-full sm:w-auto justify-center items-center gap-2 px-6 md:px-7 py-3 rounded-full border-2 border-[#06080F] bg-white text-[#06080F] text-xs md:text-sm font-bold tracking-[0.14em] uppercase hover:bg-[#06080F] hover:text-white transition-all"
+                  >
+                    New Arrivals
+                  </Link>
+                </div>
+              </motion.div>
+
+              {/* Shoe image card */}
+              <motion.div
+                initial={false}
+                animate={mounted ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
+                transition={{ duration: 0.65, delay: 0.15 }}
+                className="relative mt-20 md:mt-24"
+              >
+                <div className="absolute left-1/2 -translate-x-1/2 -top-6 w-[82%] h-24 bg-[#111827]/[0.06] blur-3xl rounded-full pointer-events-none" />
+
+                <div className="relative rounded-[2rem] md:rounded-[2.5rem] border border-[#D8DEE6] bg-white p-3 md:p-4 shadow-[0_30px_80px_-30px_rgba(6,8,15,0.42)]">
+                  <div className="relative overflow-hidden rounded-[1.5rem] md:rounded-[2rem] h-[280px] sm:h-[380px] md:h-[520px] lg:h-[600px]">
+                    <motion.div
+                      initial={false}
+                      animate={
+                        mounted && !shouldReduceMotion
+                          ? { scale: [1.02, 1.04, 1.02], y: [0, -4, 0] }
+                          : { scale: 1.02, y: 0 }
+                      }
+                      transition={{ duration: 24, repeat: shouldReduceMotion ? 0 : Infinity, ease: 'easeInOut' }}
+                      className="w-full h-full"
+                    >
+                      <Image
+                        src="https://res.cloudinary.com/dt2ikjlfc/image/upload/v1775127417/bb-shoes/hero/hero-purple-sandals.jpg"
+                        alt="B&B Premium Stylish Sandals"
+                        fill
+                        priority
+                        quality={90}
+                        sizes="(max-width: 768px) 100vw, 1320px"
+                        className="object-cover object-center"
+                      />
+                    </motion.div>
+                  </div>
+                </div>
+
+                <div className="mt-7 md:mt-8 flex flex-wrap items-center justify-center gap-3 md:gap-10 text-[10px] md:text-[11px] tracking-[0.15em] uppercase text-[#374151]">
+                  <span>50K+ Clients</span>
+                  <span className="w-1 h-1 rounded-full bg-[#9CA3AF]" />
+                  <span>100% Authentic</span>
+                </div>
               </motion.div>
             </div>
           </motion.div>
+
         )}
       </AnimatePresence>
-
-      {/* ══════════════════════════════════════════════════
-          BOTTOM AREA — Shoe image card (always visible)
-          ══════════════════════════════════════════════════ */}
-      <div className="max-w-[1320px] mx-auto px-6 md:px-10 pb-16 md:pb-24">
-        <motion.div
-          initial={false}
-          animate={mounted ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
-          transition={{ duration: 0.65, delay: 0.2 }}
-          className="relative mt-10 md:mt-12"
-        >
-          <div className="absolute left-1/2 -translate-x-1/2 -top-6 w-[82%] h-24 bg-[#111827]/[0.06] blur-3xl rounded-full pointer-events-none" />
-
-          <div className="relative rounded-[2rem] md:rounded-[2.5rem] border border-[#D8DEE6] bg-white p-3 md:p-4 shadow-[0_30px_80px_-30px_rgba(6,8,15,0.42)]">
-            <div className="relative overflow-hidden rounded-[1.5rem] md:rounded-[2rem] h-[280px] sm:h-[380px] md:h-[520px] lg:h-[600px]">
-              <motion.div
-                initial={false}
-                animate={
-                  mounted && !shouldReduceMotion
-                    ? { scale: [1.02, 1.04, 1.02], y: [0, -4, 0] }
-                    : { scale: 1.02, y: 0 }
-                }
-                transition={{ duration: 24, repeat: shouldReduceMotion ? 0 : Infinity, ease: 'easeInOut' }}
-                className="w-full h-full"
-              >
-                <Image
-                  src="https://res.cloudinary.com/dt2ikjlfc/image/upload/v1775127417/bb-shoes/hero/hero-purple-sandals.jpg"
-                  alt="B&B Premium Stylish Sandals"
-                  fill
-                  priority={!hasBanner}
-                  quality={90}
-                  sizes="(max-width: 768px) 100vw, 1320px"
-                  className="object-cover object-center"
-                />
-              </motion.div>
-            </div>
-          </div>
-
-          <div className="mt-7 md:mt-8 flex flex-wrap items-center justify-center gap-3 md:gap-10 text-[10px] md:text-[11px] tracking-[0.15em] uppercase text-[#374151]">
-            <span>50K+ Clients</span>
-            <span className="w-1 h-1 rounded-full bg-[#9CA3AF]" />
-            <span>100% Authentic</span>
-          </div>
-        </motion.div>
-      </div>
-
     </section>
   )
 }
