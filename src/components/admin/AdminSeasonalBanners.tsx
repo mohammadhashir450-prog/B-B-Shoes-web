@@ -642,7 +642,7 @@ export default function AdminSeasonalBanners() {
                               <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${formData.isActive ? 'translate-x-5' : 'translate-x-0'}`} />
                             </button>
                             <span className="text-white/70 text-sm font-bold">Active</span>
-                            <span className="text-white/35 text-xs">(inactive banners won't show even if scheduled)</span>
+                            <span className="text-white/35 text-xs">(inactive banners won&apos;t show even if scheduled)</span>
                           </div>
                         </div>
 
