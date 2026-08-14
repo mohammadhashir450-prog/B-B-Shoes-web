@@ -122,9 +122,10 @@ export default function HeroSection() {
       <AnimatePresence mode="wait" initial={false}>
         {hasBanner ? (
 
-          /* ══════════════════════════════════════════
-             BANNER MODE — full image, zero overlays
-             ══════════════════════════════════════════ */
+          /* ══════════════════════════════════════════════════════
+             BANNER MODE — full-bleed image, zero overlays
+             Navbar is fixed and floats over the top (premium look)
+             ══════════════════════════════════════════════════════ */
           <motion.div
             key="banner"
             initial={{ opacity: 0 }}
@@ -133,22 +134,24 @@ export default function HeroSection() {
             transition={{ duration: 0.5 }}
             className="w-full"
           >
-            {/* Navbar spacer */}
-            <div className="pt-16 md:pt-20" />
-
-            {/* Full-width banner image — fills all available width, natural height */}
-            <div className="relative w-full overflow-hidden bg-black"
-              style={{ minHeight: '220px', maxHeight: '90vh' }}>
-
+            {/*
+              Full-bleed banner — responsive fixed heights per breakpoint.
+              Navbar is fixed/floating so no spacer needed here.
+              h-[56vw]: natural proportion on any width,
+              clamped between 240px (mobile) and 680px (large desktop).
+            */}
+            <div
+              className="relative w-full overflow-hidden bg-black"
+              style={{ height: 'clamp(240px, 56vw, 680px)' }}
+            >
               <AnimatePresence mode="wait" initial={false}>
                 <motion.div
                   key={currentSlide!.id}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  transition={{ duration: 0.55, ease: 'easeInOut' }}
-                  className="relative w-full"
-                  style={{ aspectRatio: '16/9' }}
+                  transition={{ duration: 0.6, ease: 'easeInOut' }}
+                  className="absolute inset-0"
                 >
                   <Image
                     src={currentSlide!.image}
@@ -162,7 +165,7 @@ export default function HeroSection() {
                 </motion.div>
               </AnimatePresence>
 
-              {/* Dot indicators — only when multiple slides, minimal */}
+              {/* Slide dots — only when multiple banners, minimal & bottom-centered */}
               {heroSlides.length > 1 && (
                 <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 z-10">
                   {heroSlides.map((slide, i) => (
@@ -182,6 +185,7 @@ export default function HeroSection() {
               )}
             </div>
           </motion.div>
+
 
         ) : (
 
