@@ -9,6 +9,7 @@ import Footer from '@/components/layout/Footer';
 import { CreditCard, Smartphone, Banknote, Check, ChevronRight, Shield, AlertCircle, Save, CheckCircle2 } from 'lucide-react';
 import { maskCardNumber } from '@/lib/security';
 import { ADMIN_WHATSAPP_DISPLAY } from '@/lib/whatsapp';
+import CitySearchDropdown from '@/components/common/CitySearchDropdown';
 
 const STORE_BANK_ACCOUNT = {
   name: 'Meezan Bank',
@@ -900,31 +901,11 @@ export default function CheckoutPage() {
 
                               <div>
                                 <label className="block text-sm font-semibold mb-2">City *</label>
-                                <select
+                                <CitySearchDropdown
                                   value={codCity}
-                                  onChange={(e) => { setCodCity(e.target.value); setCodSaved(false); }}
-                                  className="w-full bg-white border border-[#D1D5DB] rounded-lg px-4 py-3 text-[#111827] focus:border-[#D4AF37] focus:outline-none transition-colors"
-                                >
-                                  <option value="">Select your city...</option>
-                                  <option value="Karachi">Karachi</option>
-                                  <option value="Lahore">Lahore</option>
-                                  <option value="Islamabad">Islamabad</option>
-                                  <option value="Rawalpindi">Rawalpindi</option>
-                                  <option value="Faisalabad">Faisalabad</option>
-                                  <option value="Multan">Multan</option>
-                                  <option value="Peshawar">Peshawar</option>
-                                  <option value="Quetta">Quetta</option>
-                                  <option value="Sialkot">Sialkot</option>
-                                  <option value="Gujranwala">Gujranwala</option>
-                                  <option value="Hyderabad">Hyderabad</option>
-                                  <option value="Bahawalpur">Bahawalpur</option>
-                                  <option value="Sargodha">Sargodha</option>
-                                  <option value="Sukkur">Sukkur</option>
-                                  <option value="Abbottabad">Abbottabad</option>
-                                  <option value="Mardan">Mardan</option>
-                                  <option value="Sahiwal">Sahiwal</option>
-                                  <option value="Rahim Yar Khan">Rahim Yar Khan</option>
-                                </select>
+                                  onChange={(city) => { setCodCity(city); setCodSaved(false); }}
+                                  variant="light"
+                                />
                               </div>
 
                               <div className="flex items-center gap-3">
@@ -1002,31 +983,11 @@ export default function CheckoutPage() {
 
                   <div>
                     <label className="block text-sm font-semibold mb-2">City *</label>
-                    <select
+                    <CitySearchDropdown
                       value={codCity}
-                      onChange={(e) => { setCodCity(e.target.value); setCodSaved(false); }}
-                      className="w-full bg-white border border-[#D1D5DB] rounded-lg px-4 py-3 text-[#111827] focus:border-[#D4AF37] focus:outline-none transition-colors"
-                    >
-                      <option value="">Select your city...</option>
-                      <option value="Karachi">Karachi</option>
-                      <option value="Lahore">Lahore</option>
-                      <option value="Islamabad">Islamabad</option>
-                      <option value="Rawalpindi">Rawalpindi</option>
-                      <option value="Faisalabad">Faisalabad</option>
-                      <option value="Multan">Multan</option>
-                      <option value="Peshawar">Peshawar</option>
-                      <option value="Quetta">Quetta</option>
-                      <option value="Sialkot">Sialkot</option>
-                      <option value="Gujranwala">Gujranwala</option>
-                      <option value="Hyderabad">Hyderabad</option>
-                      <option value="Bahawalpur">Bahawalpur</option>
-                      <option value="Sargodha">Sargodha</option>
-                      <option value="Sukkur">Sukkur</option>
-                      <option value="Abbottabad">Abbottabad</option>
-                      <option value="Mardan">Mardan</option>
-                      <option value="Sahiwal">Sahiwal</option>
-                      <option value="Rahim Yar Khan">Rahim Yar Khan</option>
-                    </select>
+                      onChange={(city) => { setCodCity(city); setCodSaved(false); }}
+                      variant="light"
+                    />
                   </div>
                 </div>
 
