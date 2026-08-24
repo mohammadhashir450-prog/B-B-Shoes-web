@@ -12,9 +12,15 @@ const Story = dynamic(() => import('@/components/home/Story'), {
   loading: () => <div className="home-section-skeleton" aria-hidden />,
 })
 
+const ReviewsSlider = dynamic(() => import('@/components/home/ReviewsSlider'), {
+  loading: () => <div className="home-section-skeleton" aria-hidden />,
+  ssr: false,
+})
+
 const FloatingSocials = dynamic(() => import('@/components/common/FloatingSocials'), {
   ssr: false,
 })
+
 
 export default function HomePage() {
   return (
@@ -31,6 +37,10 @@ export default function HomePage() {
         <div className="home-deferred-section">
           <Story />
         </div>
+        <div className="home-deferred-section">
+          <ReviewsSlider />
+        </div>
+
         <FloatingSocials />
       </main>
       <Footer />
