@@ -152,6 +152,101 @@ const reserveInventoryForItem = async (
 };
 
 /**
+ * Restore stock for a single order item after cancellation.
+ * Mirrors reserveInventoryForItem in reverse.
+ */
+const restoreInventoryForItem = async (
+  item: { productId: string; quantity: number; size?: string; color?: string },
+  session: mongoose.ClientSession
+) => {
+  const productId = extractMongoProductId(String(item.productId || '').trim());
+  if (!productId) return; // best-effort: skip unknown product ids
+
+  const product = await Product.findById(productId).session(session);
+  if (!product) return; // product may have been deleted — skip gracefully
+
+  const restoredQty = Math.max(1, Number(item.quantity) || 1);
+  const requestedSize = normalize(item.size);
+  const requestedColor = normalize(item.color);
+  const sizeStock = Array.isArray((product as any).sizeStock) ? (product as any).sizeStock : [];
+
+  if (sizeStock.length > 0) {
+    const hasColorDimension = sizeStock.some((e: any) => normalize(e.color).length > 0);
+
+    let candidate: any | undefined;
+
+    if (requestedSize && requestedColor && hasColorDimension) {
+      candidate = sizeStock.find((e: any) =>
+        normalize(e.size) === requestedSize && normalize(e.color) === requestedColor
+      );
+    }
+    if (!candidate && requestedSize) {
+      candidate = sizeStock.find((e: any) => normalize(e.size) === requestedSize);
+    }
+    if (!candidate && requestedColor) {
+      candidate = sizeStock.find((e: any) => normalize(e.color) === requestedColor);
+    }
+    if (!candidate) {
+      candidate = sizeStock[0]; // fallback to first entry
+    }
+
+    if (candidate) {
+      candidate.quantity = Math.max(0, Number(candidate.quantity || 0)) + restoredQty;
+    }
+
+    const totalVariantStock = sizeStock.reduce(
+      (sum: number, e: any) => sum + Math.max(0, Number(e.quantity || 0)),
+      0
+    );
+
+    (product as any).sizeStock = sizeStock;
+    product.stock = totalVariantStock;
+    product.inStock = totalVariantStock > 0;
+  } else {
+    product.stock = Math.max(0, Number(product.stock || 0)) + restoredQty;
+    product.inStock = product.stock > 0;
+  }
+
+  // Reduce sold count, don't go below 0
+  product.sold = Math.max(0, Number(product.sold || 0) - restoredQty);
+
+  await product.save({ session, validateBeforeSave: false });
+  console.log(`[Stock Restore] Product ${productId} — restored ${restoredQty} unit(s). New stock: ${product.stock}`);
+};
+
+/**
+ * Restore stock for all items in a cancelled order.
+ * Runs inside a MongoDB transaction.
+ */
+const restoreInventoryForOrder = async (order: any) => {
+  const items: any[] = Array.isArray(order.items) ? order.items : [];
+  if (!items.length) return;
+
+  const session = await mongoose.startSession();
+  try {
+    await session.withTransaction(async () => {
+      for (const item of items) {
+        await restoreInventoryForItem(
+          {
+            productId: String(item.productId || ''),
+            quantity: Number(item.quantity) || 1,
+            size: String(item.size || ''),
+            color: String(item.color || ''),
+          },
+          session
+        );
+      }
+    });
+    console.log(`[Stock Restore] Completed for order ${order.orderId || order._id}`);
+  } catch (err) {
+    // Log but don't crash — the cancel itself already succeeded
+    console.error('[Stock Restore] Failed:', err);
+  } finally {
+    await session.endSession();
+  }
+};
+
+/**
  * GET /api/orders
  * Fetch all orders with optional filtering
  */
@@ -526,6 +621,14 @@ export const PATCH = asyncHandler(async (req: NextRequest) => {
 
   if (!result) {
     return errorResponse('Order not found', 404);
+  }
+
+  // ── Stock restore on cancellation ──────────────────────────────────────────
+  if (wantsStatusUpdate && status === 'cancelled' && currentStatus !== 'cancelled') {
+    // Run async — result already returned to client; log errors only
+    restoreInventoryForOrder(existingOrder).catch((err) =>
+      console.error('[Stock Restore] Async error after PATCH cancel:', err)
+    );
   }
 
   return successResponse(
