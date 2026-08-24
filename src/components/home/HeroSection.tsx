@@ -223,17 +223,68 @@ export default function HeroSection() {
                   Crafted for presence.
                 </p>
 
-                {/* Free Delivery Banner — Prominent */}
+                {/* Free Delivery Banner — Blinking Premium */}
+                <style>{`
+                  @keyframes fd-badge-pulse {
+                    0%, 100% { box-shadow: 0 0 0 0 rgba(212,175,55,0), 0 0 18px -4px rgba(212,175,55,0.35); transform: scale(1); }
+                    40%       { box-shadow: 0 0 0 6px rgba(212,175,55,0.18), 0 0 32px -2px rgba(212,175,55,0.55); transform: scale(1.025); }
+                    70%       { box-shadow: 0 0 0 10px rgba(212,175,55,0.06), 0 0 22px -4px rgba(212,175,55,0.3); transform: scale(1.01); }
+                  }
+                  @keyframes fd-shimmer {
+                    0%   { transform: translateX(-120%) skewX(-15deg); opacity: 0; }
+                    30%  { opacity: 1; }
+                    100% { transform: translateX(320%) skewX(-15deg); opacity: 0; }
+                  }
+                  @keyframes fd-dot-core {
+                    0%, 100% { opacity: 1; transform: scale(1); }
+                    50%       { opacity: 0.7; transform: scale(0.85); }
+                  }
+                  @keyframes fd-truck {
+                    0%, 90%, 100% { transform: translateX(0); }
+                    93%           { transform: translateX(-3px); }
+                    96%           { transform: translateX(2px); }
+                  }
+                  @keyframes fd-text-blink {
+                    0%, 100% { opacity: 1; }
+                    48%       { opacity: 1; }
+                    52%       { opacity: 0.6; }
+                    56%       { opacity: 1; }
+                  }
+                  .fd-badge      { animation: fd-badge-pulse 2.4s ease-in-out infinite; }
+                  .fd-shimmer    { animation: fd-shimmer 3.2s ease-in-out infinite 1.2s; }
+                  .fd-dot-core   { animation: fd-dot-core 2.4s ease-in-out infinite; }
+                  .fd-truck      { animation: fd-truck 3s ease-in-out infinite 0.6s; }
+                  .fd-text-blink { animation: fd-text-blink 2.4s ease-in-out infinite; }
+                `}</style>
                 <div className="mt-8 mb-2">
-                  <div className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full text-sm font-black tracking-wide shadow-[0_0_24px_-4px_rgba(212,175,55,0.4)] border border-[#D4AF37]/40 bg-gradient-to-r from-[#FFF8E7] to-[#FFF1CC]" style={{color:'#7A5A00'}}>
+                  <div
+                    className="fd-badge relative inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full text-sm font-black tracking-wide border border-[#D4AF37]/50 bg-gradient-to-r from-[#FFF8E7] via-[#FFF4D6] to-[#FFF1CC] overflow-hidden cursor-default select-none"
+                    style={{ color: '#7A5A00' }}
+                  >
+                    {/* Shimmer sweep */}
+                    <span className="fd-shimmer absolute inset-0 w-1/3 bg-gradient-to-r from-transparent via-white/60 to-transparent pointer-events-none" />
+
+                    {/* Live dot */}
                     <span className="relative flex h-2.5 w-2.5 flex-shrink-0">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#D4AF37] opacity-60"></span>
-                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#C9A227]"></span>
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#D4AF37] opacity-55" />
+                      <span className="fd-dot-core relative inline-flex rounded-full h-2.5 w-2.5 bg-[#C9A227]" />
                     </span>
-                    <svg className="w-4 h-4 flex-shrink-0 text-[#C9A227]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2}>
+
+                    {/* Truck icon */}
+                    <svg
+                      className="fd-truck w-4 h-4 flex-shrink-0 text-[#B8860B]"
+                      viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2}
+                    >
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 17H5a2 2 0 01-2-2V9a2 2 0 012-2h4M9 17h6M9 17V7m6 10h4a2 2 0 002-2V9a2 2 0 00-2-2h-4M15 17V7M9 7h6" />
                     </svg>
-                    FREE DELIVERY&nbsp;&nbsp;·&nbsp;&nbsp;Orders Above PKR 3,500
+
+                    {/* Text */}
+                    <span className="fd-text-blink font-black tracking-widest" style={{ color: '#7A5A00', letterSpacing: '0.1em' }}>
+                      FREE DELIVERY&nbsp;&nbsp;·&nbsp;&nbsp;Orders Above PKR&nbsp;3,500
+                    </span>
+
+                    {/* Tiny star accent */}
+                    <span className="flex-shrink-0 text-[#C9A227]" style={{ fontSize: '10px' }}>✦</span>
                   </div>
                 </div>
 
