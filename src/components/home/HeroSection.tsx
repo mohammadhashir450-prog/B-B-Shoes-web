@@ -278,7 +278,15 @@ export default function HeroSection() {
                   <span>50K+ Clients</span>
                   <span className="w-1 h-1 rounded-full bg-[#9CA3AF]" />
                   <span>100% Authentic</span>
+                  <span className="w-1 h-1 rounded-full bg-[#9CA3AF]" />
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#D4AF37]/10 border border-[#D4AF37]/30 text-[#A97A18] font-bold tracking-widest">
+                    <svg className="w-3 h-3 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 8h14M5 8a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v0a2 2 0 01-2 2M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8" />
+                    </svg>
+                    Free Delivery Above PKR 3,500
+                  </span>
                 </div>
+
               </motion.div>
             </div>
           </motion.div>

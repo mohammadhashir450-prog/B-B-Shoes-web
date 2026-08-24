@@ -8,8 +8,9 @@ const Products = dynamic(() => import('@/components/home/Products'), {
   loading: () => <div className="home-section-skeleton" aria-hidden />,
 })
 
-const Story = dynamic(() => import('@/components/home/Story'), {
+const ModelSlider = dynamic(() => import('@/components/home/ModelSlider'), {
   loading: () => <div className="home-section-skeleton" aria-hidden />,
+  ssr: false,
 })
 
 const ReviewsSlider = dynamic(() => import('@/components/home/ReviewsSlider'), {
@@ -35,7 +36,7 @@ export default function HomePage() {
           <Products />
         </div>
         <div className="home-deferred-section">
-          <Story />
+          <ModelSlider />
         </div>
         <div className="home-deferred-section">
           <ReviewsSlider />
