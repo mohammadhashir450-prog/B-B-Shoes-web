@@ -223,7 +223,21 @@ export default function HeroSection() {
                   Crafted for presence.
                 </p>
 
-                <div className="mt-10 md:mt-12 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2.5 w-full max-w-[520px] mx-auto">
+                {/* Free Delivery Banner — Prominent */}
+                <div className="mt-8 mb-2">
+                  <div className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full text-sm font-black tracking-wide shadow-[0_0_24px_-4px_rgba(212,175,55,0.4)] border border-[#D4AF37]/40 bg-gradient-to-r from-[#FFF8E7] to-[#FFF1CC]" style={{color:'#7A5A00'}}>
+                    <span className="relative flex h-2.5 w-2.5 flex-shrink-0">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#D4AF37] opacity-60"></span>
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#C9A227]"></span>
+                    </span>
+                    <svg className="w-4 h-4 flex-shrink-0 text-[#C9A227]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 17H5a2 2 0 01-2-2V9a2 2 0 012-2h4M9 17h6M9 17V7m6 10h4a2 2 0 002-2V9a2 2 0 00-2-2h-4M15 17V7M9 7h6" />
+                    </svg>
+                    FREE DELIVERY&nbsp;&nbsp;·&nbsp;&nbsp;Orders Above PKR 3,500
+                  </div>
+                </div>
+
+                <div className="mt-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2.5 w-full max-w-[520px] mx-auto">
                   <Link
                     href="/collections#all-products-grid"
                     className="group inline-flex w-full sm:w-auto justify-center items-center gap-2 px-6 md:px-7 py-3 rounded-full bg-[#06080F] !text-white text-xs md:text-sm font-bold tracking-[0.14em] uppercase hover:bg-[#161B26] transition-colors"
@@ -278,13 +292,6 @@ export default function HeroSection() {
                   <span>50K+ Clients</span>
                   <span className="w-1 h-1 rounded-full bg-[#9CA3AF]" />
                   <span>100% Authentic</span>
-                  <span className="w-1 h-1 rounded-full bg-[#9CA3AF]" />
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#D4AF37]/10 border border-[#D4AF37]/30 text-[#A97A18] font-bold tracking-widest">
-                    <svg className="w-3 h-3 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 8h14M5 8a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v0a2 2 0 01-2 2M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8" />
-                    </svg>
-                    Free Delivery Above PKR 3,500
-                  </span>
                 </div>
 
               </motion.div>

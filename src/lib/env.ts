@@ -22,7 +22,7 @@ export const env = {
     jwtSecret: process.env.JWT_SECRET || '',
     nextAuthSecret: process.env.NEXTAUTH_SECRET || '',
     nextAuthUrl: process.env.NEXTAUTH_URL || '',
-    adminPassword: process.env.ADMIN_PASSWORD || 'hashir189',
+    adminPassword: process.env.ADMIN_PASSWORD || '',
     sessionSecret: process.env.SESSION_SECRET || '',
   },
 
