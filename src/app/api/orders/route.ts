@@ -9,6 +9,7 @@ import { successResponse, createdResponse, validationErrorResponse, errorRespons
 import { validateOrder } from '@/lib/validation';
 import { buildAdminOrderMessage, buildAdminOrderWhatsAppUrl, ADMIN_WHATSAPP_DISPLAY } from '@/lib/whatsapp';
 import { sendAdminWhatsAppMessage } from '@/lib/whatsappServer';
+import { sendAdminOrderEmail } from '@/lib/email-service';
 
 const formatOrderForClient = (order: any) => ({
   id: order._id.toString(),
@@ -506,6 +507,38 @@ export const POST = asyncHandler(async (req: NextRequest) => {
   if (!whatsappDispatch.sent) {
     console.error('⚠️ WhatsApp auto-send failed:', whatsappDispatch.error || 'Unknown error');
   }
+
+  // ── Admin email notification (non-blocking — fired async) ──────────────────
+  sendAdminOrderEmail({
+    orderId,
+    customerName: normalizedOrder.customerName,
+    customerEmail: normalizedOrder.customerEmail,
+    customerPhone: normalizedOrder.customerPhone,
+    customerAddress: normalizedOrder.customerAddress,
+    items: normalizedItems.map((item: any) => ({
+      productId: item.productId,
+      productName: item.productName,
+      productImage: item.productImage,
+      quantity: item.quantity,
+      size: item.size,
+      color: item.color,
+      price: item.price,
+    })),
+    subtotal,
+    shippingFee,
+    total,
+    paymentMethod: normalizedOrder.paymentMethod,
+    paymentStatus: normalizedOrder.paymentStatus,
+    paymentDetails: normalizedPaymentDetails,
+  }).then((sent) => {
+    if (sent) {
+      console.log('✅ Admin order email dispatched for:', orderId);
+    } else {
+      console.warn('⚠️ Admin order email failed for:', orderId);
+    }
+  }).catch((err) => {
+    console.error('❌ Admin order email error:', err);
+  });
 
   console.log('✅ Order created:', orderId);
 
