@@ -38,8 +38,9 @@ export function generateOTP(): string {
 async function sendMail(to: string, subject: string, html: string): Promise<boolean> {
   try {
     const activeTransporter = getTransporter();
+    const fromAddress = process.env.EMAIL_FROM || `"B&B Shoes" <${process.env.EMAIL_USER}>`;
     await activeTransporter.sendMail({
-      from: `"B&B Shoes" <${process.env.EMAIL_USER}>`,
+      from: fromAddress,
       to,
       subject,
       html,
@@ -90,13 +91,13 @@ export async function sendWelcomeEmail(email: string, name: string): Promise<boo
 }
 
 // ─── Helper ───────────────────────────────────────────────────────────────────
-/** Admin email recipient — falls back to EMAIL_USER */
+/** Admin email recipient — falls back to bandb21032024@gmail.com */
 export function getAdminEmail(): string {
   return (
     process.env.ADMIN_EMAIL ||
     process.env.CONTACT_EMAIL ||
     process.env.EMAIL_USER ||
-    ''
+    'bandb21032024@gmail.com'
   ).trim();
 }
 

@@ -117,7 +117,7 @@ export const env = {
     shippingFee: parseInt(process.env.SHIPPING_FEE || '200'),
     currency: process.env.CURRENCY || 'PKR',
     contactPhone: process.env.CONTACT_PHONE || '03361673742',
-    contactEmail: process.env.CONTACT_EMAIL || 'B&Bshoessupport@gmail.com',
+    contactEmail: process.env.CONTACT_EMAIL || 'bandb21032024@gmail.com',
   },
 
   // Development
