@@ -405,6 +405,8 @@ export default function AdminPanel() {
   const [tickerBgColor, setTickerBgColor] = useState('#C20F1E');
   const [tickerTextColor, setTickerTextColor] = useState('#FFFFFF');
   const [flatSalePercent, setFlatSalePercent] = useState<number>(25);
+  const [batchSaleType, setBatchSaleType] = useState<'flat' | 'upto'>('flat');
+  const [batchSaleSearch, setBatchSaleSearch] = useState('');
   const [flatSaleProductIds, setFlatSaleProductIds] = useState<string[]>([]);
   const [removeFlatSaleProductIds, setRemoveFlatSaleProductIds] = useState<string[]>([]);
   const [flatSaleApplying, setFlatSaleApplying] = useState(false);
@@ -609,14 +611,15 @@ export default function AdminPanel() {
     }
   };
 
-  const applyFlatSaleToSelected = async () => {
+  const applyFlatSaleToSelected = async (forcedSaleType?: 'flat' | 'upto') => {
     setFlatSaleMessage('');
 
-    const normalizedPercent = Math.min(100, Math.max(1, Number(flatSalePercent) || 1));
+    const targetType = forcedSaleType || batchSaleType || 'flat';
+    const normalizedPercent = Math.min(99, Math.max(1, Number(flatSalePercent) || 1));
     const selectedProducts = products.filter((product) => flatSaleProductIds.includes(String(product.id)));
 
     if (selectedProducts.length === 0) {
-      setFlatSaleMessage('Select at least one product to apply flat sale.');
+      setFlatSaleMessage('Select at least one product to apply sale.');
       return;
     }
 
@@ -640,6 +643,7 @@ export default function AdminPanel() {
           body: JSON.stringify({
             ...product,
             isOnSale: true,
+            saleType: targetType,
             discount: normalizedPercent,
             originalPrice,
             price: salePrice,
@@ -654,10 +658,11 @@ export default function AdminPanel() {
 
       await Promise.all(updates);
       setFlatSaleProductIds([]);
-      setFlatSaleMessage(`Flat ${normalizedPercent}% sale applied to ${selectedProducts.length} product(s).`);
+      const typeLabel = targetType === 'upto' ? 'UPTO' : 'FLAT';
+      setFlatSaleMessage(`${typeLabel} ${normalizedPercent}% OFF applied to ${selectedProducts.length} product(s).`);
       await refetchProducts();
     } catch (error) {
-      setFlatSaleMessage(error instanceof Error ? error.message : 'Failed to apply flat sale');
+      setFlatSaleMessage(error instanceof Error ? error.message : 'Failed to apply sale');
     } finally {
       setFlatSaleApplying(false);
     }
@@ -1439,63 +1444,128 @@ export default function AdminPanel() {
                     />
                   </div>
 
-                  {isSaleWorkflow && (
-                    <>
-                      <div className="space-y-2">
-                        <label className="block text-white/50 text-[10px] tracking-[0.2em] uppercase font-bold">Original Price (PKR) *</label>
-                        <input
-                          type="number"
-                          min="1"
-                          placeholder="15999"
-                          value={currentProduct.originalPrice || ''}
-                          onChange={e => {
-                            const val = Number(e.target.value);
-                            if(editingProduct) setEditingProduct({...editingProduct, originalPrice: val});
-                            else if(editingSaleProduct) setEditingSaleProduct({...editingSaleProduct, originalPrice: val});
-                            else if(editingNewArrival) setEditingNewArrival({...editingNewArrival, originalPrice: val});
-                            else setNewProduct({...newProduct, originalPrice: val});
-                          }}
-                          className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#D4AF37]/50 focus:bg-white/10 transition-all"
-                          required
-                        />
+                  {/* Sale & Discount Settings Panel */}
+                  <div className="md:col-span-2 bg-[#0B101E]/90 border border-white/15 rounded-2xl p-5 space-y-4">
+                    <div className="flex items-center justify-between flex-wrap gap-3">
+                      <div>
+                        <h4 className="text-white text-sm font-bold flex items-center gap-2">
+                          <Tag size={16} className="text-[#D4AF37]" /> Product Sale & Discount Settings
+                        </h4>
+                        <p className="text-white/40 text-xs mt-0.5">Enable sale status and set custom discount for this product.</p>
                       </div>
-
-                      <div className="space-y-2">
-                        <label className="block text-white/50 text-[10px] tracking-[0.2em] uppercase font-bold">Discount (%) *</label>
+                      <label className="relative inline-flex items-center cursor-pointer">
                         <input
-                          type="number"
-                          min="1"
-                          max="100"
-                          placeholder="25"
-                          value={currentProduct.discount || ''}
-                          onChange={e => {
-                            const val = Number(e.target.value);
-                            const clamped = Number.isFinite(val) ? Math.min(100, Math.max(1, val)) : 1;
-                            const original = Number(currentProduct.originalPrice) || 0;
-                            const salePrice = original > 0 ? Math.max(0, Math.round(original * (100 - clamped) / 100)) : currentProduct.price;
+                          type="checkbox"
+                          checked={Boolean(currentProduct.isOnSale)}
+                          onChange={(e) => {
+                            const onSale = e.target.checked;
+                            const orig = Number(currentProduct.originalPrice) || Number(currentProduct.price) || 0;
+                            const disc = Number(currentProduct.discount) || 25;
+                            const calculated = onSale && orig > 0 ? Math.max(0, Math.round(orig * (100 - disc) / 100)) : (orig || currentProduct.price);
 
-                            if(editingProduct) setEditingProduct({...editingProduct, discount: clamped, price: salePrice});
-                            else if(editingSaleProduct) setEditingSaleProduct({...editingSaleProduct, discount: clamped, price: salePrice});
-                            else if(editingNewArrival) setEditingNewArrival({...editingNewArrival, discount: clamped, price: salePrice});
-                            else setNewProduct({...newProduct, discount: clamped, price: salePrice});
+                            const update = {
+                              isOnSale: onSale,
+                              originalPrice: onSale ? orig : currentProduct.originalPrice,
+                              discount: onSale ? disc : currentProduct.discount,
+                              saleType: (currentProduct as any).saleType || 'flat',
+                              price: calculated,
+                            };
+
+                            if (editingProduct) setEditingProduct({ ...editingProduct, ...update } as any);
+                            else if (editingSaleProduct) setEditingSaleProduct({ ...editingSaleProduct, ...update } as any);
+                            else if (editingNewArrival) setEditingNewArrival({ ...editingNewArrival, ...update } as any);
+                            else setNewProduct({ ...newProduct, ...update } as any);
                           }}
-                          className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#D4AF37]/50 focus:bg-white/10 transition-all"
-                          required
+                          className="sr-only peer"
                         />
-                        <p className="text-[10px] text-white/40 tracking-wide uppercase">Allowed range: 1-100%</p>
-                      </div>
+                        <div className="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div>
+                        <span className="ml-3 text-xs font-bold uppercase tracking-wider text-white">
+                          {currentProduct.isOnSale ? 'ON SALE 🔥' : 'REGULAR PRICE'}
+                        </span>
+                      </label>
+                    </div>
 
-                      <div className="md:col-span-2 bg-[#0B101E] border border-[#D4AF37]/20 rounded-xl p-4">
-                        <p className="text-[10px] text-white/50 uppercase tracking-[0.2em] mb-2 font-bold">Discount Preview</p>
-                        <div className="flex items-center gap-3 text-sm">
-                          <span className="text-white/70 line-through">PKR {(Number(currentProduct.originalPrice) || 0).toLocaleString()}</span>
-                          <ChevronRight size={14} className="text-[#D4AF37]" />
-                          <span className="text-[#D4AF37] font-black">PKR {(Number(currentProduct.price) || 0).toLocaleString()}</span>
-                          <span className="text-emerald-400 font-bold">({Number(currentProduct.discount) || 0}% OFF)</span>
+                    {currentProduct.isOnSale && (
+                      <div className="grid md:grid-cols-3 gap-4 pt-3 border-t border-white/10">
+                        {/* Sale Type Selector */}
+                        <div>
+                          <label className="block text-white/50 text-[10px] tracking-[0.2em] uppercase font-bold mb-2">Sale Badge Type *</label>
+                          <select
+                            value={(currentProduct as any).saleType || 'flat'}
+                            onChange={(e) => {
+                              const st = e.target.value as 'flat' | 'upto';
+                              if (editingProduct) setEditingProduct({ ...editingProduct, saleType: st } as any);
+                              else if (editingSaleProduct) setEditingSaleProduct({ ...editingSaleProduct, saleType: st } as any);
+                              else if (editingNewArrival) setEditingNewArrival({ ...editingNewArrival, saleType: st } as any);
+                              else setNewProduct({ ...newProduct, saleType: st } as any);
+                            }}
+                            className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-[#D4AF37]/50 appearance-none cursor-pointer"
+                          >
+                            <option value="flat" className="bg-[#0B101E] text-white">FLAT SALE (e.g. FLAT 25% OFF)</option>
+                            <option value="upto" className="bg-[#0B101E] text-white">UPTO SALE (e.g. UPTO 50% OFF)</option>
+                          </select>
+                        </div>
+
+                        {/* Original Price */}
+                        <div>
+                          <label className="block text-white/50 text-[10px] tracking-[0.2em] uppercase font-bold mb-2">Original Price (PKR) *</label>
+                          <input
+                            type="number"
+                            min="1"
+                            placeholder="15999"
+                            value={currentProduct.originalPrice || ''}
+                            onChange={(e) => {
+                              const orig = Number(e.target.value);
+                              const disc = Number(currentProduct.discount) || 0;
+                              const salePrice = orig > 0 && disc > 0 ? Math.max(0, Math.round(orig * (100 - disc) / 100)) : currentProduct.price;
+
+                              if (editingProduct) setEditingProduct({ ...editingProduct, originalPrice: orig, price: salePrice });
+                              else if (editingSaleProduct) setEditingSaleProduct({ ...editingSaleProduct, originalPrice: orig, price: salePrice });
+                              else if (editingNewArrival) setEditingNewArrival({ ...editingNewArrival, originalPrice: orig, price: salePrice });
+                              else setNewProduct({ ...newProduct, originalPrice: orig, price: salePrice });
+                            }}
+                            className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-[#D4AF37]/50"
+                          />
+                        </div>
+
+                        {/* Discount % */}
+                        <div>
+                          <label className="block text-white/50 text-[10px] tracking-[0.2em] uppercase font-bold mb-2">Discount (%) *</label>
+                          <input
+                            type="number"
+                            min="1"
+                            max="99"
+                            placeholder="25"
+                            value={currentProduct.discount || ''}
+                            onChange={(e) => {
+                              const val = Number(e.target.value);
+                              const clamped = Number.isFinite(val) ? Math.min(99, Math.max(1, val)) : 1;
+                              const orig = Number(currentProduct.originalPrice) || Number(currentProduct.price) || 0;
+                              const salePrice = orig > 0 ? Math.max(0, Math.round(orig * (100 - clamped) / 100)) : currentProduct.price;
+
+                              if (editingProduct) setEditingProduct({ ...editingProduct, discount: clamped, price: salePrice });
+                              else if (editingSaleProduct) setEditingSaleProduct({ ...editingSaleProduct, discount: clamped, price: salePrice });
+                              else if (editingNewArrival) setEditingNewArrival({ ...editingNewArrival, discount: clamped, price: salePrice });
+                              else setNewProduct({ ...newProduct, discount: clamped, price: salePrice });
+                            }}
+                            className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-[#D4AF37]/50"
+                          />
+                        </div>
+
+                        {/* Live Badge Preview */}
+                        <div className="md:col-span-3 bg-white/5 border border-[#D4AF37]/30 rounded-xl p-3 flex items-center justify-between flex-wrap gap-2">
+                          <div className="flex items-center gap-3 text-sm">
+                            <span className="text-white/50 line-through">PKR {(Number(currentProduct.originalPrice) || 0).toLocaleString()}</span>
+                            <ChevronRight size={14} className="text-[#D4AF37]" />
+                            <span className="text-[#D4AF37] font-black text-base">PKR {(Number(currentProduct.price) || 0).toLocaleString()}</span>
+                          </div>
+                          <div className="bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                            {((currentProduct as any).saleType || 'flat') === 'upto' ? `UPTO ${currentProduct.discount || 0}% OFF` : `FLAT ${currentProduct.discount || 0}% OFF`}
+                          </div>
                         </div>
                       </div>
-                    </>
-                  )}
+                    )}
+                  </div>
 
                   {/* Category */}
                   <div className="space-y-2">
@@ -1743,13 +1813,13 @@ export default function AdminPanel() {
                         return;
                       }
 
-                      const saleActive = activeTab === 'sales' || showAddSaleForm || Boolean(editingSaleProduct);
+                      const saleActive = Boolean(currentProduct.isOnSale || activeTab === 'sales' || showAddSaleForm || editingSaleProduct);
                       if (saleActive) {
                         const discount = Number(currentProduct.discount);
                         const originalPrice = Number(currentProduct.originalPrice);
 
-                        if (!Number.isFinite(discount) || discount < 1 || discount > 100) {
-                          alert('❌ Discount must be between 1 and 100%');
+                        if (!Number.isFinite(discount) || discount < 1 || discount > 99) {
+                          alert('❌ Discount must be between 1 and 99%');
                           return;
                         }
 
@@ -1764,10 +1834,10 @@ export default function AdminPanel() {
                           return;
                         }
 
-                        if(editingProduct) setEditingProduct({...editingProduct, price: calculatedPrice, discount, originalPrice});
-                        else if(editingSaleProduct) setEditingSaleProduct({...editingSaleProduct, price: calculatedPrice, discount, originalPrice});
-                        else if(editingNewArrival) setEditingNewArrival({...editingNewArrival, price: calculatedPrice, discount, originalPrice});
-                        else setNewProduct({...newProduct, price: calculatedPrice, discount, originalPrice});
+                        if(editingProduct) setEditingProduct({...editingProduct, price: calculatedPrice, discount, originalPrice, isOnSale: true});
+                        else if(editingSaleProduct) setEditingSaleProduct({...editingSaleProduct, price: calculatedPrice, discount, originalPrice, isOnSale: true});
+                        else if(editingNewArrival) setEditingNewArrival({...editingNewArrival, price: calculatedPrice, discount, originalPrice, isOnSale: true});
+                        else setNewProduct({...newProduct, price: calculatedPrice, discount, originalPrice, isOnSale: true});
                       }
 
                       const normalizedSizes = selectedSizes
@@ -1816,12 +1886,13 @@ export default function AdminPanel() {
                         sizeColorImages: Array.from(variantMap.values()),
                         sizeStock: shouldUseSizeInventory ? sizeStockPayload : [],
                         isOnSale: saleActive,
+                        saleType: (currentProduct as any).saleType || 'flat',
                         isNewArrival: activeTab === 'newarrivals' || showAddNewArrivalForm,
                         inStock: currentProduct.inStock === false ? false : true,
                         stock: shouldUseSizeInventory ? computedStock : Number(currentProduct.stock || 0),
-                        discount: saleActive ? Number(currentProduct.discount) : 0,
-                        originalPrice: saleActive ? Number(currentProduct.originalPrice) : 0,
-                        price: saleActive
+                        discount: saleActive ? Number(currentProduct.discount || 0) : 0,
+                        originalPrice: saleActive ? Number(currentProduct.originalPrice || 0) : 0,
+                        price: saleActive && Number(currentProduct.originalPrice) > 0 && Number(currentProduct.discount) > 0
                           ? Math.max(0, Math.round((Number(currentProduct.originalPrice) || 0) * (100 - (Number(currentProduct.discount) || 0)) / 100))
                           : Number(currentProduct.price)
                       };
@@ -2212,87 +2283,131 @@ export default function AdminPanel() {
                 <div>
                   <h3 className="text-white font-bold text-lg flex items-center gap-2">
                     <Tag size={18} className="text-[#D4AF37]" />
-                    Flat Sale For Specific Products
+                    Sale Campaign Manager (FLAT & UPTO Sale For Specific Products)
                   </h3>
                   <p className="text-white/50 text-sm mt-1">
-                    Choose products and apply one flat discount (1-100%). Timer expiry will hide these sale products automatically.
+                    Select products, choose Sale Mode (FLAT or UPTO), enter custom discount percentage (1-99%), and apply instantly.
                   </p>
                 </div>
               </div>
 
-              <div className="grid md:grid-cols-3 gap-3 mb-4">
+              <div className="grid md:grid-cols-4 gap-3 mb-4">
+                {/* Mode Segment Switch */}
                 <div>
-                  <label className="text-[10px] uppercase tracking-[0.16em] text-white/60 mb-2 block">Flat Discount (%)</label>
+                  <label className="text-[10px] uppercase tracking-[0.16em] text-white/60 mb-2 block">Sale Badge Mode</label>
+                  <div className="flex bg-[#0B101E] border border-white/10 rounded-xl p-1">
+                    <button
+                      type="button"
+                      onClick={() => setBatchSaleType('flat')}
+                      className={`flex-1 py-2 text-xs font-bold rounded-lg transition-colors ${batchSaleType === 'flat' ? 'bg-[#D4AF37] text-[#0B101E]' : 'text-white/70 hover:text-white'}`}
+                    >
+                      FLAT SALE
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setBatchSaleType('upto')}
+                      className={`flex-1 py-2 text-xs font-bold rounded-lg transition-colors ${batchSaleType === 'upto' ? 'bg-red-600 text-white' : 'text-white/70 hover:text-white'}`}
+                    >
+                      UPTO SALE
+                    </button>
+                  </div>
+                </div>
+
+                {/* Discount % Input */}
+                <div>
+                  <label className="text-[10px] uppercase tracking-[0.16em] text-white/60 mb-2 block">Discount Percentage (%)</label>
                   <input
                     type="number"
                     min="1"
-                    max="100"
+                    max="99"
                     value={flatSalePercent}
-                    onChange={(e) => setFlatSalePercent(Math.min(100, Math.max(1, Number(e.target.value) || 1)))}
-                    className="bg-[#0B101E] border border-white/10 rounded-xl px-4 py-3 text-sm text-white w-full"
+                    onChange={(e) => setFlatSalePercent(Math.min(99, Math.max(1, Number(e.target.value) || 1)))}
+                    className="bg-[#0B101E] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white w-full focus:outline-none focus:border-[#D4AF37]"
                   />
                 </div>
-                <div className="md:col-span-2 flex gap-2 items-end">
+
+                {/* Search Filter */}
+                <div>
+                  <label className="text-[10px] uppercase tracking-[0.16em] text-white/60 mb-2 block">Search Products</label>
+                  <input
+                    type="text"
+                    placeholder="Search product name..."
+                    value={batchSaleSearch}
+                    onChange={(e) => setBatchSaleSearch(e.target.value)}
+                    className="bg-[#0B101E] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white w-full placeholder-white/20 focus:outline-none focus:border-[#D4AF37]"
+                  />
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-2 items-end">
                   <button
                     type="button"
                     onClick={() => setFlatSaleProductIds(products.map((item) => String(item.id)))}
-                    className="bg-white/10 border border-white/10 text-white px-4 py-3 rounded-xl text-[10px] tracking-[0.12em] uppercase font-bold"
+                    className="bg-white/10 border border-white/10 text-white px-3 py-2.5 rounded-xl text-[10px] tracking-[0.12em] uppercase font-bold hover:bg-white/20"
                   >
-                    Select All
+                    Select All ({products.length})
                   </button>
                   <button
                     type="button"
                     onClick={() => setFlatSaleProductIds([])}
-                    className="bg-white/5 border border-white/10 text-white/70 px-4 py-3 rounded-xl text-[10px] tracking-[0.12em] uppercase font-bold"
+                    className="bg-white/5 border border-white/10 text-white/70 px-3 py-2.5 rounded-xl text-[10px] tracking-[0.12em] uppercase font-bold hover:bg-white/10"
                   >
-                    Clear Selection
+                    Clear
                   </button>
                   <button
                     type="button"
-                    onClick={applyFlatSaleToSelected}
+                    onClick={() => applyFlatSaleToSelected()}
                     disabled={flatSaleApplying || flatSaleProductIds.length === 0}
-                    className="ml-auto bg-[#D4AF37] text-[#0B101E] font-bold px-4 py-3 rounded-xl text-[10px] tracking-[0.12em] uppercase disabled:opacity-60"
+                    className={`ml-auto font-bold px-4 py-2.5 rounded-xl text-[10px] tracking-[0.12em] uppercase disabled:opacity-60 transition-all ${batchSaleType === 'upto' ? 'bg-red-600 hover:bg-red-500 text-white' : 'bg-[#D4AF37] hover:bg-white text-[#0B101E]'}`}
                   >
-                    {flatSaleApplying ? 'Applying...' : `Apply ${flatSalePercent}%`}
+                    {flatSaleApplying ? 'Applying...' : `Apply ${batchSaleType === 'upto' ? 'UPTO' : 'FLAT'} ${flatSalePercent}%`}
                   </button>
                 </div>
               </div>
 
+              {/* Product Checkbox List */}
               <div className="max-h-64 overflow-y-auto rounded-2xl border border-white/10 bg-[#0B101E]/70">
                 {products.length === 0 ? (
-                  <p className="text-white/50 text-sm p-4">No non-sale products available for flat sale.</p>
+                  <p className="text-white/50 text-sm p-4">No non-sale products available for sale application.</p>
                 ) : (
                   <div className="divide-y divide-white/5">
-                    {products.map((product) => {
-                      const productId = String(product.id);
-                      const checked = flatSaleProductIds.includes(productId);
+                    {products
+                      .filter((p) => p.name.toLowerCase().includes(batchSaleSearch.toLowerCase()))
+                      .map((product) => {
+                        const productId = String(product.id);
+                        const checked = flatSaleProductIds.includes(productId);
 
-                      return (
-                        <label key={productId} className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-white/5 transition-colors">
-                          <input
-                            type="checkbox"
-                            checked={checked}
-                            onChange={(e) => {
-                              setFlatSaleProductIds((prev) => {
-                                if (e.target.checked) return [...prev, productId];
-                                return prev.filter((id) => id !== productId);
-                              });
-                            }}
-                            className="accent-[#D4AF37]"
-                          />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm text-white truncate">{product.name}</p>
-                            <p className="text-xs text-white/50">PKR {(Number(product.price) || 0).toLocaleString()}</p>
-                          </div>
-                        </label>
-                      );
-                    })}
+                        return (
+                          <label key={productId} className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-white/5 transition-colors">
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={(e) => {
+                                setFlatSaleProductIds((prev) => {
+                                  if (e.target.checked) return [...prev, productId];
+                                  return prev.filter((id) => id !== productId);
+                                });
+                              }}
+                              className="accent-[#D4AF37]"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm text-white truncate font-medium">{product.name}</p>
+                              <p className="text-xs text-white/50">PKR {(Number(product.price) || 0).toLocaleString()} • {product.category}</p>
+                            </div>
+                            {checked && (
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-[#D4AF37]/20 text-[#D4AF37]">
+                                WILL BE {batchSaleType === 'upto' ? `UPTO ${flatSalePercent}% OFF` : `FLAT ${flatSalePercent}% OFF`}
+                              </span>
+                            )}
+                          </label>
+                        );
+                      })}
                   </div>
                 )}
               </div>
 
               {flatSaleMessage && (
-                <p className="text-xs mt-4 text-[#D4AF37] tracking-wider uppercase">{flatSaleMessage}</p>
+                <p className="text-xs mt-4 text-[#D4AF37] tracking-wider uppercase font-bold">{flatSaleMessage}</p>
               )}
             </div>
 

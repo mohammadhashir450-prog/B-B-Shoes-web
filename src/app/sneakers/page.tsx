@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import HoverSwapImage from '@/components/common/HoverSwapImage'
+import SaleBadge from '@/components/common/SaleBadge'
 import { ChevronRight, Star, Loader2, Award, Shield, Sparkles, ArrowRight, Heart, ShoppingBag } from 'lucide-react'
 import { useProducts } from '@/context/ProductContext'
 import { useCart } from '@/context/CartContext'
@@ -199,9 +200,7 @@ export default function SneakersPage() {
                         {/* Badges */}
                         {product.isOnSale && (
                           <div className="absolute top-4 right-4 z-10">
-                            <span className="bg-red-600 text-white px-3 py-1 text-[9px] font-extrabold tracking-[0.2em] uppercase rounded-full shadow-lg">
-                              SALE
-                            </span>
+                            <SaleBadge discount={product.discount} saleType={(product as any).saleType} size="xs" />
                           </div>
                         )}
                         

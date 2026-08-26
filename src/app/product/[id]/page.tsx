@@ -10,6 +10,7 @@ import { ChevronRight, ChevronDown, Star, Heart, ShoppingBag, Check, Loader2 } f
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import SizeChartModal from '@/components/common/SizeChartModal';
+import SaleBadge from '@/components/common/SaleBadge';
 
 interface ProductReview {
   id: string;
@@ -493,8 +494,8 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                   </div>
                 )}
                 {product.isOnSale && (
-                  <div className="inline-block bg-red-500/10 border border-red-500 px-4 py-1 rounded-full">
-                    <span className="text-red-500 text-xs font-bold tracking-wider">ON SALE</span>
+                  <div className="inline-block">
+                    <SaleBadge discount={product.discount} saleType={(product as any).saleType} size="sm" />
                   </div>
                 )}
               </div>

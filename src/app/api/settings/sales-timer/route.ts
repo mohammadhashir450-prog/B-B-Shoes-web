@@ -26,7 +26,7 @@ export const GET = asyncHandler(async () => {
     );
   }
 
-  const settings = await SiteSettings.findOne({ key: 'global' }).select('salesEndsAt salesTickerMessage salesTickerSpeed flatSalePercent salesTickerBgColor salesTickerTextColor updatedAt');
+  const settings = await SiteSettings.findOne({ key: 'global' }).select('salesEndsAt salesTickerMessage salesTickerSpeed flatSalePercent uptoSalePercent saleType salesTickerBgColor salesTickerTextColor updatedAt');
 
   return successResponse(
     {
@@ -34,6 +34,8 @@ export const GET = asyncHandler(async () => {
       salesTickerMessage: settings?.salesTickerMessage || '',
       salesTickerSpeed: Number(settings?.salesTickerSpeed || 18),
       flatSalePercent: Number(settings?.flatSalePercent || 0),
+      uptoSalePercent: Number(settings?.uptoSalePercent || 50),
+      saleType: (settings?.saleType as 'flat' | 'upto') || 'flat',
       salesTickerBgColor: normalizeHexColor(settings?.salesTickerBgColor, '#C20F1E'),
       salesTickerTextColor: normalizeHexColor(settings?.salesTickerTextColor, '#FFFFFF'),
       updatedAt: settings?.updatedAt || null,
@@ -61,6 +63,8 @@ export const PATCH = asyncHandler(async (req: NextRequest) => {
   const inputTickerMessage = typeof body?.salesTickerMessage === 'string' ? body.salesTickerMessage : '';
   const inputTickerSpeed = Number(body?.salesTickerSpeed);
   const inputFlatSalePercent = Number(body?.flatSalePercent);
+  const inputUptoSalePercent = Number(body?.uptoSalePercent);
+  const inputSaleType = String(body?.saleType || 'flat').toLowerCase();
   const inputTickerBgColor = body?.salesTickerBgColor;
   const inputTickerTextColor = body?.salesTickerTextColor;
 
@@ -81,6 +85,10 @@ export const PATCH = asyncHandler(async (req: NextRequest) => {
   const flatSalePercent = Number.isFinite(inputFlatSalePercent)
     ? Math.min(100, Math.max(0, Math.round(inputFlatSalePercent)))
     : 0;
+  const uptoSalePercent = Number.isFinite(inputUptoSalePercent)
+    ? Math.min(100, Math.max(0, Math.round(inputUptoSalePercent)))
+    : 50;
+  const saleType = inputSaleType === 'upto' ? 'upto' : 'flat';
   const salesTickerBgColor = normalizeHexColor(inputTickerBgColor, '#C20F1E');
   const salesTickerTextColor = normalizeHexColor(inputTickerTextColor, '#FFFFFF');
 
@@ -93,6 +101,8 @@ export const PATCH = asyncHandler(async (req: NextRequest) => {
         salesTickerMessage,
         salesTickerSpeed,
         flatSalePercent,
+        uptoSalePercent,
+        saleType,
         salesTickerBgColor,
         salesTickerTextColor,
         updatedBy: 'admin-panel',
@@ -103,7 +113,7 @@ export const PATCH = asyncHandler(async (req: NextRequest) => {
       new: true,
       setDefaultsOnInsert: true,
     }
-  ).select('salesEndsAt salesTickerMessage salesTickerSpeed flatSalePercent salesTickerBgColor salesTickerTextColor updatedAt');
+  ).select('salesEndsAt salesTickerMessage salesTickerSpeed flatSalePercent uptoSalePercent saleType salesTickerBgColor salesTickerTextColor updatedAt');
 
   return successResponse(
     {
@@ -111,6 +121,8 @@ export const PATCH = asyncHandler(async (req: NextRequest) => {
       salesTickerMessage: settings?.salesTickerMessage || '',
       salesTickerSpeed: Number(settings?.salesTickerSpeed || 18),
       flatSalePercent: Number(settings?.flatSalePercent || 0),
+      uptoSalePercent: Number(settings?.uptoSalePercent || 50),
+      saleType: (settings?.saleType as 'flat' | 'upto') || 'flat',
       salesTickerBgColor: normalizeHexColor(settings?.salesTickerBgColor, '#C20F1E'),
       salesTickerTextColor: normalizeHexColor(settings?.salesTickerTextColor, '#FFFFFF'),
       updatedAt: settings?.updatedAt || null,

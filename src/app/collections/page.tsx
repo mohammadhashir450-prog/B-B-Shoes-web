@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import HoverSwapImage from '@/components/common/HoverSwapImage'
+import SaleBadge from '@/components/common/SaleBadge'
 import { ChevronRight, Grid, Loader2, ShoppingBag } from 'lucide-react'
 import { useProducts } from '@/context/ProductContext'
 
@@ -145,8 +146,8 @@ export default function CollectionsPage() {
                   >
                     <div className="relative aspect-square bg-gray-50 border border-[#06080F]/45 rounded-xl shadow-[0_10px_24px_-18px_rgba(6,8,15,0.55)]">
                       {product.discount ? (
-                        <div className="absolute top-3 left-3 z-10 bg-red-600 text-white px-2 py-1 rounded-md text-xs font-bold">
-                          -{product.discount}%
+                        <div className="absolute top-3 left-3 z-10">
+                          <SaleBadge discount={product.discount} saleType={(product as any).saleType} size="xs" />
                         </div>
                       ) : null}
                       {product.isNewArrival ? (

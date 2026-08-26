@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import HoverSwapImage from '@/components/common/HoverSwapImage'
+import SaleBadge from '@/components/common/SaleBadge'
 import { ChevronRight, Star, Filter, Loader2 } from 'lucide-react'
 import { useProducts } from '@/context/ProductContext'
 
@@ -176,9 +177,7 @@ export default function MenPage() {
                     )}
                     {product.isOnSale && (
                       <div className="absolute top-4 left-4">
-                        <span className="bg-red-600 text-white px-3 py-1 text-[9px] font-extrabold tracking-[0.15em] uppercase rounded">
-                          ON SALE
-                        </span>
+                        <SaleBadge discount={product.discount} saleType={(product as any).saleType} size="xs" />
                       </div>
                     )}
                     {!product.inStock && (

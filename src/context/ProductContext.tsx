@@ -28,6 +28,7 @@ export interface Product {
   rating?: number;
   reviews?: number;
   isOnSale?: boolean;
+  saleType?: 'flat' | 'upto';
   isNewArrival?: boolean;
   inStock?: boolean;
   stock?: number;

@@ -6,6 +6,7 @@ import { ArrowRight, ShoppingBag, Loader2 } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import HoverSwapImage from '@/components/common/HoverSwapImage';
+import SaleBadge from '@/components/common/SaleBadge';
 import { useProducts } from '@/context/ProductContext';
 
 type TimeLeft = {
@@ -208,9 +209,9 @@ export default function SalesPage() {
                 className="group"
               >
                 <div className="relative bg-white rounded-2xl overflow-hidden mb-4 aspect-square">
-                  {product.discount && (
-                    <div className="absolute top-4 left-4 z-10 bg-red-600 text-white px-3 py-1.5 rounded-lg">
-                      <span className="text-xs font-bold">-{product.discount}%</span>
+                  {Boolean(product.discount) && (
+                    <div className="absolute top-4 left-4 z-10">
+                      <SaleBadge discount={product.discount} saleType={(product as any).saleType} size="sm" />
                     </div>
                   )}
                   <HoverSwapImage

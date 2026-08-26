@@ -6,6 +6,8 @@ export interface ISiteSettings extends Document {
   salesTickerMessage?: string;
   salesTickerSpeed?: number;
   flatSalePercent?: number;
+  uptoSalePercent?: number;
+  saleType?: 'flat' | 'upto';
   salesTickerBgColor?: string;
   salesTickerTextColor?: string;
   updatedBy?: string;
@@ -43,6 +45,17 @@ const SiteSettingsSchema = new Schema<ISiteSettings>(
       default: 0,
       min: 0,
       max: 100,
+    },
+    uptoSalePercent: {
+      type: Number,
+      default: 50,
+      min: 0,
+      max: 100,
+    },
+    saleType: {
+      type: String,
+      enum: ['flat', 'upto'],
+      default: 'flat',
     },
     salesTickerBgColor: {
       type: String,

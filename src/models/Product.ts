@@ -26,6 +26,7 @@ export interface IProduct extends Document {
   inStock: boolean;
   stock: number;
   sold: number;
+  saleType?: 'flat' | 'upto';
   sizeStock?: Array<{
     size: number;
     quantity: number;
@@ -148,6 +149,11 @@ const ProductSchema = new Schema<IProduct>(
     isOnSale: {
       type: Boolean,
       default: false,
+    },
+    saleType: {
+      type: String,
+      enum: ['flat', 'upto'],
+      default: 'flat',
     },
     isNewArrival: {
       type: Boolean,
