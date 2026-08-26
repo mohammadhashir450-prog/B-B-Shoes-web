@@ -376,4 +376,231 @@ export async function sendAdminOrderEmail(payload: AdminOrderEmailPayload): Prom
     `🛍️ New Order #${orderId} — PKR ${total.toLocaleString()} — ${customerName}`,
     html
   );
-}
+}
+
+// 6. Send Admin Order Cancellation Email
+export interface AdminOrderCancellationPayload {
+  orderId: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  customerAddress: string;
+  items: Array<{
+    productId?: string;
+    productName: string;
+    productImage?: string;
+    quantity: number;
+    size?: string;
+    color?: string;
+    price: number;
+  }>;
+  subtotal: number;
+  shippingFee: number;
+  total: number;
+  paymentMethod: string;
+  cancellationReason?: string;
+}
+
+export async function sendAdminOrderCancellationEmail(payload: AdminOrderCancellationPayload): Promise<boolean> {
+  const adminEmail = getAdminEmail();
+  if (!adminEmail) {
+    console.warn('⚠️ ADMIN_EMAIL not set — skipping admin cancellation email');
+    return false;
+  }
+
+  const {
+    orderId,
+    customerName,
+    customerEmail,
+    customerPhone,
+    customerAddress,
+    items,
+    subtotal,
+    shippingFee,
+    total,
+    paymentMethod,
+    cancellationReason,
+  } = payload;
+
+  const now = new Date().toLocaleString('en-PK', {
+    timeZone: 'Asia/Karachi',
+    dateStyle: 'full',
+    timeStyle: 'short',
+  });
+
+  const itemsHtml = (items || [])
+    .map(
+      (item) => `
+      <tr style="border-bottom:1px solid #f0f0f0">
+        <td style="padding:12px 8px;vertical-align:middle">
+          ${
+            item.productImage
+              ? `<img src="${item.productImage}" alt="${item.productName}" width="54" height="54"
+                  style="border-radius:8px;object-fit:cover;display:block;border:1px solid #eee" />`
+              : `<div style="width:54px;height:54px;border-radius:8px;background:#f5f5f5;display:flex;align-items:center;justify-content:center;font-size:20px">👟</div>`
+          }
+        </td>
+        <td style="padding:12px 8px;vertical-align:middle">
+          <div style="font-weight:700;color:#1a1a1a;font-size:14px">${item.productName}</div>
+          <div style="font-size:12px;color:#888;margin-top:2px">
+            ${[item.size && `Size: ${item.size}`, item.color && `Color: ${item.color}`].filter(Boolean).join(' &nbsp;·&nbsp; ')}
+          </div>
+        </td>
+        <td style="padding:12px 8px;vertical-align:middle;text-align:center;color:#555;font-size:13px">×${item.quantity}</td>
+        <td style="padding:12px 8px;vertical-align:middle;text-align:right;font-weight:700;color:#ef4444;white-space:nowrap">
+          PKR ${(item.price * item.quantity).toLocaleString()}
+        </td>
+      </tr>`
+    )
+    .join('');
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f4f4f8;font-family:'Segoe UI',Arial,sans-serif">
+
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f8;padding:32px 16px">
+<tr><td align="center">
+<table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08)">
+
+  <!-- Header -->
+  <tr>
+    <td style="background:linear-gradient(135deg,#1E0808 0%,#3B1111 100%);padding:28px 32px;text-align:center">
+      <div style="font-size:26px;font-weight:900;color:#EF4444;letter-spacing:0.06em;margin-bottom:4px">B&amp;B SHOES</div>
+      <div style="font-size:12px;color:#fff;opacity:0.6;letter-spacing:0.2em;text-transform:uppercase">Order Cancellation Alert</div>
+    </td>
+  </tr>
+
+  <!-- Alert Banner -->
+  <tr>
+    <td style="background:#FEF2F2;border-left:4px solid #EF4444;padding:14px 32px">
+      <div style="font-size:16px;font-weight:800;color:#991B1B">🚨 Order Cancelled by Customer</div>
+      <div style="font-size:12px;color:#B91C1C;margin-top:2px">${now} &nbsp;·&nbsp; Stock has been automatically restored to inventory</div>
+    </td>
+  </tr>
+
+  <!-- Order ID -->
+  <tr>
+    <td style="padding:24px 32px 0">
+      <table width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+          <td>
+            <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.15em;color:#999;margin-bottom:4px">Cancelled Order ID</div>
+            <div style="font-size:22px;font-weight:900;color:#0A0C14;font-family:monospace">${orderId}</div>
+          </td>
+          <td align="right" valign="top">
+            <div style="display:inline-block;padding:6px 14px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;background:#FEE2E2;color:#DC2626;border:1px solid #F87171">
+              STATUS: CANCELLED
+            </div>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+
+  <!-- Customer Info -->
+  <tr>
+    <td style="padding:20px 32px 0">
+      <div style="background:#F9FAFB;border:1px solid #EAEAEA;border-radius:12px;padding:18px 20px">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.15em;color:#999;margin-bottom:12px;font-weight:700">Customer Details</div>
+        <table width="100%" cellpadding="0" cellspacing="0" style="font-size:14px">
+          <tr>
+            <td style="width:130px;color:#888;padding-bottom:8px;vertical-align:top">👤 Name</td>
+            <td style="font-weight:700;color:#1a1a1a;padding-bottom:8px">${customerName}</td>
+          </tr>
+          <tr>
+            <td style="color:#888;padding-bottom:8px;vertical-align:top">📧 Email</td>
+            <td style="padding-bottom:8px"><a href="mailto:${customerEmail}" style="color:#0047AB;text-decoration:none">${customerEmail}</a></td>
+          </tr>
+          <tr>
+            <td style="color:#888;padding-bottom:8px;vertical-align:top">📞 Phone</td>
+            <td style="padding-bottom:8px"><a href="tel:${customerPhone}" style="color:#0047AB;text-decoration:none">${customerPhone}</a></td>
+          </tr>
+          <tr>
+            <td style="color:#888;vertical-align:top">📍 Address</td>
+            <td style="color:#1a1a1a">${customerAddress}</td>
+          </tr>
+          ${cancellationReason ? `
+          <tr>
+            <td style="color:#888;padding-top:8px;vertical-align:top">📝 Reason</td>
+            <td style="color:#991B1B;padding-top:8px;font-weight:600">${cancellationReason}</td>
+          </tr>` : ''}
+        </table>
+      </div>
+    </td>
+  </tr>
+
+  <!-- Cancelled Items Table -->
+  <tr>
+    <td style="padding:20px 32px 0">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.15em;color:#999;margin-bottom:10px;font-weight:700">Cancelled Items (Stock Restored)</div>
+      <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border:1px solid #EAEAEA;border-radius:12px;overflow:hidden">
+        <thead>
+          <tr style="background:#F3F4F6">
+            <th style="padding:10px 8px;text-align:left;font-size:11px;color:#999;text-transform:uppercase;letter-spacing:0.1em">Product</th>
+            <th style="padding:10px 8px;text-align:left;font-size:11px;color:#999;text-transform:uppercase;letter-spacing:0.1em">Details</th>
+            <th style="padding:10px 8px;text-align:center;font-size:11px;color:#999;text-transform:uppercase;letter-spacing:0.1em">Qty Restored</th>
+            <th style="padding:10px 8px;text-align:right;font-size:11px;color:#999;text-transform:uppercase;letter-spacing:0.1em">Amount</th>
+          </tr>
+        </thead>
+        <tbody>${itemsHtml}</tbody>
+      </table>
+    </td>
+  </tr>
+
+  <!-- Order Total -->
+  <tr>
+    <td style="padding:16px 32px 0">
+      <div style="background:#0A0C14;border-radius:12px;padding:18px 20px">
+        <table width="100%" cellpadding="0" cellspacing="0" style="font-size:13px;color:#aaa">
+          <tr>
+            <td style="padding-bottom:8px">Cancelled Subtotal</td>
+            <td style="text-align:right;padding-bottom:8px;color:#ddd">PKR ${subtotal.toLocaleString()}</td>
+          </tr>
+          <tr>
+            <td style="padding-bottom:8px">Payment Method</td>
+            <td style="text-align:right;padding-bottom:8px;color:#ddd;font-weight:600">${formatPaymentMethod(paymentMethod)}</td>
+          </tr>
+          <tr style="border-top:1px solid #ffffff15">
+            <td style="padding-top:10px;font-size:16px;font-weight:900;color:#fff">Cancelled Order Total</td>
+            <td style="padding-top:10px;text-align:right;font-size:18px;font-weight:900;color:#EF4444">PKR ${total.toLocaleString()}</td>
+          </tr>
+        </table>
+      </div>
+    </td>
+  </tr>
+
+  <!-- Info Notice -->
+  <tr>
+    <td style="padding:16px 32px 0">
+      <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:10px;padding:12px 16px;font-size:13px;color:#1E40AF">
+        ℹ️ <strong>System Note:</strong> The product inventory counts for this order have been automatically increased back in the database.
+      </div>
+    </td>
+  </tr>
+
+  <!-- Footer -->
+  <tr>
+    <td style="padding:24px 32px 28px;text-align:center;border-top:1px solid #f0f0f0;margin-top:20px">
+      <div style="font-size:11px;color:#bbb;line-height:1.7">
+        This is an automated alert from your <strong>B&amp;B Shoes</strong> store.<br>
+        Order Cancellation Management System.
+      </div>
+    </td>
+  </tr>
+
+</table>
+</td></tr>
+</table>
+
+</body>
+</html>`;
+
+  return await sendMail(
+    adminEmail,
+    `🚨 Order Cancelled #${orderId} — PKR ${total.toLocaleString()} — ${customerName}`,
+    html
+  );
+}
+

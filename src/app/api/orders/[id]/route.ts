@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import connectDB from '@/lib/mongodb';
 import { Order, Product } from '@/models';
+import { sendAdminOrderCancellationEmail } from '@/lib/email-service';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const normalize = (value: unknown) => String(value || '').trim().toLowerCase();
@@ -134,6 +135,28 @@ export async function PUT(
       restoreStock(existingOrder).catch((err) =>
         console.error('[Stock Restore][PUT] Async error:', err)
       );
+
+      sendAdminOrderCancellationEmail({
+        orderId: existingOrder.orderId || String(existingOrder._id),
+        customerName: existingOrder.customerName || 'Customer',
+        customerEmail: existingOrder.customerEmail || '',
+        customerPhone: existingOrder.customerPhone || '',
+        customerAddress: existingOrder.customerAddress || '',
+        items: (existingOrder.items || []).map((it: any) => ({
+          productId: it.productId,
+          productName: it.productName || it.name || 'Product',
+          productImage: it.productImage || it.image || '',
+          quantity: Number(it.quantity) || 1,
+          size: it.size,
+          color: it.color,
+          price: Number(it.price) || 0,
+        })),
+        subtotal: Number(existingOrder.subtotal) || 0,
+        shippingFee: Number(existingOrder.shippingFee) || 0,
+        total: Number(existingOrder.total) || 0,
+        paymentMethod: existingOrder.paymentMethod || 'cod',
+        cancellationReason: body.reason || 'Order cancelled via API / Admin',
+      }).catch((err) => console.error('[Cancellation Email][PUT] Async error:', err));
     }
 
     return NextResponse.json({

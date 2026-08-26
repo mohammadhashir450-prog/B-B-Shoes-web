@@ -72,6 +72,46 @@ export default function OrderTrackingPage({ params }: { params: { id: string } }
   const [order, setOrder] = useState<OrderDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelMessage, setCancelMessage] = useState<string | null>(null);
+  const [cancelError, setCancelError] = useState<string | null>(null);
+
+  const canCancel = order?.status === 'pending' || order?.status === 'confirmed';
+
+  const handleCancelOrder = async () => {
+    if (!order) return;
+    const confirmed = window.confirm(`Are you sure you want to cancel Order #${order.orderId || order.id}? Stock will be restored and admin will be notified.`);
+    if (!confirmed) return;
+
+    try {
+      setCancelling(true);
+      setCancelError(null);
+      setCancelMessage(null);
+
+      const res = await fetch('/api/orders', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderId: order.orderId || order.id,
+          status: 'cancelled',
+          customerEmail: order.customerEmail,
+          reason: 'Cancelled by customer via Track Order page',
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || 'Failed to cancel order');
+      }
+
+      setOrder((prev) => (prev ? { ...prev, status: 'cancelled' } : prev));
+      setCancelMessage('Order has been cancelled successfully. Admin has been notified via email.');
+    } catch (err: any) {
+      setCancelError(err.message || 'Failed to cancel order');
+    } finally {
+      setCancelling(false);
+    }
+  };
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -205,9 +245,21 @@ export default function OrderTrackingPage({ params }: { params: { id: string } }
             </div>
             
             {!isCancelled ? (
-              <div className="bg-[#D4AF37]/10 border border-[#D4AF37]/30 rounded-2xl p-4 md:text-right">
-                <p className="text-xs text-gray-400 mb-1">Estimated Delivery</p>
-                <p className="text-lg font-bold text-[#D4AF37]">{formattedEstDate}</p>
+              <div className="flex flex-col items-end gap-2">
+                <div className="bg-[#D4AF37]/10 border border-[#D4AF37]/30 rounded-2xl p-4 md:text-right w-full">
+                  <p className="text-xs text-gray-400 mb-1">Estimated Delivery</p>
+                  <p className="text-lg font-bold text-[#D4AF37]">{formattedEstDate}</p>
+                </div>
+                {canCancel && (
+                  <button
+                    type="button"
+                    onClick={handleCancelOrder}
+                    disabled={cancelling}
+                    className="text-xs font-semibold px-5 py-2.5 rounded-full border border-red-500/40 bg-red-500/10 text-red-300 hover:bg-red-500 hover:text-white transition-all disabled:opacity-50"
+                  >
+                    {cancelling ? 'Cancelling...' : 'Cancel This Order ✕'}
+                  </button>
+                )}
               </div>
             ) : (
               <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-4 text-red-400 font-bold text-center">
@@ -215,6 +267,19 @@ export default function OrderTrackingPage({ params }: { params: { id: string } }
               </div>
             )}
           </div>
+
+          {cancelMessage && (
+            <div className="mb-6 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-4 flex items-center gap-3 text-emerald-300 text-sm font-medium">
+              <CheckCircle className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+              {cancelMessage}
+            </div>
+          )}
+
+          {cancelError && (
+            <div className="mb-6 bg-red-500/10 border border-red-500/30 rounded-2xl p-4 text-red-300 text-sm">
+              {cancelError}
+            </div>
+          )}
 
           {/* Stepper Status Bar (Only if not cancelled) */}
           {!isCancelled && (

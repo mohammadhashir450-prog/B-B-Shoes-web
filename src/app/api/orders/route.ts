@@ -9,7 +9,7 @@ import { successResponse, createdResponse, validationErrorResponse, errorRespons
 import { validateOrder } from '@/lib/validation';
 import { buildAdminOrderMessage, buildAdminOrderWhatsAppUrl, ADMIN_WHATSAPP_DISPLAY } from '@/lib/whatsapp';
 import { sendAdminWhatsAppMessage } from '@/lib/whatsappServer';
-import { sendAdminOrderEmail } from '@/lib/email-service';
+import { sendAdminOrderEmail, sendAdminOrderCancellationEmail } from '@/lib/email-service';
 
 const formatOrderForClient = (order: any) => ({
   id: order._id.toString(),
@@ -275,11 +275,48 @@ export const GET = asyncHandler(async (req: NextRequest) => {
   // Build query
   const query: any = {};
   if (status) query.status = status;
-  if (email) query.customerEmail = email;
-  if (userId) {
-    query.user_id = userId;
-  } else if (scope !== 'all' && !status && !email) {
-    return validationErrorResponse(['user_id is required to fetch customer orders']);
+
+  if (scope !== 'all') {
+    const orConditions: any[] = [];
+
+    if (userId) {
+      orConditions.push({ user_id: userId });
+      if (mongoose.Types.ObjectId.isValid(userId)) {
+        try {
+          const foundUser = await User.findById(userId).select('user_id email').lean();
+          if (foundUser) {
+            if (foundUser.user_id) orConditions.push({ user_id: foundUser.user_id });
+            if (foundUser.email) {
+              orConditions.push({
+                customerEmail: { $regex: new RegExp(`^${foundUser.email.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') },
+              });
+            }
+          }
+        } catch {
+          // ignore lookup error
+        }
+      }
+    }
+
+    if (email) {
+      orConditions.push({
+        customerEmail: { $regex: new RegExp(`^${email.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') },
+      });
+      try {
+        const userByEmail = await User.findOne({ email: email.trim().toLowerCase() }).select('user_id').lean();
+        if (userByEmail?.user_id) {
+          orConditions.push({ user_id: userByEmail.user_id });
+        }
+      } catch {
+        // ignore lookup error
+      }
+    }
+
+    if (orConditions.length > 0) {
+      query.$or = orConditions;
+    } else if (!status) {
+      return validationErrorResponse(['user_id or email is required to fetch customer orders']);
+    }
   }
 
   const orders = await Order.collection.find(query).sort({ createdAt: -1 }).toArray();
@@ -618,11 +655,28 @@ export const PATCH = asyncHandler(async (req: NextRequest) => {
   }
 
   if (wantsStatusUpdate && status === 'cancelled') {
-    if (!requestUserId) {
-      return validationErrorResponse(['user_id is required to cancel order']);
+    const requestUserEmail = String(body.email || body.customerEmail || '').trim().toLowerCase();
+
+    let isOwner =
+      (requestUserId && String(existingOrder.user_id || '').trim() === requestUserId) ||
+      (requestUserEmail && String(existingOrder.customerEmail || '').trim().toLowerCase() === requestUserEmail);
+
+    if (!isOwner && requestUserId && mongoose.Types.ObjectId.isValid(requestUserId)) {
+      try {
+        const userObj = await User.findById(requestUserId).select('user_id email').lean();
+        if (userObj) {
+          if (userObj.user_id && userObj.user_id === existingOrder.user_id) isOwner = true;
+          if (userObj.email && userObj.email.toLowerCase() === String(existingOrder.customerEmail || '').toLowerCase()) isOwner = true;
+        }
+      } catch {
+        // ignore
+      }
     }
 
-    if (String(existingOrder.user_id || '').trim() !== requestUserId) {
+    if (!isOwner && !body.isAdmin) {
+      if (!requestUserId && !requestUserEmail) {
+        return validationErrorResponse(['user_id or email is required to cancel order']);
+      }
       return errorResponse('You are not allowed to cancel this order', 403);
     }
 
@@ -656,12 +710,43 @@ export const PATCH = asyncHandler(async (req: NextRequest) => {
     return errorResponse('Order not found', 404);
   }
 
-  // ── Stock restore on cancellation ──────────────────────────────────────────
+  // ── Stock restore & Admin Notification on cancellation ───────────────────
   if (wantsStatusUpdate && status === 'cancelled' && currentStatus !== 'cancelled') {
-    // Run async — result already returned to client; log errors only
+    // 1. Restore product inventory in DB
     restoreInventoryForOrder(existingOrder).catch((err) =>
       console.error('[Stock Restore] Async error after PATCH cancel:', err)
     );
+
+    // 2. Send cancellation email alert to Admin
+    sendAdminOrderCancellationEmail({
+      orderId: existingOrder.orderId || String(existingOrder._id),
+      customerName: existingOrder.customerName || 'Customer',
+      customerEmail: existingOrder.customerEmail || '',
+      customerPhone: existingOrder.customerPhone || '',
+      customerAddress: existingOrder.customerAddress || '',
+      items: (existingOrder.items || []).map((it: any) => ({
+        productId: it.productId,
+        productName: it.productName || it.name || 'Product',
+        productImage: it.productImage || it.image || '',
+        quantity: Number(it.quantity) || 1,
+        size: it.size,
+        color: it.color,
+        price: Number(it.price) || 0,
+      })),
+      subtotal: Number(existingOrder.subtotal) || 0,
+      shippingFee: Number(existingOrder.shippingFee) || 0,
+      total: Number(existingOrder.total) || 0,
+      paymentMethod: existingOrder.paymentMethod || 'cod',
+      cancellationReason: body.reason || 'Cancelled by customer via Order History',
+    }).then((sent) => {
+      if (sent) {
+        console.log('✅ Admin cancellation email dispatched for:', existingOrder.orderId || existingOrder._id);
+      } else {
+        console.warn('⚠️ Admin cancellation email failed for:', existingOrder.orderId || existingOrder._id);
+      }
+    }).catch((err) => {
+      console.error('❌ Admin cancellation email error:', err);
+    });
   }
 
   return successResponse(

@@ -61,16 +61,17 @@ function MyOrdersContent() {
   const searchParams = useSearchParams();
   const { items: bagItems } = useCart();
   const [orders, setOrders] = useState<Order[]>([]);
-  const [selectedTab, setSelectedTab] = useState<'bag' | 'orders'>('bag');
+  const [selectedTab, setSelectedTab] = useState<'bag' | 'orders'>('orders');
   const [ordersLoading, setOrdersLoading] = useState(true);
   const [ordersError, setOrdersError] = useState<string | null>(null);
+  const [cancelSuccessMsg, setCancelSuccessMsg] = useState<string | null>(null);
   const [cancellingOrderId, setCancellingOrderId] = useState<string | null>(null);
   const latestOrder = orders[0];
 
-  const canCancelOrder = (status: Order['status']) => status === 'pending' || status === 'confirmed';
+  const canCancelOrder = (orderStatus: Order['status']) => orderStatus === 'pending' || orderStatus === 'confirmed';
 
   const handleCancelOrder = async (orderId: string) => {
-    if (!session?.user?.user_id) {
+    if (!session?.user) {
       setOrdersError('Please sign in again to cancel your order.');
       return;
     }
@@ -83,12 +84,13 @@ function MyOrdersContent() {
       return;
     }
 
-    const confirmed = window.confirm('Are you sure you want to cancel this order?');
+    const confirmed = window.confirm(`Are you sure you want to cancel Order #${orderId}? Your order details will be sent to admin and stock will be restored.`);
     if (!confirmed) return;
 
     try {
       setCancellingOrderId(orderId);
       setOrdersError(null);
+      setCancelSuccessMsg(null);
 
       const response = await fetch('/api/orders', {
         method: 'PATCH',
@@ -96,7 +98,9 @@ function MyOrdersContent() {
         body: JSON.stringify({
           orderId,
           status: 'cancelled',
-          user_id: session.user.user_id,
+          user_id: session.user.user_id || session.user.id || '',
+          email: session.user.email || '',
+          reason: 'Cancelled by customer from My Orders page',
         }),
       });
 
@@ -105,7 +109,11 @@ function MyOrdersContent() {
         throw new Error(result?.message || 'Failed to cancel order');
       }
 
-      setOrders((prev) => prev.map((order) => (order.id === orderId ? { ...order, status: 'cancelled' } : order)));
+      setOrders((prev) =>
+        prev.map((order) => (order.id === orderId ? { ...order, status: 'cancelled' } : order))
+      );
+      setCancelSuccessMsg(`Order #${orderId} has been successfully cancelled. Admin has been notified via email.`);
+      setTimeout(() => setCancelSuccessMsg(null), 6000);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to cancel order';
       setOrdersError(message);
@@ -117,20 +125,22 @@ function MyOrdersContent() {
   // Redirect if not authenticated
   useEffect(() => {
     if (status === 'unauthenticated') {
-      router.push('/login');
+      router.push('/login?callbackUrl=/my-orders');
     }
   }, [status, router]);
 
   useEffect(() => {
-    const placedOrderId = searchParams.get('placed');
-    if (placedOrderId) {
+    const tabParam = searchParams.get('tab');
+    if (tabParam === 'bag') {
+      setSelectedTab('bag');
+    } else {
       setSelectedTab('orders');
     }
   }, [searchParams]);
 
   useEffect(() => {
     const fetchOrders = async () => {
-      if (!session?.user?.user_id) {
+      if (!session?.user) {
         setOrdersLoading(false);
         return;
       }
@@ -139,7 +149,12 @@ function MyOrdersContent() {
         setOrdersLoading(true);
         setOrdersError(null);
 
-        const response = await fetch(`/api/orders?user_id=${encodeURIComponent(session.user.user_id)}`, {
+        const params = new URLSearchParams();
+        if (session.user.user_id) params.set('user_id', session.user.user_id);
+        if (session.user.id) params.set('id', session.user.id);
+        if (session.user.email) params.set('email', session.user.email);
+
+        const response = await fetch(`/api/orders?${params.toString()}`, {
           cache: 'no-store',
         });
 
@@ -162,7 +177,7 @@ function MyOrdersContent() {
     if (status === 'authenticated') {
       fetchOrders();
     }
-  }, [session?.user?.user_id, status, searchParams]);
+  }, [session?.user?.user_id, session?.user?.email, status, searchParams]);
 
   // Loading state
   if (status === 'loading') {
@@ -318,6 +333,13 @@ function MyOrdersContent() {
           {/* Orders Tab */}
           {selectedTab === 'orders' && (
             <div>
+              {cancelSuccessMsg && (
+                <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-4 mb-6 flex items-center gap-3">
+                  <CheckCircle className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                  <p className="text-emerald-300 text-sm font-medium">{cancelSuccessMsg}</p>
+                </div>
+              )}
+
               {ordersLoading ? (
                 <div className="bg-[#1A2435] rounded-3xl p-16 text-center border border-white/10">
                   <Loader2 className="w-10 h-10 text-[#D4AF37] animate-spin mx-auto mb-4" />
