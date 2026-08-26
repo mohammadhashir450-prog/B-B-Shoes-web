@@ -376,7 +376,9 @@ export default function OrderTrackingPage({ params }: { params: { id: string } }
                     </div>
                     <div className="flex justify-between text-gray-400">
                       <span>Shipping Fee</span>
-                      <span>PKR {order.shippingFee.toLocaleString()}</span>
+                      <span className={order.shippingFee === 0 ? 'text-emerald-400 font-semibold' : ''}>
+                        {order.shippingFee === 0 ? 'FREE' : `PKR ${order.shippingFee.toLocaleString()}`}
+                      </span>
                     </div>
                     <div className="flex justify-between font-bold text-sm text-white pt-1 border-t border-white/5">
                       <span>Total Invoice</span>

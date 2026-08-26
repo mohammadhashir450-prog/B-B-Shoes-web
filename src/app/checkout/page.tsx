@@ -10,6 +10,7 @@ import { CreditCard, Smartphone, Banknote, Check, ChevronRight, Shield, AlertCir
 import { maskCardNumber } from '@/lib/security';
 import { ADMIN_WHATSAPP_DISPLAY } from '@/lib/whatsapp';
 import CitySearchDropdown from '@/components/common/CitySearchDropdown';
+import { useShipping } from '@/hooks/useShipping';
 
 const STORE_BANK_ACCOUNT = {
   name: 'Meezan Bank',
@@ -60,7 +61,7 @@ export default function CheckoutPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
   const { items, totalPrice, clearCart } = useCart();
-  const deliveryFee = totalPrice >= 4000 ? 0 : totalPrice > 0 ? 250 : 0;
+  const { fee: deliveryFee, isFreeForCart, config: shippingConfig } = useShipping(totalPrice);
   const orderTotal = totalPrice + deliveryFee;
   const [selectedMethod, setSelectedMethod] = useState<string>('cod');
   const [showSuccess, setShowSuccess] = useState(false);
@@ -1051,11 +1052,26 @@ export default function CheckoutPage() {
                   </div>
                   <div className="flex items-center justify-between text-gray-300">
                     <span>Delivery</span>
-                    <span className="font-semibold text-[#D4AF37]">
-                      {deliveryFee === 0 ? 'FREE' : `PKR ${deliveryFee.toLocaleString()}`}
+                    <span className={`font-semibold ${isFreeForCart ? 'text-emerald-400' : 'text-[#D4AF37]'}`}>
+                      {isFreeForCart ? (
+                        <span className="flex items-center gap-1">
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                          FREE
+                        </span>
+                      ) : `PKR ${deliveryFee.toLocaleString()}`}
                     </span>
                   </div>
-                  <p className="text-xs text-gray-400">Free delivery on orders above PKR 4,000</p>
+                  {shippingConfig.freeThreshold > 0 && !isFreeForCart && (
+                    <p className="text-xs text-gray-400">
+                      Free delivery on orders above PKR {shippingConfig.freeThreshold.toLocaleString()}
+                    </p>
+                  )}
+                  {isFreeForCart && (
+                    <p className="text-xs text-emerald-500 flex items-center gap-1">
+                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
+                      Free shipping applied!
+                    </p>
+                  )}
                   <div className="border-t border-white/10 pt-4">
                     <div className="flex items-center justify-between text-xl font-bold">
                       <span>Total</span>

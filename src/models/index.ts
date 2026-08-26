@@ -23,6 +23,7 @@ export { default as NewsletterSubscriber } from './NewsletterSubscriber';
 export { default as Faq } from './Faq';
 export { default as ActivityLog } from './ActivityLog';
 export { default as ShippingMethod } from './ShippingMethod';
+export { default as ShippingConfig } from './ShippingConfig';
 
 // Export interfaces
 export type { IProduct } from './Product';
@@ -49,3 +50,4 @@ export type { INewsletterSubscriber } from './NewsletterSubscriber';
 export type { IFaq } from './Faq';
 export type { IActivityLog } from './ActivityLog';
 export type { IShippingMethod } from './ShippingMethod';
+export type { IShippingConfig } from './ShippingConfig';

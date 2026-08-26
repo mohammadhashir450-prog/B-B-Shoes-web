@@ -4,11 +4,12 @@ import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Package, ShoppingCart, Users, Plus, Edit2, Trash2, X, Save, Camera, Upload, Tag, Lock, Eye, EyeOff, TrendingUp, Sparkles, Crown, Check, ArrowRight, ChevronRight, Clock3, BarChart3, Wallet, PackageCheck, Search, MapPin, Mail, Phone, AlertTriangle } from 'lucide-react';
+import { Package, ShoppingCart, Users, Plus, Edit2, Trash2, X, Save, Camera, Upload, Tag, Lock, Eye, EyeOff, TrendingUp, Sparkles, Crown, Check, ArrowRight, ChevronRight, Clock3, BarChart3, Wallet, PackageCheck, Search, MapPin, Mail, Phone, AlertTriangle, Truck } from 'lucide-react';
 import { CldUploadWidget } from 'next-cloudinary';
 import { useProducts, Product } from '@/context/ProductContext';
 import StockControl from '@/components/admin/StockControl';
 import AdminSeasonalBanners from '@/components/admin/AdminSeasonalBanners';
+import AdminShippingSettings from '@/components/admin/AdminShippingSettings';
 
 interface Order {
   id: string;
@@ -1087,7 +1088,8 @@ export default function AdminPanel() {
             { key: 'seasonal-banners', label: 'Seasonal', icon: Sparkles },
             { key: 'newarrivals', label: 'New Drops', icon: Sparkles },
             { key: 'orders', label: 'Concierge (Orders)', icon: ShoppingCart },
-            { key: 'analytics', label: 'Analytics', icon: BarChart3 }
+            { key: 'analytics', label: 'Analytics', icon: BarChart3 },
+            { key: 'shipping', label: 'Shipping', icon: Truck },
           ].map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.key;
@@ -2923,6 +2925,15 @@ export default function AdminPanel() {
                 </div>
               ))
             )}
+          </motion.div>
+        )}
+
+        {/* --- SHIPPING TAB --- */}
+        {activeTab === 'shipping' && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>
+            <div className="bg-[#121A2F]/60 backdrop-blur-xl border border-white/10 rounded-3xl p-6 max-w-2xl">
+              <AdminShippingSettings />
+            </div>
           </motion.div>
         )}
 
