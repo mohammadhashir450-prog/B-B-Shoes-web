@@ -72,6 +72,7 @@ export const GET = asyncHandler(async (req: NextRequest) => {
     rating: product.rating,
     reviews: product.reviews,
     isOnSale: product.isOnSale,
+    saleType: (product as any).saleType || 'flat',
     isNewArrival: product.isNewArrival,
     inStock: product.inStock,
     stock: product.stock,

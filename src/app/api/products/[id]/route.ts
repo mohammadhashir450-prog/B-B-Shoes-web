@@ -60,9 +60,13 @@ export async function PUT(
 
     const body = await request.json();
 
+    // Strip internal / immutable fields so Mongoose doesn't complain and we
+    // don't accidentally wipe image/sizeStock/stock when only updating sale fields.
+    const { id, _id, __v, createdAt, updatedAt, ...safeFields } = body as any;
+
     const product = await Product.findByIdAndUpdate(
       params.id,
-      body,
+      { $set: safeFields },
       {
         new: true,
         runValidators: true,
@@ -95,6 +99,7 @@ export async function PUT(
     );
   }
 }
+
 
 // DELETE - Delete product
 export async function DELETE(

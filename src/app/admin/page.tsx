@@ -145,9 +145,9 @@ export default function AdminPanel() {
   const [editingStockProduct, setEditingStockProduct] = useState<Product | null>(null);
   const [productSearchQuery, setProductSearchQuery] = useState('');
   
-  // Get filtered products from context
+  // Get all products from context for portfolio management
   const products = useMemo(() => {
-    return allProducts.filter((p) => !p.isOnSale && !p.isNewArrival);
+    return allProducts;
   }, [allProducts]);
 
   const searchedProducts = useMemo(() => {
@@ -640,8 +640,9 @@ export default function AdminPanel() {
         const response = await fetch(`/api/products/${product.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
+          // Only send sale-specific fields — never spread the full product
+          // object so we don't accidentally wipe sizeStock / stock / image.
           body: JSON.stringify({
-            ...product,
             isOnSale: true,
             saleType: targetType,
             discount: normalizedPercent,
@@ -692,9 +693,10 @@ export default function AdminPanel() {
         const response = await fetch(`/api/products/${product.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
+          // Only send fields that reverse the sale — don't spread the full product.
           body: JSON.stringify({
-            ...product,
             isOnSale: false,
+            saleType: 'flat',
             discount: 0,
             originalPrice: 0,
             price: restorePrice,
@@ -2009,6 +2011,20 @@ export default function AdminPanel() {
                           #{serial} • {p.category}
                         </span>
                       </div>
+                      {p.isOnSale && (
+                        <div className="absolute top-4 right-4">
+                          <span className="text-[8px] font-black tracking-[0.2em] text-red-400 bg-red-500/20 border border-red-500/30 px-2.5 py-1 rounded-full uppercase backdrop-blur-md">
+                            {(p as any).saleType === 'upto' ? `UPTO ${p.discount || 0}%` : `FLAT ${p.discount || 0}%`}
+                          </span>
+                        </div>
+                      )}
+                      {p.isNewArrival && !p.isOnSale && (
+                        <div className="absolute top-4 right-4">
+                          <span className="text-[8px] font-black tracking-[0.2em] text-emerald-400 bg-emerald-500/20 border border-emerald-500/30 px-2.5 py-1 rounded-full uppercase backdrop-blur-md">
+                            NEW
+                          </span>
+                        </div>
+                      )}
                       {!p.inStock && (
                         <div className="absolute inset-0 bg-[#0B101E]/80 backdrop-blur-sm flex items-center justify-center z-10">
                           <span className="text-red-400 border border-red-500/30 bg-red-500/10 px-4 py-2 rounded-full font-bold text-[9px] tracking-[0.2em] uppercase">Depleted</span>
@@ -2368,7 +2384,7 @@ export default function AdminPanel() {
               {/* Product Checkbox List */}
               <div className="max-h-64 overflow-y-auto rounded-2xl border border-white/10 bg-[#0B101E]/70">
                 {products.length === 0 ? (
-                  <p className="text-white/50 text-sm p-4">No non-sale products available for sale application.</p>
+                  <p className="text-white/50 text-sm p-4">No products found in catalog.</p>
                 ) : (
                   <div className="divide-y divide-white/5">
                     {products
@@ -2376,6 +2392,7 @@ export default function AdminPanel() {
                       .map((product) => {
                         const productId = String(product.id);
                         const checked = flatSaleProductIds.includes(productId);
+                        const currentlyOnSale = product.isOnSale || (product.discount || 0) > 0;
 
                         return (
                           <label key={productId} className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-white/5 transition-colors">
@@ -2391,8 +2408,17 @@ export default function AdminPanel() {
                               className="accent-[#D4AF37]"
                             />
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm text-white truncate font-medium">{product.name}</p>
-                              <p className="text-xs text-white/50">PKR {(Number(product.price) || 0).toLocaleString()} • {product.category}</p>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <p className="text-sm text-white truncate font-medium">{product.name}</p>
+                                {currentlyOnSale && (
+                                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-red-500/20 text-red-300 border border-red-500/30">
+                                    ON SALE: {((product as any).saleType || 'flat').toUpperCase()} {product.discount}% OFF
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-xs text-white/50">
+                                PKR {(Number(product.price) || 0).toLocaleString()} {product.originalPrice ? `(Orig: PKR ${Number(product.originalPrice).toLocaleString()})` : ''} • {product.category}
+                              </p>
                             </div>
                             {checked && (
                               <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-[#D4AF37]/20 text-[#D4AF37]">

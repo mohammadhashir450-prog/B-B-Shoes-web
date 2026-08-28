@@ -107,6 +107,12 @@ export function ProductProvider({ children }: { children: ReactNode }) {
   };
 
   const isProductVisibleForStorefront = (product: Product): boolean => {
+    // Sale products are explicitly curated by admin — always show them
+    // regardless of stock checks to avoid them vanishing after sale is applied.
+    if (product.isOnSale === true || (product.discount || 0) > 0) {
+      return true;
+    }
+
     if (product.inStock === false) {
       return false;
     }
@@ -125,21 +131,15 @@ export function ProductProvider({ children }: { children: ReactNode }) {
 
   const buildVisibleProducts = (
     products: Product[],
-    timerValue: string | null,
-    currentTick: number,
+    _timerValue: string | null,
+    _currentTick: number,
     includeOutOfStock: boolean
   ): Product[] => {
     if (includeOutOfStock) {
       return products;
     }
 
-    if (!isSalesExpired(timerValue, currentTick)) {
-      return products.filter(isProductVisibleForStorefront);
-    }
-
-    // When sale timer expires, hide sale-tagged products from storefront lists.
-    const saleFiltered = products.filter((product) => !isSaleTaggedProduct(product));
-    return saleFiltered.filter(isProductVisibleForStorefront);
+    return products.filter(isProductVisibleForStorefront);
   };
 
   const applyVisibleProductBuckets = (products: Product[]) => {
@@ -296,15 +296,10 @@ export function ProductProvider({ children }: { children: ReactNode }) {
   };
 
   // Helper: Get sale products
+  // Uses sourceProducts (unfiltered DB data) so sale items always appear on
+  // the /sales page and throughout the website when marked on sale.
   const getSaleProducts = (): Product[] => {
-    if (salesEndsAt) {
-      const endDate = new Date(salesEndsAt);
-      if (!Number.isNaN(endDate.getTime()) && nowTick > endDate.getTime()) {
-        return [];
-      }
-    }
-
-    return allProducts
+    return sourceProducts
       .filter((p) => p.isOnSale === true || (p.discount || 0) > 0 || ((p.originalPrice || 0) > p.price))
       .sort((a, b) => (b.discount || 0) - (a.discount || 0));
   };
