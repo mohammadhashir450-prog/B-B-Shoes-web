@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth-options';
 import connectDB from '@/lib/mongodb';
 import ShippingConfig from '@/models/ShippingConfig';
 
@@ -18,7 +20,7 @@ export async function GET() {
     await connectDB();
     const config = await ShippingConfig.findOne().sort({ updatedAt: -1 }).lean();
     return NextResponse.json({ success: true, data: config || DEFAULT_CONFIG });
-  } catch (err: any) {
+  } catch {
     // Always return something usable — fall back to free
     return NextResponse.json({ success: true, data: DEFAULT_CONFIG });
   }
@@ -27,6 +29,21 @@ export async function GET() {
 // ─── PUT — admin only, upsert shipping config ────────────────────────────────
 export async function PUT(req: NextRequest) {
   try {
+    // ── Auth guard: only admin can change shipping ──────────────────────────
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json(
+        { success: false, message: 'Unauthorized — please login' },
+        { status: 401 }
+      );
+    }
+    if (session.user.role !== 'admin') {
+      return NextResponse.json(
+        { success: false, message: 'Forbidden — admin access required' },
+        { status: 403 }
+      );
+    }
+
     await connectDB();
 
     const body = await req.json();
@@ -55,3 +72,4 @@ export async function PUT(req: NextRequest) {
     );
   }
 }
+

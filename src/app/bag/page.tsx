@@ -8,12 +8,17 @@ import { useCart } from '@/context/CartContext';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { Minus, Plus, Trash2, ShoppingBag, ArrowRight, Loader2 } from 'lucide-react';
+import { useShipping } from '@/hooks/useShipping';
 
 export default function BagPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const { items, removeFromCart, updateQuantity, totalItems, totalPrice } = useCart();
   const [mounted, setMounted] = useState(false);
+
+  // Dynamic shipping from admin settings
+  const { fee: deliveryFee, isFreeForCart, config: shippingConfig, loading: shippingLoading } = useShipping(totalPrice);
+  const finalTotal = totalPrice + deliveryFee;
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -44,8 +49,14 @@ export default function BagPage() {
   if (!session?.user) return null;
 
   const formattedTotal = `PKR ${totalPrice.toLocaleString()}`;
-  const deliveryFee = totalPrice >= 4000 ? 0 : totalPrice > 0 ? 250 : 0;
-  const finalTotal = totalPrice + deliveryFee;
+
+  // Build the dynamic shipping info line for the features section
+  const shippingInfoLine = (() => {
+    if (shippingConfig.isFree || shippingConfig.fee === 0) return 'Free delivery on all orders';
+    if (shippingConfig.freeThreshold > 0)
+      return `Free delivery on orders above PKR ${shippingConfig.freeThreshold.toLocaleString()}`;
+    return `Flat PKR ${shippingConfig.fee.toLocaleString()} delivery on all orders`;
+  })();
 
   return (
     <div className="min-h-screen bg-[#0B101E] text-white">
@@ -159,10 +170,36 @@ export default function BagPage() {
                     </div>
                     <div className="flex items-center justify-between text-gray-300">
                       <span>Delivery</span>
-                      <span className="font-semibold text-[#D4AF37]">
-                        {deliveryFee === 0 ? 'FREE' : `PKR ${deliveryFee.toLocaleString()}`}
-                      </span>
+                      {shippingLoading ? (
+                        <span className="flex items-center gap-1.5 text-gray-400 text-sm">
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          Loading…
+                        </span>
+                      ) : (
+                        <span className={`font-semibold ${isFreeForCart ? 'text-emerald-400' : 'text-[#D4AF37]'}`}>
+                          {isFreeForCart ? (
+                            <span className="flex items-center gap-1">
+                              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                              FREE
+                            </span>
+                          ) : `PKR ${deliveryFee.toLocaleString()}`}
+                        </span>
+                      )}
                     </div>
+
+                    {/* Show free threshold hint if applicable */}
+                    {!shippingLoading && shippingConfig.freeThreshold > 0 && !isFreeForCart && (
+                      <p className="text-xs text-gray-400">
+                        Add PKR {(shippingConfig.freeThreshold - totalPrice).toLocaleString()} more for free delivery
+                      </p>
+                    )}
+                    {!shippingLoading && isFreeForCart && (
+                      <p className="text-xs text-emerald-500 flex items-center gap-1">
+                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
+                        Free shipping applied!
+                      </p>
+                    )}
+
                     <div className="border-t border-white/10 pt-4">
                       <div className="flex items-center justify-between text-xl font-bold">
                         <span>Total</span>
@@ -190,7 +227,11 @@ export default function BagPage() {
                   <div className="mt-8 space-y-3 text-sm">
                     <div className="flex items-center gap-2 text-gray-400">
                       <div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]"></div>
-                      <span>Free delivery on orders above PKR 4,000</span>
+                      {shippingLoading ? (
+                        <span className="text-gray-500">Loading shipping info…</span>
+                      ) : (
+                        <span>{shippingInfoLine}</span>
+                      )}
                     </div>
                     <div className="flex items-center gap-2 text-gray-400">
                       <div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]"></div>
