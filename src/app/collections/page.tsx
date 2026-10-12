@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
-import HoverSwapImage from '@/components/common/HoverSwapImage'
+import ProductCard from '@/components/common/ProductCard'
 import SaleBadge from '@/components/common/SaleBadge'
 import { ChevronRight, Grid, Loader2, ShoppingBag } from 'lucide-react'
 import { useProducts } from '@/context/ProductContext'
@@ -138,46 +138,8 @@ export default function CollectionsPage() {
               </div>
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {filteredProducts.map((product) => (
-                  <Link
-                    key={product.id}
-                    href={`/product/${product.id}`}
-                    className="group bg-white rounded-xl overflow-hidden hover:shadow-2xl transition-all"
-                  >
-                    <div className="relative aspect-square bg-gray-50 border border-[#06080F]/45 rounded-xl shadow-[0_10px_24px_-18px_rgba(6,8,15,0.55)]">
-                      {product.discount ? (
-                        <div className="absolute top-3 left-3 z-10">
-                          <SaleBadge discount={product.discount} saleType={(product as any).saleType} size="xs" />
-                        </div>
-                      ) : null}
-                      {product.isNewArrival ? (
-                        <div className="absolute top-3 right-3 z-10 bg-green-600 text-white px-2 py-1 rounded-md text-[10px] font-bold tracking-wider">
-                          NEW
-                        </div>
-                      ) : null}
-                      <HoverSwapImage
-                        primaryImage={product.image}
-                        secondaryImage={product.secondaryImage}
-                        alt={product.name}
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        fitClassName="object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                    </div>
-
-                    <div className="p-4">
-                      <p className="text-gray-500 text-[10px] tracking-[0.15em] uppercase font-semibold mb-1">
-                        {product.brand || product.category}
-                      </p>
-                      <h3 className="text-gray-900 font-bold text-lg mb-1 line-clamp-1">{product.name}</h3>
-                      <p className="text-gray-600 text-sm mb-3 line-clamp-1">{product.category}</p>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[#0B101E] font-bold text-lg">PKR {product.price.toLocaleString()}</span>
-                        {product.originalPrice ? (
-                          <span className="text-gray-400 text-sm line-through">PKR {product.originalPrice.toLocaleString()}</span>
-                        ) : null}
-                      </div>
-                    </div>
-                  </Link>
+                {filteredProducts.map((product, index) => (
+                  <ProductCard key={product.id} product={product} index={index} priority={index < 3} />
                 ))}
               </div>
             )}

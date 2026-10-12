@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
-import HoverSwapImage from '@/components/common/HoverSwapImage'
+import ProductCard from '@/components/common/ProductCard'
 import { ChevronRight, ChevronDown, Star, Loader2 } from 'lucide-react'
 import { useProducts } from '@/context/ProductContext'
 
@@ -275,65 +275,8 @@ export default function NewArrivals() {
               ) : (
                 <>
                   <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-12">
-                    {paginatedProducts.map((product) => (
-                      <Link 
-                        href={`/product/${product.id}`}
-                        key={product.id} 
-                        className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition-all group block"
-                      >
-                        <div className="relative aspect-square bg-gray-50">
-                          <HoverSwapImage
-                            primaryImage={product.image}
-                            secondaryImage={product.secondaryImage}
-                            alt={product.name}
-                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                            fitClassName="object-cover group-hover:scale-105 transition-transform duration-500"
-                          />
-                          <div className="absolute top-3 left-3">
-                            <span className="bg-green-600 text-white px-3 py-1 text-[9px] font-extrabold tracking-[0.15em] uppercase">
-                              NEW ARRIVAL
-                            </span>
-                          </div>
-                        </div>
-                        
-                        <div className="p-5">
-                          <p className="text-gray-500 text-[9px] tracking-[0.2em] uppercase font-semibold mb-1">
-                            {product.brand}
-                          </p>
-                          <h3 className="text-lg font-bold text-gray-900 mb-1">
-                            {product.name}
-                          </h3>
-                          <p className="text-xs text-gray-600 mb-3 leading-relaxed line-clamp-2">
-                            {product.description || 'Premium quality footwear'}
-                          </p>
-                          
-                          <div className="flex items-center gap-1 mb-3">
-                            {[...Array(5)].map((_, i) => (
-                              <Star 
-                                key={i} 
-                                size={12} 
-                                className={i < (product.rating || 0) ? 'fill-[#D4AF37] text-[#D4AF37]' : 'fill-gray-300 text-gray-300'}
-                              />
-                            ))}
-                            <span className="text-[10px] text-gray-500 ml-1">
-                              ({product.reviews || 0} REVIEWS)
-                            </span>
-                          </div>
-                          
-                          <div className="mb-4">
-                            <p className="text-2xl font-bold text-[#D4AF37]">
-                              PKR {product.price.toLocaleString()}
-                            </p>
-                            {product.originalPrice && product.originalPrice > product.price ? (
-                              <p className="text-xs text-gray-500 line-through">PKR {product.originalPrice.toLocaleString()}</p>
-                            ) : null}
-                          </div>
-                          
-                          <div className="w-full bg-[#0B101E] text-white py-3 rounded text-xs font-bold tracking-[0.15em] uppercase text-center">
-                            VIEW DETAILS →
-                          </div>
-                        </div>
-                      </Link>
+                    {paginatedProducts.map((product, index) => (
+                      <ProductCard key={product.id} product={product} index={index} priority={index < 3} />
                     ))}
                   </div>
 

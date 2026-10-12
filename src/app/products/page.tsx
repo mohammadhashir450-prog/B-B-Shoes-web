@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
-import HoverSwapImage from '@/components/common/HoverSwapImage'
+import ProductCard from '@/components/common/ProductCard'
 import { ChevronRight, Star, Sparkles, Loader2, Heart } from 'lucide-react'
 import { useProducts } from '@/context/ProductContext'
 import { useWishlist } from '@/context/WishlistContext'
@@ -106,69 +106,7 @@ export default function ProductsPage() {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
                 {paginatedProducts.map((product, index) => (
-                  <div
-                    key={product.id}
-                    className="group relative bg-white border border-[#E7E0D1] rounded-2xl overflow-hidden transition-all duration-400 hover:border-[#D4AF37]/45 hover:shadow-[0_18px_34px_-18px_rgba(24,32,43,0.22)]"
-                  >
-                    <Link href={`/product/${product.id}`} className="h-full flex flex-col">
-                      {/* Image Section */}
-                      <div className="relative h-[195px] sm:h-[230px] lg:h-[245px] bg-[#FAF9F7] overflow-hidden rounded-xl border border-[#06080F]/45 shadow-[0_12px_24px_-18px_rgba(6,8,15,0.5)] transition-all duration-400 group-hover:border-[#06080F]/70 m-3">
-                        <HoverSwapImage
-                          primaryImage={product.image}
-                          secondaryImage={product.secondaryImage}
-                          alt={product.name}
-                          sizes="(max-width: 768px) 80vw, (max-width: 1200px) 45vw, 340px"
-                          fitClassName="object-contain object-center group-hover:scale-[1.03] transition-transform duration-600 ease-out"
-                          priority={index < 8}
-                          quality={85}
-                        />
-
-                        {/* Wishlist Button */}
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault()
-                            toggleWishlist(product.id)
-                          }}
-                          className={`absolute bottom-6 right-6 w-9 h-9 backdrop-blur-md border rounded-full flex items-center justify-center transition-all duration-300 z-20 ${
-                            isWishlisted(product.id)
-                              ? 'bg-[#FDECEC] border-red-300 text-red-500'
-                              : 'bg-[#F9F8F6]/85 border-[#E0D4BF] text-[#4F5A69] hover:text-red-500 hover:bg-[#F9F8F6] hover:border-red-300'
-                          }`}
-                        >
-                          <Heart size={16} strokeWidth={2} className={isWishlisted(product.id) ? 'fill-red-500' : ''} />
-                        </button>
-                      </div>
-
-                      {/* Product Info Section */}
-                      <div className="p-4 sm:p-5 md:p-6 flex flex-col flex-grow justify-between border-t border-[#ECE7DD] bg-white">
-                        <div>
-                          <p className="text-[#A97A18] text-[9px] tracking-[0.2em] uppercase mb-2 font-bold">
-                            {product.brand || 'B&B EXCLUSIVE'}
-                          </p>
-                          <h3 className="text-base sm:text-lg font-serif font-bold text-[#18202B] leading-tight mb-2 group-hover:text-[#A97A18] transition-colors line-clamp-2 min-h-[46px] sm:min-h-[52px]">
-                            {product.name}
-                          </h3>
-                        </div>
-
-                        <div className="flex items-center justify-between mt-4">
-                          <div>
-                            <p className="text-base font-bold text-[#D4AF37]">
-                              PKR {product.price.toLocaleString()}
-                            </p>
-                            {product.originalPrice && product.originalPrice > product.price ? (
-                              <p className="text-xs text-[#6A7483] line-through">
-                                PKR {product.originalPrice.toLocaleString()}
-                              </p>
-                            ) : null}
-                          </div>
-
-                          <span className="text-[10px] tracking-[0.14em] uppercase font-bold text-[#4F5A69]">
-                            View
-                          </span>
-                        </div>
-                      </div>
-                    </Link>
-                  </div>
+                  <ProductCard key={product.id} product={product} index={index} priority={index < 3} />
                 ))}
               </div>
             )}

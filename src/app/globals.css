@@ -692,3 +692,124 @@ html:has(.bb-site) #__next {
 .bb-site [class*="from-[#D4AF37]"][class*="to-[#F4CE5C]"]:not(button):not(a) {
   background-image: linear-gradient(135deg, #e2bd52, #b8860b) !important;
 }
+
+/* ==========================================================================
+   Hero + motion primitives
+   ========================================================================== */
+.bb-site .bb-hero {
+  background:
+    radial-gradient(ellipse 80% 60% at 70% 30%, #fff7e0 0%, transparent 60%),
+    linear-gradient(180deg, #fffdf8 0%, #fbf5e8 60%, var(--bb-ivory) 100%);
+}
+
+.bb-gold-text {
+  background: linear-gradient(110deg, #9a6b0c 0%, #e8c458 45%, #a97a18 80%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: bbGoldShift 6s ease-in-out infinite;
+}
+
+.bb-site h1 .bb-gold-text {
+  color: transparent;
+}
+
+.bb-hero-wordmark {
+  font-size: clamp(9rem, 26vw, 24rem);
+  color: transparent;
+  -webkit-text-stroke: 1.5px rgba(169, 122, 24, 0.22);
+  letter-spacing: -0.04em;
+  opacity: 0.8;
+}
+
+.bb-orbit {
+  animation: bbSpin 40s linear infinite;
+}
+.bb-float {
+  animation: bbFloat 6s ease-in-out infinite;
+}
+.bb-float-slow {
+  animation: bbFloat 8s ease-in-out infinite reverse;
+}
+.bb-scroll-dot {
+  animation: bbScrollDot 1.8s ease-in-out infinite;
+}
+
+@keyframes bbGoldShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+@keyframes bbSpin {
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+@keyframes bbFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+@keyframes bbScrollDot {
+  0% { transform: translateY(-110%); }
+  100% { transform: translateY(260%); }
+}
+@keyframes bbMarquee {
+  to { transform: translateX(-50%); }
+}
+@keyframes bbShine {
+  0% { transform: translateX(-120%) skewX(-18deg); }
+  100% { transform: translateX(320%) skewX(-18deg); }
+}
+
+/* ---------- Dark premium sections opt out of the light colour remap ---------- */
+.bb-site .bb-dark .text-white { color: #fff !important; }
+.bb-site .bb-dark .text-white\/90 { color: rgba(255,255,255,.9) !important; }
+.bb-site .bb-dark .text-white\/80 { color: rgba(255,255,255,.8) !important; }
+.bb-site .bb-dark .text-white\/70 { color: rgba(255,255,255,.7) !important; }
+.bb-site .bb-dark .text-white\/60 { color: rgba(255,255,255,.6) !important; }
+.bb-site .bb-dark .text-white\/50 { color: rgba(255,255,255,.5) !important; }
+.bb-site .bb-dark .text-white\/40 { color: rgba(255,255,255,.4) !important; }
+.bb-site .bb-dark .text-white\/30 { color: rgba(255,255,255,.3) !important; }
+.bb-site .bb-dark .text-gray-300,
+.bb-site .bb-dark .text-gray-400,
+.bb-site .bb-dark .text-gray-500 { color: #aab3c2 !important; }
+.bb-site .bb-dark h1,
+.bb-site .bb-dark h2,
+.bb-site .bb-dark h3 { color: #fff; }
+.bb-site .bb-dark .text-\[\#D4AF37\] { color: #e2bd52 !important; }
+.bb-site .bb-dark .border-white\/10 { border-color: rgba(255,255,255,.1) !important; }
+.bb-site .bb-dark .border-white\/15 { border-color: rgba(255,255,255,.15) !important; }
+.bb-site .bb-dark .rounded-2xl,
+.bb-site .bb-dark .rounded-3xl,
+.bb-site .bb-dark .rounded-xl { box-shadow: none; }
+.bb-site .bb-dark .bg-white\/5 { background-color: rgba(255,255,255,.05) !important; }
+.bb-site .bb-dark .bg-white\/10 { background-color: rgba(255,255,255,.1) !important; }
+.bb-site .bb-dark section,
+.bb-site section.bb-dark { background-color: transparent; }
+
+/* ---------- Scroll reveal helper ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  .bb-site .bb-marquee-track { animation: bbMarquee 38s linear infinite; }
+  .bb-site .bb-marquee:hover .bb-marquee-track { animation-play-state: paused; }
+}
+
+/* ---------- Premium product card ---------- */
+.bb-site .bb-card-body {
+  box-shadow: 0 1px 2px rgba(18, 24, 33, 0.04), 0 14px 34px -22px rgba(18, 24, 33, 0.28);
+  transition: transform 0.55s var(--bb-ease), box-shadow 0.55s var(--bb-ease), border-color 0.4s ease;
+}
+.bb-site .bb-card:hover .bb-card-body {
+  transform: translateY(-8px);
+  border-color: rgba(212, 175, 55, 0.6);
+  box-shadow: 0 4px 8px rgba(18, 24, 33, 0.05), 0 40px 70px -30px rgba(120, 84, 10, 0.45);
+}
+.bb-site .bb-card-media::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, 0.55) 50%, transparent 65%);
+  transform: translateX(-120%);
+  pointer-events: none;
+}
+.bb-site .bb-card:hover .bb-card-media::after {
+  animation: bbShine 1.1s var(--bb-ease) 1;
+}

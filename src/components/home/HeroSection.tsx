@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
-import Link from 'next/link'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
+import HeroDefault from '@/components/home/HeroDefault'
 
 interface SeasonalBannerSummary {
   _id: string
@@ -117,7 +117,7 @@ export default function HeroSection() {
   const hasBanner    = Boolean(currentSlide)
 
   return (
-    <section className="relative overflow-hidden bg-white" suppressHydrationWarning>
+    <section className="relative overflow-hidden" suppressHydrationWarning>
 
       <AnimatePresence mode="wait" initial={false}>
         {hasBanner ? (
@@ -198,172 +198,9 @@ export default function HeroSection() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5 }}
-            className="relative min-h-screen bg-white pt-24 md:pt-28 pb-16 md:pb-24"
+            className="relative"
           >
-            <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(180deg,#ffffff_0%,#FCFCFC_58%,#ffffff_100%)]" />
-
-            <div className="relative z-10 max-w-[1320px] mx-auto px-6 md:px-10">
-              <motion.div
-                initial={false}
-                animate={mounted ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-                transition={{ duration: 0.55 }}
-                className="text-center"
-              >
-                <div className="inline-flex items-center px-4 py-2 rounded-full border border-[#D7DCE2] bg-white mb-10">
-                  <span className="text-[10px] md:text-[11px] font-bold tracking-[0.22em] text-[#111827] uppercase">
-                    B&amp;B Signature Footwear
-                  </span>
-                </div>
-
-                <h1 className="text-[2.35rem] sm:text-[2.8rem] md:text-[5.8rem] lg:text-[8rem] leading-[0.9] tracking-[-0.045em] font-black text-[#06080F] max-w-[1100px] mx-auto">
-                  Quiet Power.
-                </h1>
-
-                <p className="mt-8 text-sm md:text-base text-[#374151] max-w-[440px] mx-auto leading-relaxed tracking-[0.08em] uppercase">
-                  Crafted for presence.
-                </p>
-
-                {/* Free Shipping — Prominent Blinking Banner */}
-                <style>{`
-                  @keyframes fs-glow {
-                    0%, 100% { box-shadow: 0 0 0 0 rgba(212,175,55,0), 0 4px 24px rgba(212,175,55,0.3); }
-                    50%       { box-shadow: 0 0 0 8px rgba(212,175,55,0.12), 0 4px 40px rgba(212,175,55,0.65); }
-                  }
-                  @keyframes fs-shimmer {
-                    0%   { transform: translateX(-150%) skewX(-18deg); opacity: 0; }
-                    25%  { opacity: 1; }
-                    100% { transform: translateX(400%) skewX(-18deg); opacity: 0; }
-                  }
-                  @keyframes fs-ping-ring {
-                    0%    { transform: scale(1);   opacity: 0.7; }
-                    80%   { transform: scale(2.6); opacity: 0; }
-                    100%  { transform: scale(2.6); opacity: 0; }
-                  }
-                  @keyframes fs-truck-shake {
-                    0%, 85%, 100% { transform: translateX(0) rotate(0deg); }
-                    88%           { transform: translateX(-4px) rotate(-3deg); }
-                    92%           { transform: translateX(3px) rotate(2deg); }
-                    96%           { transform: translateX(-2px) rotate(-1deg); }
-                  }
-                  @keyframes fs-text-flash {
-                    0%, 100% { opacity: 1; filter: brightness(1); }
-                    45%      { opacity: 1; filter: brightness(1.15); }
-                    50%      { opacity: 0.75; filter: brightness(0.9); }
-                    55%      { opacity: 1; filter: brightness(1.15); }
-                  }
-                  @keyframes fs-badge-bounce {
-                    0%, 100% { transform: translateY(0); }
-                    50%      { transform: translateY(-2px); }
-                  }
-                  .fs-badge    { animation: fs-glow 2.2s ease-in-out infinite, fs-badge-bounce 4s ease-in-out infinite; }
-                  .fs-shimmer  { animation: fs-shimmer 3s ease-in-out infinite 0.8s; }
-                  .fs-ping     { animation: fs-ping-ring 1.8s cubic-bezier(0,0,0.2,1) infinite; }
-                  .fs-truck    { animation: fs-truck-shake 3.5s ease-in-out infinite 1s; }
-                  .fs-text     { animation: fs-text-flash 2.2s ease-in-out infinite; }
-                `}</style>
-                <div className="mt-7 mb-1 flex justify-center">
-                  <div
-                    className="fs-badge relative inline-flex flex-col items-center gap-1.5 px-8 py-3.5 rounded-2xl border-2 border-[#D4AF37]/60 bg-gradient-to-br from-[#FFFBEB] via-[#FFF5CC] to-[#FFECAA] overflow-hidden cursor-default select-none"
-                    style={{ color: '#6B4A00' }}
-                  >
-                    {/* Shimmer sweep */}
-                    <span className="fs-shimmer absolute inset-0 w-[35%] bg-gradient-to-r from-transparent via-white/70 to-transparent pointer-events-none" />
-
-                    {/* Top row: dot + truck + FREE SHIPPING */}
-                    <div className="relative flex items-center gap-2.5">
-                      {/* Pulsing live dot */}
-                      <span className="relative flex h-3 w-3 flex-shrink-0">
-                        <span className="fs-ping absolute inline-flex h-full w-full rounded-full bg-[#D4AF37]" />
-                        <span className="relative inline-flex rounded-full h-3 w-3 bg-[#B8860B]" />
-                      </span>
-
-                      {/* Truck */}
-                      <svg
-                        className="fs-truck w-6 h-6 flex-shrink-0 text-[#92650A]"
-                        viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 17H5a2 2 0 01-2-2V9a2 2 0 012-2h4M9 17h6M9 17V7m6 10h4a2 2 0 002-2V9a2 2 0 00-2-2h-4M15 17V7M9 7h6" />
-                      </svg>
-
-                      {/* Main text */}
-                      <span
-                        className="fs-text font-black uppercase tracking-[0.18em]"
-                        style={{ fontSize: 'clamp(1rem, 2.5vw, 1.25rem)', color: '#5C3D00' }}
-                      >
-                        🎁&nbsp;FREE SHIPPING
-                      </span>
-
-                      {/* Star */}
-                      <span className="text-[#C9A227] text-base flex-shrink-0">✦</span>
-                    </div>
-
-                    {/* Subtitle */}
-                    <p className="relative text-[11px] font-semibold tracking-[0.12em] text-[#92650A] uppercase">
-                      On Every Order &nbsp;·&nbsp; Pakistan Wide Delivery
-                    </p>
-                  </div>
-                </div>
-
-
-                <div className="mt-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2.5 w-full max-w-[520px] mx-auto">
-                  <Link
-                    href="/collections#all-products-grid"
-                    className="group inline-flex w-full sm:w-auto justify-center items-center gap-2 px-6 md:px-7 py-3 rounded-full bg-[#06080F] !text-white text-xs md:text-sm font-bold tracking-[0.14em] uppercase hover:bg-[#161B26] transition-colors"
-                  >
-                    Explore Collection
-                    <svg className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M12 5l7 7-7 7"/></svg>
-                  </Link>
-                  <Link
-                    href="/new-arrivals"
-                    className="inline-flex w-full sm:w-auto justify-center items-center gap-2 px-6 md:px-7 py-3 rounded-full border-2 border-[#06080F] bg-white text-[#06080F] text-xs md:text-sm font-bold tracking-[0.14em] uppercase hover:bg-[#06080F] hover:text-white transition-all"
-                  >
-                    New Arrivals
-                  </Link>
-                </div>
-              </motion.div>
-
-              {/* Shoe image card */}
-              <motion.div
-                initial={false}
-                animate={mounted ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
-                transition={{ duration: 0.65, delay: 0.15 }}
-                className="relative mt-20 md:mt-24"
-              >
-                <div className="absolute left-1/2 -translate-x-1/2 -top-6 w-[82%] h-24 bg-[#111827]/[0.06] blur-3xl rounded-full pointer-events-none" />
-
-                <div className="relative rounded-[2rem] md:rounded-[2.5rem] border border-[#D8DEE6] bg-white p-3 md:p-4 shadow-[0_30px_80px_-30px_rgba(6,8,15,0.42)]">
-                  <div className="relative overflow-hidden rounded-[1.5rem] md:rounded-[2rem] h-[280px] sm:h-[380px] md:h-[520px] lg:h-[600px]">
-                    <motion.div
-                      initial={false}
-                      animate={
-                        mounted && !shouldReduceMotion
-                          ? { scale: [1.02, 1.04, 1.02], y: [0, -4, 0] }
-                          : { scale: 1.02, y: 0 }
-                      }
-                      transition={{ duration: 24, repeat: shouldReduceMotion ? 0 : Infinity, ease: 'easeInOut' }}
-                      className="w-full h-full"
-                    >
-                      <Image
-                        src="https://res.cloudinary.com/dt2ikjlfc/image/upload/v1775127417/bb-shoes/hero/hero-purple-sandals.jpg"
-                        alt="B&B Premium Stylish Sandals"
-                        fill
-                        priority
-                        quality={90}
-                        sizes="(max-width: 768px) 100vw, 1320px"
-                        className="object-cover object-center"
-                      />
-                    </motion.div>
-                  </div>
-                </div>
-
-                <div className="mt-7 md:mt-8 flex flex-wrap items-center justify-center gap-3 md:gap-10 text-[10px] md:text-[11px] tracking-[0.15em] uppercase text-[#374151]">
-                  <span>50K+ Clients</span>
-                  <span className="w-1 h-1 rounded-full bg-[#9CA3AF]" />
-                  <span>100% Authentic</span>
-                </div>
-
-              </motion.div>
-            </div>
+            <HeroDefault />
           </motion.div>
 
         )}

@@ -34,7 +34,7 @@ function StarRow({ rating, size = 'sm' }: { rating: number; size?: 'sm' | 'lg' }
       {[1, 2, 3, 4, 5].map((s) => (
         <Star
           key={s}
-          className={`${px} ${s <= rating ? 'fill-[#D4AF37] text-[#D4AF37]' : 'fill-white/10 text-white/20'}`}
+          className={`${px} ${s <= rating ? 'fill-[#D4AF37] text-[#D4AF37]' : 'fill-[#e6dfd0] text-[#e6dfd0]'}`}
         />
       ))}
     </span>
@@ -82,24 +82,24 @@ function avatarColor(name: string): [string, string] {
 function ReviewSkeleton() {
   return (
     <div className="min-w-full px-4 sm:px-0">
-      <div className="bg-white/5 rounded-2xl p-7 animate-pulse space-y-4 border border-white/10">
+      <div className="bg-white rounded-2xl p-7 animate-pulse space-y-4 border border-[#ece4d3]">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-full bg-white/10" />
+          <div className="w-12 h-12 rounded-full bg-[#efe6d2]" />
           <div className="flex-1 space-y-2">
-            <div className="h-3 w-24 rounded bg-white/10" />
-            <div className="h-2.5 w-16 rounded bg-white/10" />
+            <div className="h-3 w-24 rounded bg-[#efe6d2]" />
+            <div className="h-2.5 w-16 rounded bg-[#efe6d2]" />
           </div>
         </div>
-        <div className="h-2.5 w-20 rounded bg-white/10" />
+        <div className="h-2.5 w-20 rounded bg-[#efe6d2]" />
         <div className="space-y-2">
-          <div className="h-3 w-full rounded bg-white/10" />
-          <div className="h-3 w-4/5 rounded bg-white/10" />
+          <div className="h-3 w-full rounded bg-[#efe6d2]" />
+          <div className="h-3 w-4/5 rounded bg-[#efe6d2]" />
         </div>
         <div className="flex gap-3 pt-2">
-          <div className="w-14 h-14 rounded-xl bg-white/10" />
+          <div className="w-14 h-14 rounded-xl bg-[#efe6d2]" />
           <div className="flex-1 space-y-2 pt-1">
-            <div className="h-2.5 w-3/4 rounded bg-white/10" />
-            <div className="h-2 w-1/2 rounded bg-white/10" />
+            <div className="h-2.5 w-3/4 rounded bg-[#efe6d2]" />
+            <div className="h-2 w-1/2 rounded bg-[#efe6d2]" />
           </div>
         </div>
       </div>
@@ -118,14 +118,15 @@ function ReviewCard({ review }: { review: Review }) {
       exit={{ opacity: 0, y: -16 }}
       transition={{ duration: 0.4, ease: 'easeOut' }}
       className="
-        relative bg-gradient-to-br from-[#1A2435] via-[#141D2C] to-[#0F1825]
-        rounded-2xl p-6 sm:p-7 border border-white/10
-        shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)]
-        flex flex-col h-full
+        relative bg-white
+        rounded-[26px] p-6 sm:p-8 border border-[#ece4d3]
+        shadow-[0_2px_4px_rgba(18,24,33,0.04),0_30px_60px_-34px_rgba(120,84,10,0.35)]
+        hover:-translate-y-1.5 hover:border-[#d4af37]/60 transition-all duration-500
+        flex flex-col h-full overflow-hidden
       "
     >
       {/* Big decorative quote */}
-      <Quote className="absolute top-5 right-6 w-10 h-10 text-[#D4AF37]/10 rotate-180" />
+      <Quote className="absolute top-6 right-7 w-14 h-14 text-[#D4AF37]/20 rotate-180" />
 
       {/* Header: avatar + name + date */}
       <div className="flex items-center gap-3 mb-4">
@@ -136,10 +137,10 @@ function ReviewCard({ review }: { review: Review }) {
           {initials(review.customerName)}
         </div>
         <div className="min-w-0">
-          <p className="font-semibold text-white text-sm truncate leading-tight">
+          <p className="font-bold text-[#121821] text-sm truncate leading-tight">
             {review.customerName}
           </p>
-          <p className="text-[11px] text-gray-500 mt-0.5">{formatDate(review.createdAt)}</p>
+          <p className="text-[11px] text-[#7a8492] mt-0.5">{formatDate(review.createdAt)}</p>
         </div>
         {review.isVerified && (
           <span className="ml-auto flex items-center gap-1 text-[10px] font-semibold text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 px-2 py-0.5 rounded-full flex-shrink-0">
@@ -152,7 +153,7 @@ function ReviewCard({ review }: { review: Review }) {
       <StarRow rating={review.rating} />
 
       {/* Comment */}
-      <p className="text-gray-300 text-sm leading-relaxed mt-3 mb-5 flex-1 line-clamp-4">
+      <p className="font-serif text-[#2b3442] text-[15px] italic leading-relaxed mt-4 mb-6 flex-1 line-clamp-4">
         &ldquo;{review.comment}&rdquo;
       </p>
 
@@ -162,35 +163,35 @@ function ReviewCard({ review }: { review: Review }) {
           href={`/product/${review.product.id}`}
           className="
             group flex items-center gap-3 rounded-xl
-            bg-white/5 hover:bg-white/10 border border-white/10 hover:border-[#D4AF37]/30
+            bg-[#fbf6ea] hover:bg-[#f6eed9] border border-[#ece4d3] hover:border-[#D4AF37]/50
             p-3 transition-all duration-200 mt-auto
           "
         >
-          <div className="w-14 h-14 rounded-lg overflow-hidden bg-black/30 flex-shrink-0 relative">
+          <div className="w-14 h-14 rounded-lg overflow-hidden bg-[#f1e8d3] flex-shrink-0 relative">
             <Image
               src={review.product.image}
               alt={review.product.name}
               fill
-              className="object-cover group-hover:scale-105 transition-transform duration-300"
+              className="object-contain p-1 group-hover:scale-110 transition-transform duration-300"
               sizes="56px"
               onError={() => {}} // silent fallback
             />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-white text-xs font-semibold truncate leading-snug group-hover:text-[#D4AF37] transition-colors">
+            <p className="text-[#121821] text-xs font-bold truncate leading-snug group-hover:text-[#a97a18] transition-colors">
               {review.product.name}
             </p>
-            <p className="text-gray-500 text-[11px] mt-0.5 truncate">
+            <p className="text-[#7a8492] text-[11px] mt-0.5 truncate">
               {review.product.brand} · {review.product.category}
             </p>
             <p className="text-[#D4AF37] text-xs font-bold mt-0.5">
               PKR {review.product.price.toLocaleString()}
             </p>
           </div>
-          <Package className="w-4 h-4 text-gray-600 group-hover:text-[#D4AF37] flex-shrink-0 transition-colors" />
+          <Package className="w-4 h-4 text-[#a3acba] group-hover:text-[#D4AF37] flex-shrink-0 transition-colors" />
         </Link>
       ) : (
-        <div className="mt-auto flex items-center gap-2 text-[11px] text-gray-600 border-t border-white/5 pt-3">
+        <div className="mt-auto flex items-center gap-2 text-[11px] text-[#7a8492] border-t border-[#ece4d3] pt-3">
           <Package className="w-3.5 h-3.5" />
           <span>B&amp;B Shoes</span>
         </div>
@@ -218,7 +219,7 @@ function Dots({
           aria-label={`Go to review ${i + 1}`}
           className={`
             rounded-full transition-all duration-300
-            ${i === active ? 'w-6 h-2 bg-[#D4AF37]' : 'w-2 h-2 bg-white/20 hover:bg-white/40'}
+            ${i === active ? 'w-8 h-2 bg-[#D4AF37]' : 'w-2 h-2 bg-[#d9cdb3] hover:bg-[#c4b38a]'}
           `}
         />
       ))}
@@ -299,7 +300,7 @@ export default function ReviewsSlider() {
 
   return (
     <section
-      className="relative bg-[#0B101E] py-16 md:py-24 overflow-hidden"
+      className="relative bg-[linear-gradient(180deg,#fbf8f2_0%,#f6edd8_100%)] py-20 md:py-28 overflow-hidden"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
@@ -318,7 +319,7 @@ export default function ReviewsSlider() {
                 Customer Reviews
               </span>
             </div>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-white leading-tight">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-black text-[#121821] leading-tight">
               What Our Customers
               <br />
               <span className="text-[#D4AF37]">Are Saying</span>
@@ -326,8 +327,8 @@ export default function ReviewsSlider() {
             {avgRating && (
               <div className="flex items-center gap-3 mt-3">
                 <StarRow rating={Math.round(Number(avgRating))} size="lg" />
-                <span className="text-2xl font-black text-white">{avgRating}</span>
-                <span className="text-gray-500 text-sm">
+                <span className="text-3xl font-black text-[#121821]">{avgRating}</span>
+                <span className="text-[#7a8492] text-sm">
                   / 5 · {reviews.length} review{reviews.length !== 1 ? 's' : ''}
                 </span>
               </div>
@@ -340,14 +341,14 @@ export default function ReviewsSlider() {
               <button
                 onClick={prev}
                 aria-label="Previous reviews"
-                className="w-11 h-11 rounded-full border border-white/15 bg-white/5 hover:bg-[#D4AF37] hover:border-[#D4AF37] text-white flex items-center justify-center transition-all duration-200 group"
+                className="w-11 h-11 rounded-full border border-[#e3d6b8] bg-white hover:bg-[#D4AF37] hover:border-[#D4AF37] text-[#121821] flex items-center justify-center transition-all duration-200 group"
               >
                 <ChevronLeft className="w-5 h-5 group-hover:scale-110 transition-transform" />
               </button>
               <button
                 onClick={next}
                 aria-label="Next reviews"
-                className="w-11 h-11 rounded-full border border-white/15 bg-white/5 hover:bg-[#D4AF37] hover:border-[#D4AF37] text-white flex items-center justify-center transition-all duration-200 group"
+                className="w-11 h-11 rounded-full border border-[#e3d6b8] bg-white hover:bg-[#D4AF37] hover:border-[#D4AF37] text-[#121821] flex items-center justify-center transition-all duration-200 group"
               >
                 <ChevronRight className="w-5 h-5 group-hover:scale-110 transition-transform" />
               </button>
@@ -393,7 +394,7 @@ export default function ReviewsSlider() {
 
         {/* ── Review counter ribbon ── */}
         {!loading && reviews.length > 0 && (
-          <p className="text-center text-xs text-gray-600 mt-6">
+          <p className="text-center text-xs text-[#7a8492] mt-6">
             Showing {Math.min(activeIndex + visibleCount, reviews.length)} of {reviews.length} reviews
           </p>
         )}

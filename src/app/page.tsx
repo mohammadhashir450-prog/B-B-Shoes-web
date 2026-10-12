@@ -3,6 +3,8 @@ import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import HeroSection from '@/components/home/HeroSection'
 import CuratedCollections from '@/components/home/CuratedCollections'
+import ValueMarquee from '@/components/home/ValueMarquee'
+import Spotlight from '@/components/home/Spotlight'
 
 const Products = dynamic(() => import('@/components/home/Products'), {
   loading: () => <div className="home-section-skeleton" aria-hidden />,
@@ -29,12 +31,14 @@ export default function HomePage() {
       <Navbar />
       <main className="min-h-screen">
         <HeroSection />
+        <ValueMarquee />
         <div className="home-deferred-section">
           <CuratedCollections />
         </div>
         <div className="home-deferred-section">
           <Products />
         </div>
+        <Spotlight />
         <div className="home-deferred-section">
           <ModelSlider />
         </div>

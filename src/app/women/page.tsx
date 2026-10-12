@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
-import HoverSwapImage from '@/components/common/HoverSwapImage'
+import ProductCard from '@/components/common/ProductCard'
 import SaleBadge from '@/components/common/SaleBadge'
 import { ChevronRight, Star, Sparkles, Loader2 } from 'lucide-react'
 import { useProducts } from '@/context/ProductContext'
@@ -138,78 +138,7 @@ export default function WomenPage() {
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
               {paginatedProducts.map((product, index) => (
-                <Link
-                  href={`/product/${product.id}`}
-                  key={product.id}
-                  className="group block"
-                  style={{ animationDelay: `${index * 100}ms` }}
-                >
-                  <div className="bg-gradient-to-br from-[#1A2435] to-[#0F1825] rounded-2xl overflow-hidden border border-white/5 hover:border-[#D4AF37]/50 transition-all duration-500 hover:shadow-2xl hover:shadow-[#D4AF37]/10">
-                    <div className="relative aspect-square bg-black/20 overflow-hidden border border-[#06080F]/45 rounded-xl shadow-[0_10px_24px_-18px_rgba(6,8,15,0.55)]">
-                      <HoverSwapImage
-                        primaryImage={product.image}
-                        secondaryImage={product.secondaryImage}
-                        alt={product.name}
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        fitClassName="object-cover group-hover:scale-110 transition-transform duration-700"
-                      />
-                      {product.isNewArrival && (
-                        <div className="absolute top-4 right-4">
-                          <span className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-1.5 text-[10px] font-extrabold tracking-[0.15em] uppercase rounded-full shadow-lg">
-                            NEW ARRIVAL
-                          </span>
-                        </div>
-                      )}
-                      {product.isOnSale && (
-                        <div className="absolute top-4 left-4">
-                          <SaleBadge discount={product.discount} saleType={(product as any).saleType} size="xs" />
-                        </div>
-                      )}
-                      {!product.inStock && (
-                        <div className="absolute inset-0 bg-black/80 flex items-center justify-center">
-                          <span className="text-white text-xl font-bold uppercase tracking-wider">Out of Stock</span>
-                        </div>
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#0B101E] via-transparent to-transparent opacity-0 group-hover:opacity-60 transition-opacity duration-500"></div>
-                    </div>
-
-                    <div className="p-6">
-                      <p className="text-[#D4AF37] text-[10px] tracking-[0.25em] uppercase font-bold mb-2">
-                        {product.category}
-                      </p>
-                      <h3 className="text-xl font-bold !text-white mb-3 group-hover:!text-[#D4AF37] transition-colors">
-                        {product.name}
-                      </h3>
-
-                      <div className="flex items-center gap-1 mb-4">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            size={14}
-                            className={i < (product.rating || 0) ? 'fill-[#D4AF37] text-[#D4AF37]' : 'fill-gray-600 text-gray-600'}
-                          />
-                        ))}
-                        <span className="text-[11px] text-gray-400 ml-2">
-                          ({product.reviews || 0} reviews)
-                        </span>
-                      </div>
-
-                      <div className="flex items-center justify-between pt-4 border-t border-white/5">
-                        <div>
-                          <p className="text-3xl font-bold text-[#D4AF37]">
-                            PKR {product.price.toLocaleString()}
-                          </p>
-                          {product.originalPrice && product.originalPrice > product.price ? (
-                            <p className="text-xs text-gray-400 line-through">PKR {product.originalPrice.toLocaleString()}</p>
-                          ) : null}
-                        </div>
-                        <div className="text-xs text-gray-400 uppercase tracking-wider">
-                          View Details →
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </Link>
+                <ProductCard key={product.id} product={product} index={index} priority={index < 3} />
               ))}
             </div>
           )}

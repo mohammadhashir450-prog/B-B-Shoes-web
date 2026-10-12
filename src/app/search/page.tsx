@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Search, ArrowRight } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
-import HoverSwapImage from '@/components/common/HoverSwapImage'
+import ProductCard from '@/components/common/ProductCard'
 import { useProducts } from '@/context/ProductContext'
 
 function SearchPageContent() {
@@ -97,29 +97,8 @@ function SearchPageContent() {
 
           {!loading && results.length > 0 && (
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {results.map((product) => (
-                <Link
-                  key={product.id}
-                  href={`/product/${product.id}`}
-                  className="group bg-[#121A2F]/70 border border-white/10 rounded-2xl overflow-hidden hover:border-[#D4AF37]/40 transition-colors"
-                >
-                  <div className="relative aspect-[4/5] bg-[#0F1628]">
-                    <HoverSwapImage
-                      primaryImage={product.image}
-                      secondaryImage={product.secondaryImage}
-                      alt={product.name}
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    />
-                  </div>
-                  <div className="p-4">
-                    <p className="text-[#D4AF37] text-[10px] tracking-[0.15em] uppercase mb-2">{product.brand || 'B&B'}</p>
-                    <h2 className="text-white font-semibold mb-2 line-clamp-2">{product.name}</h2>
-                    <div className="flex items-center justify-between">
-                      <p className="text-white/90 text-sm">PKR {product.price.toLocaleString()}</p>
-                      <ArrowRight size={14} className="text-white/40 group-hover:text-[#D4AF37] transition-colors" />
-                    </div>
-                  </div>
-                </Link>
+              {results.map((product, index) => (
+                <ProductCard key={product.id} product={product} index={index} priority={index < 3} />
               ))}
             </div>
           )}

@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
-import HoverSwapImage from '@/components/common/HoverSwapImage'
+import ProductCard from '@/components/common/ProductCard'
 import SaleBadge from '@/components/common/SaleBadge'
 import { ChevronRight, Star, Filter, Loader2 } from 'lucide-react'
 import { useProducts } from '@/context/ProductContext'
@@ -154,78 +154,8 @@ export default function MenPage() {
           {/* Products Grid */}
           {!loading && filteredProducts.length > 0 && (
             <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-              {paginatedProducts.map((product) => (
-                <Link
-                  key={product.id}
-                  href={`/product/${product.id}`}
-                  className="bg-[#1A2435] rounded-xl overflow-hidden border border-white/5 hover:border-[#D4AF37]/30 transition-all group block"
-                >
-                  <div className="relative aspect-square bg-black/20 border border-[#06080F]/45 rounded-xl shadow-[0_10px_24px_-18px_rgba(6,8,15,0.55)]">
-                    <HoverSwapImage
-                      primaryImage={product.image}
-                      secondaryImage={product.secondaryImage}
-                      alt={product.name}
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                      fitClassName="object-cover group-hover:scale-105 transition-transform duration-700"
-                    />
-                    {product.isNewArrival && (
-                      <div className="absolute top-4 left-4">
-                        <span className="bg-green-600 text-white px-3 py-1 text-[9px] font-extrabold tracking-[0.15em] uppercase rounded">
-                          NEW ARRIVAL
-                        </span>
-                      </div>
-                    )}
-                    {product.isOnSale && (
-                      <div className="absolute top-4 left-4">
-                        <SaleBadge discount={product.discount} saleType={(product as any).saleType} size="xs" />
-                      </div>
-                    )}
-                    {!product.inStock && (
-                      <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                        <span className="bg-red-600 text-white px-6 py-2 rounded-full font-bold text-sm">
-                          Out of Stock
-                        </span>
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#1A2435] via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  </div>
-
-                  <div className="p-6">
-                    <p className="text-[#D4AF37] text-[10px] tracking-[0.2em] uppercase font-bold mb-2">
-                      {product.category}
-                    </p>
-                    <h3 className="text-xl font-bold !text-white mb-3">
-                      {product.name}
-                    </h3>
-
-                    <div className="flex items-center gap-1 mb-4">
-                      {[...Array(5)].map((_, i) => (
-                        <Star
-                          key={i}
-                          size={14}
-                          className={i < (product.rating || 0) ? 'fill-[#D4AF37] text-[#D4AF37]' : 'fill-gray-600 text-gray-600'}
-                        />
-                      ))}
-                      <span className="text-[11px] text-gray-400 ml-2">
-                        ({product.reviews || 0})
-                      </span>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-3xl font-bold text-[#D4AF37]">
-                          PKR {product.price.toLocaleString()}
-                        </p>
-                        {product.originalPrice && product.originalPrice > product.price ? (
-                          <p className="text-xs text-gray-400 line-through">PKR {product.originalPrice.toLocaleString()}</p>
-                        ) : null}
-                      </div>
-                      <div className="text-xs text-gray-400 uppercase tracking-wider">
-                        View Details →
-                      </div>
-                    </div>
-                  </div>
-                </Link>
+              {paginatedProducts.map((product, index) => (
+                <ProductCard key={product.id} product={product} index={index} priority={index < 3} />
               ))}
             </div>
           )}

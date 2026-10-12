@@ -130,8 +130,8 @@ export default function ModelSlider() {
 
   return (
     <section
-      className="relative overflow-hidden"
-      style={{ background: slide.bg }}
+      className="bb-dark relative overflow-hidden"
+      style={{ background: `linear-gradient(135deg, ${slide.bg} 0%, #131018 100%)`, transition: 'background 1s ease' }}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
@@ -157,6 +157,26 @@ export default function ModelSlider() {
         className="absolute top-0 left-0 right-0 h-[1px] pointer-events-none"
         style={{ background: `linear-gradient(90deg, transparent, ${slide.accent}90, transparent)` }}
       />
+
+      {/* ── Ghost slide number ── */}
+      <AnimatePresence mode="wait">
+        <motion.span
+          key={`ghost-${slide.id}`}
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -40 }}
+          transition={{ duration: 0.8 }}
+          aria-hidden
+          className="pointer-events-none absolute -left-4 bottom-[-4rem] select-none font-serif font-black leading-none"
+          style={{
+            fontSize: 'clamp(12rem, 30vw, 28rem)',
+            color: 'transparent',
+            WebkitTextStroke: `1.5px rgba(${slide.accentRgb},0.18)`,
+          }}
+        >
+          {String(active + 1).padStart(2, '0')}
+        </motion.span>
+      </AnimatePresence>
 
       {/* ── Subtle dot-grid texture ── */}
       <div
@@ -204,7 +224,7 @@ export default function ModelSlider() {
                   {slide.headline.map((line, i) => (
                     <h2
                       key={i}
-                      className="block font-black leading-[0.95] tracking-tight"
+                      className="block font-serif font-black leading-[0.98] tracking-tight"
                       style={{
                         fontSize: 'clamp(2.6rem, 5.5vw, 5rem)',
                         color: i === slide.headline.length - 1 ? slide.accent : '#fff',
@@ -276,7 +296,13 @@ export default function ModelSlider() {
 
           {/* ════════════ RIGHT — Images ════════════ */}
           <div className="order-1 lg:order-2 relative">
-            <div className="relative h-[320px] sm:h-[430px] md:h-[560px]">
+            <motion.div
+              className="relative h-[320px] sm:h-[430px] md:h-[540px] touch-pan-y"
+              onPanEnd={(_, info) => {
+                if (info.offset.x < -60) next()
+                else if (info.offset.x > 60) prev()
+              }}
+            >
               <AnimatePresence mode="wait" custom={direction}>
                 <motion.div
                   key={slide.id + '-imgs'}
@@ -352,6 +378,26 @@ export default function ModelSlider() {
                   />
                 </motion.div>
               </AnimatePresence>
+            </motion.div>
+
+            {/* ── Thumbnails ── */}
+            <div className="mt-6 hidden items-center gap-3 sm:flex">
+              {SLIDES.map((s, i) => (
+                <button
+                  key={s.id}
+                  onClick={() => goTo(i, i > active ? 1 : -1)}
+                  aria-label={`Show slide ${i + 1}`}
+                  className="relative h-14 w-14 overflow-hidden rounded-xl transition-all duration-300"
+                  style={{
+                    opacity: i === active ? 1 : 0.45,
+                    outline: i === active ? `2px solid ${slide.accent}` : '1px solid rgba(255,255,255,0.12)',
+                    outlineOffset: '2px',
+                    transform: i === active ? 'translateY(-3px)' : 'none',
+                  }}
+                >
+                  <Image src={s.main.src} alt="" fill sizes="56px" className="object-cover" />
+                </button>
+              ))}
             </div>
 
             {/* ── Prev / Next arrows ── */}

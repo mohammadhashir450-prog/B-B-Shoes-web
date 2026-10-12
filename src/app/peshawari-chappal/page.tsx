@@ -4,7 +4,7 @@ import { useMemo } from 'react'
 import Link from 'next/link'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
-import HoverSwapImage from '@/components/common/HoverSwapImage'
+import ProductCard from '@/components/common/ProductCard'
 import { ChevronRight, Loader2 } from 'lucide-react'
 import { useProducts } from '@/context/ProductContext'
 
@@ -58,31 +58,8 @@ export default function PeshawariChappalPage() {
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {products.map((product) => (
-                <Link href={`/product/${product.id}`} key={product.id} className="group">
-                  <article className="bg-gradient-to-b from-white to-gray-100 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300">
-                    <div className="relative aspect-[4/5] overflow-hidden">
-                      <HoverSwapImage
-                        primaryImage={product.image}
-                        secondaryImage={product.secondaryImage}
-                        alt={product.name}
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        fitClassName="object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                    </div>
-                    <div className="p-5 bg-[#111827]">
-                      <p className="text-[#D4AF37] text-[10px] tracking-[0.2em] uppercase font-bold mb-2">
-                        {product.subcategory || product.category}
-                      </p>
-                      <h2 className="text-white text-lg font-bold mb-2 line-clamp-1">{product.name}</h2>
-                      <p className="text-gray-400 text-sm mb-3 line-clamp-2">{product.description || 'Authentic Peshawari Chappal.'}</p>
-                      <p className="text-[#D4AF37] text-xl font-bold">PKR {product.price.toLocaleString()}</p>
-                      {product.originalPrice && product.originalPrice > product.price ? (
-                        <p className="text-gray-500 text-xs line-through mt-1">PKR {product.originalPrice.toLocaleString()}</p>
-                      ) : null}
-                    </div>
-                  </article>
-                </Link>
+              {products.map((product, index) => (
+                <ProductCard key={product.id} product={product} index={index} priority={index < 3} />
               ))}
             </div>
           )}

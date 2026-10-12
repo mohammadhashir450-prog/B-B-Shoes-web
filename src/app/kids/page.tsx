@@ -4,7 +4,7 @@ import { useMemo, useState, useEffect } from 'react'
 import Link from 'next/link'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
-import HoverSwapImage from '@/components/common/HoverSwapImage'
+import ProductCard from '@/components/common/ProductCard'
 import { ChevronRight, Loader2, Filter } from 'lucide-react'
 import { useProducts } from '@/context/ProductContext'
 
@@ -144,40 +144,8 @@ export default function KidsPage() {
               </div>
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {paginatedProducts.map((product) => (
-                  <Link href={`/product/${product.id}`} key={product.id} className="group">
-                    <article className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl hover:shadow-[#D4AF37]/20 transition-all duration-300">
-                      <div className="relative aspect-square bg-gray-100 overflow-hidden border border-[#06080F]/45 rounded-xl shadow-[0_10px_24px_-18px_rgba(6,8,15,0.55)]">
-                        <HoverSwapImage
-                          primaryImage={product.image}
-                          secondaryImage={product.secondaryImage}
-                          alt={product.name}
-                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                          fitClassName="object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                        {!product.inStock && (
-                          <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
-                            <span className="text-white font-bold text-lg uppercase">Out of Stock</span>
-                          </div>
-                        )}
-                      </div>
-                      <div className="p-6">
-                        <h3 className="text-gray-900 font-bold text-lg mb-2">{product.name}</h3>
-                        <p className="text-gray-600 text-sm mb-4 line-clamp-2">{product.description}</p>
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-[#D4AF37] font-bold text-lg">PKR {product.price.toLocaleString()}</p>
-                            {product.originalPrice && product.originalPrice > product.price ? (
-                              <p className="text-gray-500 text-xs line-through mt-1">PKR {product.originalPrice.toLocaleString()}</p>
-                            ) : null}
-                          </div>
-                          {product.isOnSale && (
-                            <span className="bg-red-600 text-white px-3 py-1 rounded text-xs font-bold">Sale</span>
-                          )}
-                        </div>
-                      </div>
-                    </article>
-                  </Link>
+                {paginatedProducts.map((product, index) => (
+                  <ProductCard key={product.id} product={product} index={index} priority={index < 3} />
                 ))}
               </div>
             )}

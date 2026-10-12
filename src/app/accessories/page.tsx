@@ -4,7 +4,7 @@ import { useMemo, useState, useEffect } from 'react'
 import Link from 'next/link'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
-import HoverSwapImage from '@/components/common/HoverSwapImage'
+import ProductCard from '@/components/common/ProductCard'
 import { ChevronRight, Filter, Loader2 } from 'lucide-react'
 import { useProducts } from '@/context/ProductContext'
 
@@ -129,42 +129,8 @@ export default function AccessoriesPage() {
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {paginatedProducts.map((product) => (
-                <Link
-                  key={product.id}
-                  href={`/product/${product.id}`}
-                  className="group block bg-white rounded-xl overflow-hidden hover:shadow-2xl transition-all"
-                >
-                  <div className="relative aspect-square bg-gray-50 overflow-hidden">
-                    <HoverSwapImage
-                      primaryImage={product.image}
-                      secondaryImage={product.secondaryImage}
-                      alt={product.name}
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                      fitClassName="object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    {!product.inStock && (
-                      <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
-                        <span className="text-white font-bold text-sm uppercase">Out of Stock</span>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="p-4">
-                    <p className="text-gray-500 text-[10px] tracking-[0.15em] uppercase font-semibold mb-1">
-                      {product.subcategory || product.category}
-                    </p>
-                    <h3 className="text-gray-900 font-bold text-lg mb-1 line-clamp-1">{product.name}</h3>
-                    <p className="text-gray-600 text-sm mb-3 line-clamp-1">{product.description || 'Premium accessory by B&B'}</p>
-
-                    <div className="flex items-center gap-2">
-                      <span className="text-[#0B101E] font-bold text-lg">PKR {product.price.toLocaleString()}</span>
-                      {product.originalPrice && product.originalPrice > product.price ? (
-                        <span className="text-gray-400 text-sm line-through">PKR {product.originalPrice.toLocaleString()}</span>
-                      ) : null}
-                    </div>
-                  </div>
-                </Link>
+              {paginatedProducts.map((product, index) => (
+                <ProductCard key={product.id} product={product} index={index} priority={index < 3} />
               ))}
             </div>
           )}
