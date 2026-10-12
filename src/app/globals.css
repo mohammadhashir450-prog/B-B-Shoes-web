@@ -371,3 +371,324 @@ footer {
     text-wrap: balance;
   }
 }
+
+/* ==========================================================================
+   B&B Premium Storefront Layer
+   Scoped to .bb-site (every route except /admin). Visual-only; no logic.
+   ========================================================================== */
+.bb-site {
+  --bb-ivory: #fbf8f2;
+  --bb-paper: #ffffff;
+  --bb-ink: #121821;
+  --bb-ink-soft: #566070;
+  --bb-gold: #a97a18;
+  --bb-gold-bright: #d4af37;
+  --bb-line: #ece4d3;
+  --bb-shadow-sm: 0 1px 2px rgba(18, 24, 33, 0.04), 0 6px 18px -10px rgba(18, 24, 33, 0.12);
+  --bb-shadow-md: 0 2px 4px rgba(18, 24, 33, 0.04), 0 18px 40px -20px rgba(18, 24, 33, 0.22);
+  --bb-shadow-lg: 0 4px 8px rgba(18, 24, 33, 0.05), 0 32px 64px -28px rgba(18, 24, 33, 0.3);
+  --bb-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  background: var(--bb-ivory);
+  color: var(--bb-ink);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+html:has(.bb-site),
+html:has(.bb-site) body,
+html:has(.bb-site) #__next {
+  background: var(--bb-ivory) !important;
+  scroll-behavior: smooth;
+}
+
+.bb-site main,
+.bb-site section,
+.bb-site footer {
+  background-color: transparent;
+}
+
+.bb-site ::selection {
+  background: rgba(212, 175, 55, 0.35);
+  color: var(--bb-ink);
+}
+
+.bb-site :focus-visible {
+  outline: 2px solid var(--bb-gold-bright);
+  outline-offset: 3px;
+  border-radius: 8px;
+}
+
+/* ---------- Typography ---------- */
+.bb-site h1,
+.bb-site h2 {
+  font-family: var(--font-playfair), Georgia, serif;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.12;
+  color: var(--bb-ink);
+}
+
+.bb-site h3 {
+  font-family: var(--font-manrope), var(--font-inter), sans-serif;
+  letter-spacing: -0.005em;
+}
+
+.bb-site p {
+  line-height: 1.65;
+}
+
+/* Gold highlighted words inside headings read as a premium gradient */
+.bb-site h1 .text-\[\#D4AF37\],
+.bb-site h2 .text-\[\#D4AF37\] {
+  background: linear-gradient(120deg, #b8860b 0%, #e2bd52 50%, #a97a18 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent !important;
+}
+
+/* ---------- Surfaces / cards ---------- */
+.bb-site .rounded-xl,
+.bb-site .rounded-2xl,
+.bb-site .rounded-3xl {
+  box-shadow: var(--bb-shadow-sm);
+}
+
+.bb-site .bg-white,
+.bb-site .bg-\[\#1A2435\],
+.bb-site .bg-\[\#121A2F\],
+.bb-site .bg-\[\#111A2D\] {
+  background-color: var(--bb-paper) !important;
+}
+
+.bb-site .bg-gray-50,
+.bb-site .bg-gray-100 {
+  background-color: #f6f1e7 !important;
+}
+
+.bb-site a.group.block.rounded-xl,
+.bb-site a.group.block.rounded-2xl,
+.bb-site a.group.rounded-xl,
+.bb-site a.group.rounded-2xl {
+  border-color: var(--bb-line) !important;
+  box-shadow: var(--bb-shadow-sm);
+  transition: transform 0.45s var(--bb-ease), box-shadow 0.45s var(--bb-ease), border-color 0.3s ease;
+}
+
+.bb-site a.group.block.rounded-xl:hover,
+.bb-site a.group.block.rounded-2xl:hover,
+.bb-site a.group.rounded-xl:hover,
+.bb-site a.group.rounded-2xl:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--bb-shadow-lg);
+  border-color: rgba(212, 175, 55, 0.55) !important;
+}
+
+.bb-site .border-white\/5,
+.bb-site .border-white\/10,
+.bb-site .border-white\/20,
+.bb-site .border-gray-200,
+.bb-site .border-gray-100 {
+  border-color: var(--bb-line) !important;
+}
+
+/* ---------- Buttons ---------- */
+.bb-site button,
+.bb-site a[class*="rounded-full"],
+.bb-site a[class*="rounded-lg"] {
+  transition: transform 0.25s var(--bb-ease), box-shadow 0.25s var(--bb-ease),
+    background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+}
+
+.bb-site button.bg-\[\#D4AF37\],
+.bb-site a.bg-\[\#D4AF37\] {
+  background-image: linear-gradient(135deg, #e2bd52 0%, #c99a2b 55%, #a97a18 100%);
+  color: #fff !important;
+  box-shadow: 0 10px 24px -12px rgba(169, 122, 24, 0.7);
+}
+
+.bb-site button.bg-\[\#D4AF37\]:hover:not(:disabled),
+.bb-site a.bg-\[\#D4AF37\]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 30px -12px rgba(169, 122, 24, 0.75);
+}
+
+.bb-site button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.bb-site button:disabled {
+  cursor: not-allowed;
+}
+
+/* ---------- Inputs ---------- */
+.bb-site input:not([type="checkbox"]):not([type="radio"]),
+.bb-site select,
+.bb-site textarea {
+  border-radius: 12px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.bb-site input:not([type="checkbox"]):not([type="radio"]):focus,
+.bb-site select:focus,
+.bb-site textarea:focus {
+  outline: none;
+  border-color: var(--bb-gold-bright) !important;
+  box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.18);
+}
+
+/* ---------- Images ---------- */
+.bb-site img {
+  image-rendering: auto;
+}
+
+/* ---------- Navbar polish ---------- */
+.bb-site nav > div {
+  transition: background-color 0.4s ease, box-shadow 0.4s ease, border-color 0.4s ease;
+}
+
+.bb-site nav > div[class*="rounded-full"] {
+  background: rgba(255, 255, 255, 0.82) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  backdrop-filter: blur(18px) saturate(1.4);
+  border: 1px solid rgba(212, 175, 55, 0.35) !important;
+  box-shadow: 0 18px 40px -20px rgba(18, 24, 33, 0.35);
+}
+
+/* ---------- Reveal on load ---------- */
+@keyframes bbRise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.bb-site main > div > div > .grid,
+.bb-site main .text-center.mb-16,
+.bb-site main .max-w-\[1400px\] > .grid {
+  animation: bbRise 0.7s var(--bb-ease) both;
+}
+
+/* ---------- Scrollbar ---------- */
+.bb-site ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.bb-site ::-webkit-scrollbar-thumb {
+  background: #d9cdb3;
+  border-radius: 999px;
+  border: 2px solid var(--bb-ivory);
+}
+.bb-site ::-webkit-scrollbar-thumb:hover {
+  background: var(--bb-gold-bright);
+}
+
+/* ---------- Footer ---------- */
+.bb-site footer {
+  background: linear-gradient(180deg, var(--bb-ivory) 0%, #f3ecdd 100%) !important;
+  border-top: 1px solid var(--bb-line) !important;
+}
+
+@media (max-width: 640px) {
+  .bb-site h1 {
+    line-height: 1.15;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bb-site *,
+  .bb-site *::before,
+  .bb-site *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------- Storefront fixes: backdrops, product imagery, card text ---------- */
+.bb-site main.bg-\[\#0B101E\],
+.bb-site main.bg-white,
+.bb-site main[class*="min-h-screen"] {
+  background-color: var(--bb-ivory) !important;
+}
+
+.bb-site .aspect-square,
+.bb-site [class*="aspect-["] {
+  background-color: #f6f1e7 !important;
+}
+
+.bb-site [class*="border-[#06080F]"] {
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.bb-site .aspect-square {
+  border-radius: 1rem;
+  overflow: hidden;
+}
+
+/* Product titles used !text-white on a (now light) card, so they vanished. */
+.bb-site h3.\!text-white,
+.bb-site h3[class*="!text-white"] {
+  color: var(--bb-ink) !important;
+}
+
+.bb-site div.min-h-screen.bg-\[\#0B101E\],
+.bb-site div.bg-\[\#0B101E\] {
+  background-color: var(--bb-ivory) !important;
+}
+
+.bb-site .bg-black\/40,
+.bb-site .bg-black\/30,
+.bb-site .bg-black\/50 {
+  background-color: rgba(255, 255, 255, 0.85) !important;
+  border-color: var(--bb-line) !important;
+  box-shadow: var(--bb-shadow-md);
+}
+
+/* Gradient CTA buttons keep legible dark label on gold */
+.bb-site button[type="submit"].bg-gradient-to-r {
+  color: #fff !important;
+  border-radius: 14px;
+}
+.bb-site .text-emerald-300 {
+  color: #047857 !important;
+}
+
+/* Dark decorative page overlays -> soft ivory/gold glow */
+.bb-site [class*="linear-gradient(180deg,#0B101E"],
+.bb-site [class*="linear-gradient(180deg,#0B"] {
+  background: radial-gradient(circle at 12% 10%, rgba(212, 175, 55, 0.14), transparent 40%),
+    radial-gradient(circle at 90% 6%, rgba(169, 122, 24, 0.08), transparent 35%),
+    var(--bb-ivory) !important;
+}
+.bb-site [class*="from-[#1D2A42]"],
+.bb-site [class*="from-[#1E2B44]"] {
+  background-image: none !important;
+  background-color: var(--bb-paper) !important;
+  border-color: var(--bb-line) !important;
+  box-shadow: var(--bb-shadow-md);
+}
+
+/* Category landing pages: dark navy hero/feature bands -> light premium bands */
+.bb-site [class*="from-[#0B101E]"],
+.bb-site [class*="from-[#1A2435]"],
+.bb-site [class*="from-gray-800"],
+.bb-site [class*="from-[#0F1825]"] {
+  background-image: none !important;
+  background-color: var(--bb-paper) !important;
+}
+.bb-site section[class*="from-[#0B101E]"],
+.bb-site div.absolute[class*="from-[#0B101E]"] {
+  background-image: radial-gradient(circle at 15% 15%, rgba(212, 175, 55, 0.16), transparent 45%),
+    radial-gradient(circle at 85% 20%, rgba(169, 122, 24, 0.09), transparent 40%) !important;
+  background-color: var(--bb-ivory) !important;
+}
+.bb-site [class*="from-[#D4AF37]"][class*="to-[#F4CE5C]"]:not(button):not(a) {
+  background-image: linear-gradient(135deg, #e2bd52, #b8860b) !important;
+}

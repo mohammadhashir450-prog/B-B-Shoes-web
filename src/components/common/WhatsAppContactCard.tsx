@@ -35,19 +35,19 @@ export default function WhatsAppContactCard({
   const href = buildWhatsAppUrl(ADMIN_WHATSAPP_E164, finalMessage)
 
   return (
-    <div className={`rounded-2xl border border-emerald-500/25 bg-gradient-to-br from-emerald-500/10 to-[#0B101E] p-6 shadow-[0_12px_28px_-18px_rgba(16,185,129,0.35)] ${className}`}>
+    <div className={`rounded-2xl border border-emerald-500/25 bg-gradient-to-br from-emerald-50 to-white p-6 shadow-[0_12px_28px_-18px_rgba(16,185,129,0.35)] ${className}`}>
       <div className="flex items-start gap-4">
         <div className="w-12 h-12 rounded-full bg-[#25D366] text-white flex items-center justify-center flex-shrink-0 shadow-[0_0_16px_rgba(37,211,102,0.25)]">
           <WhatsAppIcon />
         </div>
 
         <div className="flex-1">
-          <p className="text-emerald-300 text-[10px] uppercase tracking-[0.22em] font-bold mb-2">WhatsApp Support</p>
+          <p className="text-emerald-700 text-[10px] uppercase tracking-[0.22em] font-bold mb-2">WhatsApp Support</p>
           <h3 className="text-white font-bold text-lg mb-2">{title}</h3>
           <p className="text-white/70 text-sm leading-relaxed mb-4">{description}</p>
 
           <div className="flex flex-wrap items-center gap-3">
-            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-white/80">
+            <span className="rounded-full border border-white/10 bg-white px-3 py-1 text-xs font-semibold text-[#18202B]">
               {numberDisplay}
             </span>
             <Link

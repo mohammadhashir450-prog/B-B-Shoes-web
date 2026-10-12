@@ -4,6 +4,7 @@ import NextAuthProvider from '@/components/providers/AuthProvider'
 import { CartProvider } from '@/context/CartContext'
 import { ProductProvider } from '@/context/ProductContext'
 import { WishlistProvider } from '@/context/WishlistContext'
+import SiteScope from '@/components/layout/SiteScope'
 import { Metadata, Viewport } from 'next'
 
 // Fonts ko Next.js standard ke mutabiq load karna
@@ -84,7 +85,7 @@ export default function RootLayout({
           <ProductProvider>
             <WishlistProvider>
               <CartProvider>
-                {children}
+                <SiteScope>{children}</SiteScope>
               </CartProvider>
             </WishlistProvider>
           </ProductProvider>
