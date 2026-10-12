@@ -14,56 +14,48 @@ const SLIDES = [
     tag: 'WOMEN',
     label: 'New Arrival',
     headline: ['Effortless', 'Elegance'],
-    sub: 'Embellished crystal-strap mules — where luxury meets everyday sophistication.',
+    sub: 'Crystal-strap mules for every occasion.',
     cta: { label: 'Shop Women', href: '/women' },
-    accent: '#C9A227',
-    accentRgb: '201,162,39',
-    bg: '#0A0806',
+    accent: '#a97a18',
+    accentRgb: '169,122,24',
     main: { src: '/slides/shoe-1.jpg', alt: 'Black crystal-embellished ladies mule on marble' },
     secondary: { src: '/slides/shoe-2.jpg', alt: 'Black ladies mule styled with clutch and perfume' },
-    objectPos: 'object-center',
   },
   {
     id: 'graceful-black',
     tag: 'MEN',
     label: 'Best Seller',
     headline: ['Bold Move,', 'Every Step'],
-    sub: 'The Graceful series — engineered performance meets streetwear edge. Lightweight, striking, relentless.',
+    sub: 'Lightweight sneakers with a street edge.',
     cta: { label: 'Shop Men', href: '/men' },
-    accent: '#8EC5FC',
-    accentRgb: '142,197,252',
-    bg: '#06090F',
+    accent: '#8a6a2c',
+    accentRgb: '138,106,44',
     main: { src: '/slides/shoe-3.jpg', alt: 'Graceful black sneaker floating side view' },
     secondary: { src: '/slides/shoe-5.jpg', alt: 'Graceful black sneaker pair top view' },
-    objectPos: 'object-center',
   },
   {
     id: 'beige-casual',
     tag: 'UNISEX',
     label: 'Trending Now',
     headline: ['Street Style,', 'Defined'],
-    sub: 'WO.LYXFSOX casual runners — premium leather build with a clean silhouette for all-day comfort.',
+    sub: 'Clean leather runners for all-day comfort.',
     cta: { label: 'Explore Collection', href: '/collections' },
-    accent: '#C9A227',
-    accentRgb: '201,162,39',
-    bg: '#080706',
+    accent: '#a97a18',
+    accentRgb: '169,122,24',
     main: { src: '/slides/shoe-6.jpg', alt: 'Beige WO.LYXFSOX sneaker on concrete block' },
     secondary: { src: '/slides/shoe-7.jpg', alt: 'Beige WO.LYXFSOX sneaker on-foot lifestyle' },
-    objectPos: 'object-center',
   },
   {
     id: 'rose-sandal',
     tag: 'WOMEN',
     label: 'Premium',
     headline: ['Dressed', 'To Dazzle'],
-    sub: 'Embellished block-heel sandals — the centrepiece of every evening look. Pure B&B luxury.',
+    sub: 'Embellished block-heel sandals.',
     cta: { label: 'Shop Ladies', href: '/women' },
-    accent: '#F0B8A0',
-    accentRgb: '240,184,160',
-    bg: '#0A0808',
+    accent: '#b0643f',
+    accentRgb: '176,100,63',
     main: { src: '/slides/shoe-8.jpg', alt: 'Rose gold block-heel sandal on marble counter' },
     secondary: { src: '/slides/shoe-1.jpg', alt: 'Black crystal mule product shot' },
-    objectPos: 'object-center',
   },
 ];
 
@@ -130,8 +122,7 @@ export default function ModelSlider() {
 
   return (
     <section
-      className="bb-dark relative overflow-hidden"
-      style={{ background: `linear-gradient(135deg, ${slide.bg} 0%, #131018 100%)`, transition: 'background 1s ease' }}
+      className="relative overflow-hidden bg-[linear-gradient(135deg,#fbf8f2_0%,#f6edd8_100%)]"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
@@ -145,8 +136,8 @@ export default function ModelSlider() {
           transition={{ duration: 1.4 }}
           className="absolute inset-0 pointer-events-none"
           style={{
-            background: `radial-gradient(ellipse 60% 55% at 75% 50%, rgba(${slide.accentRgb},0.12) 0%, transparent 70%),
-                         radial-gradient(ellipse 35% 40% at 15% 75%, rgba(${slide.accentRgb},0.06) 0%, transparent 70%)`,
+            background: `radial-gradient(ellipse 60% 55% at 75% 50%, rgba(${slide.accentRgb},0.16) 0%, transparent 70%),
+                         radial-gradient(ellipse 35% 40% at 15% 75%, rgba(${slide.accentRgb},0.08) 0%, transparent 70%)`,
           }}
         />
       </AnimatePresence>
@@ -171,7 +162,7 @@ export default function ModelSlider() {
           style={{
             fontSize: 'clamp(12rem, 30vw, 28rem)',
             color: 'transparent',
-            WebkitTextStroke: `1.5px rgba(${slide.accentRgb},0.18)`,
+            WebkitTextStroke: `1.5px rgba(${slide.accentRgb},0.2)`,
           }}
         >
           {String(active + 1).padStart(2, '0')}
@@ -180,9 +171,9 @@ export default function ModelSlider() {
 
       {/* ── Subtle dot-grid texture ── */}
       <div
-        className="absolute inset-0 pointer-events-none opacity-[0.025]"
+        className="absolute inset-0 pointer-events-none opacity-[0.07]"
         style={{
-          backgroundImage: `radial-gradient(rgba(255,255,255,0.8) 1px, transparent 1px)`,
+          backgroundImage: `radial-gradient(rgba(120,84,10,0.9) 1px, transparent 1px)`,
           backgroundSize: '32px 32px',
         }}
       />
@@ -216,7 +207,7 @@ export default function ModelSlider() {
                     {slide.tag}
                   </span>
                   <span className="h-px flex-1 max-w-[36px]" style={{ background: `linear-gradient(90deg,${slide.accent}70,transparent)` }} />
-                  <span className="text-[10px] tracking-widest text-gray-500 font-semibold uppercase">{slide.label}</span>
+                  <span className="text-[10px] tracking-widest text-[#7a8492] font-semibold uppercase">{slide.label}</span>
                 </div>
 
                 {/* Headline */}
@@ -227,7 +218,7 @@ export default function ModelSlider() {
                       className="block font-serif font-black leading-[0.98] tracking-tight"
                       style={{
                         fontSize: 'clamp(2.6rem, 5.5vw, 5rem)',
-                        color: i === slide.headline.length - 1 ? slide.accent : '#fff',
+                        color: i === slide.headline.length - 1 ? slide.accent : '#121821',
                       }}
                     >
                       {line}
@@ -238,12 +229,12 @@ export default function ModelSlider() {
                 {/* Divider */}
                 <div className="flex items-center gap-2.5">
                   <span className="w-8 h-[2px] rounded-full" style={{ background: slide.accent }} />
-                  <span className="w-2.5 h-[2px] rounded-full bg-white/15" />
-                  <span className="w-1.5 h-[2px] rounded-full bg-white/8" />
+                  <span className="w-2.5 h-[2px] rounded-full bg-black/15" />
+                  <span className="w-1.5 h-[2px] rounded-full bg-black/10" />
                 </div>
 
                 {/* Body */}
-                <p className="text-gray-400 leading-relaxed max-w-[380px]" style={{ fontSize: 'clamp(0.85rem, 1.3vw, 0.975rem)' }}>
+                <p className="leading-relaxed max-w-[380px] text-[#566070]" style={{ fontSize: 'clamp(0.95rem, 1.4vw, 1.05rem)' }}>
                   {slide.sub}
                 </p>
 
@@ -252,7 +243,7 @@ export default function ModelSlider() {
                   <Link
                     href={slide.cta.href}
                     className="group relative inline-flex items-center gap-2 px-7 py-3.5 rounded-full text-[13px] font-black tracking-wide overflow-hidden"
-                    style={{ background: slide.accent, color: slide.bg || '#06080F' }}
+                    style={{ background: slide.accent, color: '#ffffff' }}
                   >
                     <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-12" />
                     <span className="relative z-10">{slide.cta.label}</span>
@@ -260,7 +251,7 @@ export default function ModelSlider() {
                   </Link>
                   <Link
                     href="/collections"
-                    className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-gray-500 hover:text-white transition-colors"
+                    className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#566070] hover:text-[#121821] transition-colors"
                   >
                     View All <ArrowUpRight className="w-3.5 h-3.5" />
                   </Link>
@@ -275,18 +266,18 @@ export default function ModelSlider() {
                       aria-label={`Slide ${i + 1}`}
                     >
                       {i === active ? (
-                        <span className="relative block h-[3px] w-10 rounded-full overflow-hidden bg-white/10">
+                        <span className="relative block h-[3px] w-10 rounded-full overflow-hidden bg-black/10">
                           <motion.span
                             className="absolute inset-y-0 left-0 rounded-full"
                             style={{ background: slide.accent, width: `${progress}%` }}
                           />
                         </span>
                       ) : (
-                        <span className="block h-[2px] w-4 rounded-full bg-white/20 hover:bg-white/40 transition-colors" />
+                        <span className="block h-[2px] w-4 rounded-full bg-black/20 hover:bg-black/40 transition-colors" />
                       )}
                     </button>
                   ))}
-                  <span className="ml-1 text-[10px] font-bold text-gray-600 tabular-nums">
+                  <span className="ml-1 text-[10px] font-bold text-[#7a8492] tabular-nums">
                     {String(active + 1).padStart(2, '0')} / {String(SLIDES.length).padStart(2, '0')}
                   </span>
                 </div>
@@ -320,7 +311,7 @@ export default function ModelSlider() {
                     transition={t}
                     className="absolute left-0 top-0 w-[65%] h-[92%] rounded-2xl overflow-hidden"
                     style={{
-                      boxShadow: `0 32px 80px -20px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,255,255,0.05)`,
+                      boxShadow: `0 40px 80px -30px rgba(90,58,10,0.55), 0 0 0 1px rgba(255,255,255,0.8)`,
                       zIndex: 1,
                     }}
                   >
@@ -330,10 +321,10 @@ export default function ModelSlider() {
                       fill
                       priority
                       sizes="(max-width: 768px) 60vw, 420px"
-                      className={`object-cover ${slide.objectPos}`}
+                      className="object-cover object-center"
                     />
                     {/* Dark vignette at bottom */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
                     {/* Subtle brand watermark */}
                     <span
                       className="absolute bottom-3 left-3 text-[9px] font-black tracking-[0.3em] uppercase px-2 py-1 rounded-full backdrop-blur-md z-10"
@@ -350,7 +341,7 @@ export default function ModelSlider() {
                     transition={{ ...t, duration: 0.72 }}
                     className="absolute right-0 bottom-0 w-[48%] h-[74%] rounded-2xl overflow-hidden"
                     style={{
-                      boxShadow: `0 0 0 1.5px ${slide.accent}45, 0 40px 100px -20px rgba(0,0,0,0.8)`,
+                      boxShadow: `0 0 0 4px #fff, 0 40px 90px -30px rgba(90,58,10,0.6)`,
                       zIndex: 3,
                     }}
                   >
@@ -361,7 +352,7 @@ export default function ModelSlider() {
                       sizes="(max-width: 768px) 45vw, 300px"
                       className="object-cover object-center"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-tl from-black/40 via-transparent to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-tl from-black/20 via-transparent to-transparent" />
                   </motion.div>
 
                   {/* ── Glow between images ── */}
@@ -390,7 +381,7 @@ export default function ModelSlider() {
                   className="relative h-14 w-14 overflow-hidden rounded-xl transition-all duration-300"
                   style={{
                     opacity: i === active ? 1 : 0.45,
-                    outline: i === active ? `2px solid ${slide.accent}` : '1px solid rgba(255,255,255,0.12)',
+                    outline: i === active ? `2px solid ${slide.accent}` : '1px solid rgba(0,0,0,0.12)',
                     outlineOffset: '2px',
                     transform: i === active ? 'translateY(-3px)' : 'none',
                   }}
@@ -405,7 +396,7 @@ export default function ModelSlider() {
               <button
                 onClick={prev}
                 aria-label="Previous"
-                className="w-11 h-11 rounded-full border border-white/10 bg-white/5 hover:bg-white/12 text-white flex items-center justify-center transition-all backdrop-blur-md"
+                className="w-11 h-11 rounded-full border border-[#e3d6b8] bg-white hover:bg-[#fbf3de] text-[#121821] flex items-center justify-center transition-all"
               >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -414,7 +405,7 @@ export default function ModelSlider() {
               <button
                 onClick={next}
                 aria-label="Next"
-                className="w-11 h-11 rounded-full text-black flex items-center justify-center transition-all hover:scale-105 active:scale-95 shadow-lg"
+                className="w-11 h-11 rounded-full text-white flex items-center justify-center transition-all hover:scale-105 active:scale-95 shadow-lg"
                 style={{ background: slide.accent }}
               >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} className="w-5 h-5">

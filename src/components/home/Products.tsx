@@ -86,11 +86,8 @@ export default function Products() {
               </p>
             </div>
             <h2 className="text-[30px] md:text-4xl lg:text-5xl font-serif font-black text-[#18202B] leading-tight mb-2 md:mb-3">
-              The Gold Edition - Men
+              The Gold Edition
             </h2>
-            <p className="text-[#4F5A69] text-sm max-w-[420px] leading-relaxed">
-              Premium picks for the modern man, curated for style and comfort.
-            </p>
           </motion.div>
           
           {/* Subtle Navigation UI (If you expand to a slider later, these are ready) */}

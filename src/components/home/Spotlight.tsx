@@ -7,9 +7,9 @@ import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion
 import { ArrowRight, Gem, Hammer, ShieldCheck } from 'lucide-react'
 
 const POINTS = [
-  { icon: Hammer, title: 'Hand-burnished leather', text: 'Each pair is finished by hand for a rich, lived-in patina.' },
-  { icon: Gem, title: 'Solid brass hardware', text: 'Double monk buckles that stay sharp for years.' },
-  { icon: ShieldCheck, title: 'Built to last', text: 'Stitched soles and reinforced heels for all-day wear.' },
+  { icon: Hammer, title: 'Hand-burnished leather' },
+  { icon: Gem, title: 'Solid brass buckles' },
+  { icon: ShieldCheck, title: 'Built to last' },
 ]
 
 const HOTSPOTS = [
@@ -77,34 +77,27 @@ export default function Spotlight() {
           >
             <div className="mb-5 flex items-center gap-3">
               <span className="h-px w-12 bg-[#d4af37]" />
-              <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#a97a18]">The Signature Edit</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#a97a18]">Signature</p>
             </div>
             <h2 className="text-4xl font-bold leading-[1.08] text-[#121821] md:text-5xl lg:text-[3.6rem]">
-              Formal footwear with a <span className="bb-gold-text italic">quiet</span> confidence.
+              The <span className="bb-gold-text italic">Formal</span> Edit.
             </h2>
-            <p className="mt-6 max-w-[520px] text-base leading-relaxed text-[#566070]">
-              From boardroom to wedding day, our leather classics are designed to be noticed for all the right reasons —
-              refined lines, honest materials and a fit that feels right from the first step.
-            </p>
           </motion.div>
 
           <ul className="mt-9 space-y-3.5">
-            {POINTS.map(({ icon: Icon, title, text }, i) => (
+            {POINTS.map(({ icon: Icon, title }, i) => (
               <motion.li
                 key={title}
                 initial={reduce ? false : { opacity: 0, x: 30 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true, margin: '-40px' }}
                 transition={{ duration: 0.6, delay: i * 0.1 }}
-                className="flex items-start gap-4 rounded-2xl border border-[#ece4d3] bg-white/80 p-4 shadow-[0_14px_34px_-24px_rgba(18,24,33,0.4)] backdrop-blur transition-all hover:-translate-y-0.5 hover:border-[#d4af37]/50"
+                className="flex items-center gap-4 rounded-2xl border border-[#ece4d3] bg-white/80 p-4 shadow-[0_14px_34px_-24px_rgba(18,24,33,0.4)] backdrop-blur transition-all hover:-translate-y-0.5 hover:border-[#d4af37]/50"
               >
                 <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#f3dc92] to-[#c99a2b] text-white shadow-[0_10px_20px_-10px_rgba(169,122,24,0.8)]">
                   <Icon size={19} />
                 </span>
-                <span>
-                  <span className="block text-[15px] font-bold text-[#121821]">{title}</span>
-                  <span className="mt-0.5 block text-sm text-[#566070]">{text}</span>
-                </span>
+                <span className="text-[15px] font-bold text-[#121821]">{title}</span>
               </motion.li>
             ))}
           </ul>
