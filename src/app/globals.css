@@ -865,3 +865,10 @@ html:has(.bb-site) #__next {
   background-image: linear-gradient(110deg, #c99a2b 0%, #fbe8a6 45%, #d4af37 80%);
   background-size: 200% 100%;
 }
+
+/* ---------- Dark luxury spotlight (monk shoes) ---------- */
+.bb-site .bb-spotlight {
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 40%, #1a1408 0%, transparent 70%),
+    linear-gradient(180deg, #06080f 0%, #0b0c12 50%, #06080f 100%);
+}

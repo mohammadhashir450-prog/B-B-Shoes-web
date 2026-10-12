@@ -3,121 +3,201 @@
 import { useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion'
+import { motion, useInView, useMotionValue, useReducedMotion, useSpring, useTransform } from 'framer-motion'
 import { ArrowRight, Gem, Hammer, ShieldCheck } from 'lucide-react'
 
 const POINTS = [
-  { icon: Hammer, title: 'Hand-burnished leather' },
+  { icon: Hammer, title: 'Hand-burnished' },
   { icon: Gem, title: 'Solid brass buckles' },
   { icon: ShieldCheck, title: 'Built to last' },
 ]
 
 const HOTSPOTS = [
-  { left: '34%', top: '58%', label: 'Brass buckle' },
-  { left: '70%', top: '68%', label: 'Cap-toe stitching' },
-  { left: '16%', top: '46%', label: 'Soft calf lining' },
+  { left: '33%', top: '57%' },
+  { left: '69%', top: '67%' },
 ]
 
 export default function Spotlight() {
-  const ref = useRef<HTMLDivElement>(null)
+  const sectionRef = useRef<HTMLElement>(null)
+  const stageRef = useRef<HTMLDivElement>(null)
   const reduce = useReducedMotion()
-  const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] })
-  const y = useTransform(scrollYProgress, [0, 1], [40, -40])
-  const rotate = useTransform(scrollYProgress, [0, 1], [-4, 4])
+  // Replays every time the section scrolls back into view (once: false)
+  const inView = useInView(sectionRef, { amount: 0.4 })
+
+  // Mouse-driven 3D tilt
+  const mx = useMotionValue(0)
+  const my = useMotionValue(0)
+  const rotY = useSpring(useTransform(mx, [-1, 1], [-16, 16]), { stiffness: 120, damping: 14 })
+  const rotX = useSpring(useTransform(my, [-1, 1], [12, -12]), { stiffness: 120, damping: 14 })
+  const shine = useTransform(
+    mx,
+    (v) => `radial-gradient(circle at ${50 + v * 40}% 30%, rgba(255,255,255,0.55), transparent 45%)`
+  )
+
+  const onMove = (e: React.PointerEvent) => {
+    const r = stageRef.current?.getBoundingClientRect()
+    if (!r) return
+    mx.set(((e.clientX - r.left) / r.width - 0.5) * 2)
+    my.set(((e.clientY - r.top) / r.height - 0.5) * 2)
+  }
+  const onLeave = () => {
+    mx.set(0)
+    my.set(0)
+  }
+
+  const show = inView || reduce
 
   return (
-    <section ref={ref} className="relative overflow-hidden py-20 md:py-28">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_70%_60%_at_25%_50%,rgba(212,175,55,0.16),transparent_70%)]" />
+    <section ref={sectionRef} className="bb-spotlight relative overflow-hidden py-20 md:py-28">
+      {/* atmosphere */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute left-1/2 top-[44%] h-[760px] w-[760px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#d4af37]/[0.15] blur-[150px]" />
+        <div
+          className="absolute inset-0 opacity-50"
+          style={{
+            backgroundImage:
+              'linear-gradient(rgba(212,175,55,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(212,175,55,0.06) 1px, transparent 1px)',
+            backgroundSize: '72px 72px',
+            maskImage: 'radial-gradient(ellipse at 50% 46%, #000 0%, transparent 70%)',
+            WebkitMaskImage: 'radial-gradient(ellipse at 50% 46%, #000 0%, transparent 70%)',
+          }}
+        />
+        <span
+          aria-hidden
+          className="absolute left-1/2 top-[6%] -translate-x-1/2 select-none whitespace-nowrap font-serif font-black leading-none"
+          style={{
+            fontSize: 'clamp(5rem, 21vw, 21rem)',
+            color: 'transparent',
+            WebkitTextStroke: '1.5px rgba(212,175,55,0.16)',
+            letterSpacing: '-0.03em',
+          }}
+        >
+          FORMAL
+        </span>
+      </div>
 
-      <div className="relative mx-auto grid max-w-[1400px] items-center gap-12 px-5 sm:px-8 md:px-10 lg:grid-cols-2 lg:gap-20">
-        {/* Visual */}
-        <motion.div style={reduce ? undefined : { y }} className="relative mx-auto w-full max-w-[580px]">
-          <div className="absolute inset-[6%] rounded-full border border-dashed border-[#d4af37]/50 bb-orbit" />
-          <div className="absolute inset-[14%] rounded-full bg-[radial-gradient(circle,#fff6d8_0%,rgba(212,175,55,0.28)_55%,transparent_72%)]" />
+      <div className="relative z-10 mx-auto max-w-[1200px] px-5 text-center sm:px-8">
+        <motion.p
+          initial={reduce ? false : { opacity: 0, y: 20 }}
+          animate={show ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          transition={{ duration: 0.7 }}
+          className="mb-4 text-[11px] font-bold uppercase tracking-[0.5em] text-[#e2bd52]"
+        >
+          Signature
+        </motion.p>
+        <motion.h2
+          initial={reduce ? false : { opacity: 0, y: 24 }}
+          animate={show ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
+          transition={{ duration: 0.8, delay: 0.08 }}
+          className="!text-[#f8f2e4] text-[2.8rem] font-bold leading-[1] tracking-[-0.03em] sm:text-6xl md:text-7xl"
+        >
+          The <span className="bb-gold-text italic">Formal</span> Edit.
+        </motion.h2>
 
-          <motion.div style={reduce ? { aspectRatio: '1 / 1' } : { rotate, aspectRatio: '1 / 1' }} className="relative w-full">
-            <Image
-              src="/images/image.png"
-              alt="Hand-finished tan leather double monk strap shoes"
-              fill
-              sizes="(max-width: 1024px) 90vw, 580px"
-              quality={95}
-              className="object-contain mix-blend-multiply drop-shadow-[0_40px_40px_rgba(90,58,10,0.28)] [mask-image:radial-gradient(closest-side,#000_82%,transparent_100%)] [filter:contrast(1.06)_brightness(1.03)]"
-            />
-          </motion.div>
+        {/* 3D stage */}
+        <div
+          ref={stageRef}
+          onPointerMove={onMove}
+          onPointerLeave={onLeave}
+          className="relative mx-auto mt-8 w-full max-w-[720px] md:mt-10"
+          style={{ perspective: 1300 }}
+        >
+          {/* podium glow + rings */}
+          <div className="pointer-events-none absolute inset-x-[8%] bottom-[2%] h-[18%] rounded-[50%] bg-[radial-gradient(ellipse,rgba(212,175,55,0.5)_0%,transparent_70%)] blur-xl" />
+          <motion.div
+            animate={inView ? { scale: [0.6, 1.25], opacity: [0.9, 0] } : { opacity: 0 }}
+            transition={{ duration: 1.4, delay: 1.05, ease: 'easeOut' }}
+            className="pointer-events-none absolute inset-x-[4%] bottom-[4%] h-[16%] rounded-[50%] border-2 border-[#e2bd52]"
+          />
+          <div className="pointer-events-none absolute inset-x-[6%] bottom-[3%] h-[16%] rounded-[50%] border border-[#d4af37]/55 shadow-[0_0_40px_rgba(212,175,55,0.35)]" />
 
-          {HOTSPOTS.map((h, i) => (
+          {/* The shoes: drop in from above, tilt with the cursor */}
+          <motion.div
+            initial={reduce ? false : { y: -520, rotate: -14, opacity: 0 }}
+            animate={show ? { y: 0, rotate: 0, opacity: 1 } : { y: -520, rotate: -14, opacity: 0 }}
+            transition={
+              show
+                ? { type: 'spring', stiffness: 90, damping: 9, mass: 1.1, opacity: { duration: 0.25 } }
+                : { duration: 0.3 }
+            }
+            className="relative"
+          >
             <motion.div
-              key={h.label}
-              initial={reduce ? false : { opacity: 0, scale: 0.4 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.5 + i * 0.18, type: 'spring', stiffness: 220, damping: 14 }}
-              className="group absolute z-10"
-              style={{ left: h.left, top: h.top }}
+              style={reduce ? undefined : { rotateX: rotX, rotateY: rotY }}
+              className="relative"
             >
-              <span className="relative flex h-5 w-5 items-center justify-center">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#d4af37]/60" />
-                <span className="relative inline-flex h-3 w-3 rounded-full border-2 border-white bg-[#a97a18] shadow" />
-              </span>
-              <span className="pointer-events-none absolute left-7 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-full bg-white/95 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[#121821] opacity-0 shadow-lg transition-opacity duration-300 group-hover:opacity-100 max-sm:hidden">
-                {h.label}
-              </span>
+              {/* lit plate that the studio shot sits on */}
+              <div className="absolute inset-[1%] rounded-full bg-[radial-gradient(circle,#f6ebcf_0%,#e6d09a_55%,#b8923c_100%)] shadow-[0_0_90px_rgba(212,175,55,0.35),inset_0_0_50px_rgba(255,244,214,0.5)]" />
+              <div className="absolute inset-[1%] rounded-full border-2 border-[#f3dc92]/80" />
+
+              <div className="relative w-full" style={{ aspectRatio: '1 / 1' }}>
+                <Image
+                  src="/images/image.png"
+                  alt="Hand-finished tan leather double monk strap shoes"
+                  fill
+                  sizes="(max-width: 768px) 92vw, 720px"
+                  quality={95}
+                  className="scale-[1.02] object-contain mix-blend-multiply drop-shadow-[0_40px_30px_rgba(60,38,6,0.45)] [mask-image:radial-gradient(closest-side,#000_80%,transparent_97%)] [filter:contrast(1.08)_brightness(1.02)_saturate(1.08)]"
+                />
+                {/* travelling highlight */}
+                <motion.div
+                  aria-hidden
+                  className="pointer-events-none absolute inset-0 mix-blend-soft-light"
+                  style={{ background: shine }}
+                />
+              </div>
+
+              {HOTSPOTS.map((h, i) => (
+                <motion.span
+                  key={i}
+                  initial={reduce ? false : { opacity: 0, scale: 0.3 }}
+                  animate={show ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.3 }}
+                  transition={{ delay: 1.1 + i * 0.2, type: 'spring', stiffness: 220, damping: 12 }}
+                  className="absolute z-10 flex h-5 w-5 items-center justify-center"
+                  style={{ left: h.left, top: h.top }}
+                >
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#d4af37]/70" />
+                  <span className="relative inline-flex h-3 w-3 rounded-full border-2 border-white bg-[#a97a18]" />
+                </motion.span>
+              ))}
             </motion.div>
-          ))}
-        </motion.div>
-
-        {/* Copy */}
-        <div>
-          <motion.div
-            initial={reduce ? false : { opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-80px' }}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <div className="mb-5 flex items-center gap-3">
-              <span className="h-px w-12 bg-[#d4af37]" />
-              <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#a97a18]">Signature</p>
-            </div>
-            <h2 className="text-4xl font-bold leading-[1.08] text-[#121821] md:text-5xl lg:text-[3.6rem]">
-              The <span className="bb-gold-text italic">Formal</span> Edit.
-            </h2>
-          </motion.div>
-
-          <ul className="mt-9 space-y-3.5">
-            {POINTS.map(({ icon: Icon, title }, i) => (
-              <motion.li
-                key={title}
-                initial={reduce ? false : { opacity: 0, x: 30 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true, margin: '-40px' }}
-                transition={{ duration: 0.6, delay: i * 0.1 }}
-                className="flex items-center gap-4 rounded-2xl border border-[#ece4d3] bg-white/80 p-4 shadow-[0_14px_34px_-24px_rgba(18,24,33,0.4)] backdrop-blur transition-all hover:-translate-y-0.5 hover:border-[#d4af37]/50"
-              >
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#f3dc92] to-[#c99a2b] text-white shadow-[0_10px_20px_-10px_rgba(169,122,24,0.8)]">
-                  <Icon size={19} />
-                </span>
-                <span className="text-[15px] font-bold text-[#121821]">{title}</span>
-              </motion.li>
-            ))}
-          </ul>
-
-          <motion.div
-            initial={reduce ? false : { opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.3 }}
-            className="mt-10"
-          >
-            <Link
-              href="/formal"
-              className="group inline-flex items-center gap-3 rounded-full bg-[#121821] px-8 py-4 text-[12px] font-bold uppercase tracking-[0.18em] !text-white shadow-[0_18px_40px_-16px_rgba(18,24,33,0.7)] transition-transform hover:-translate-y-0.5"
-            >
-              Shop Formal
-              <ArrowRight size={15} className="transition-transform group-hover:translate-x-1" />
-            </Link>
           </motion.div>
         </div>
+
+        {/* points + CTA */}
+        <motion.ul
+          initial={reduce ? false : { opacity: 0, y: 24 }}
+          animate={show ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
+          transition={{ duration: 0.7, delay: 0.5 }}
+          className="mt-10 flex flex-wrap items-center justify-center gap-3"
+        >
+          {POINTS.map(({ icon: Icon, title }) => (
+            <li
+              key={title}
+              className="flex items-center gap-2.5 rounded-full border border-[#d4af37]/35 px-5 py-2.5 text-[11px] font-bold uppercase tracking-[0.18em] text-[#f1e6c8] backdrop-blur"
+              style={{ background: 'rgba(255,255,255,0.05)' }}
+            >
+              <Icon size={15} className="text-[#e2bd52]" />
+              {title}
+            </li>
+          ))}
+        </motion.ul>
+
+        <motion.div
+          initial={reduce ? false : { opacity: 0, y: 20 }}
+          animate={show ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          transition={{ duration: 0.7, delay: 0.65 }}
+          className="mt-9"
+        >
+          <Link
+            href="/formal"
+            className="bb-hero-cta group relative inline-flex items-center gap-3 overflow-hidden rounded-full px-10 py-4 text-[12px] font-extrabold uppercase tracking-[0.2em] !text-[#0b0c10]"
+          >
+            <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/60 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
+            <span className="relative">Shop Formal</span>
+            <ArrowRight size={15} className="relative transition-transform group-hover:translate-x-1" />
+          </Link>
+        </motion.div>
       </div>
     </section>
   )

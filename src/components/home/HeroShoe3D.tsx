@@ -155,7 +155,7 @@ export default function HeroShoe3D({ replayKey = 0, onLoaded }: Props) {
 
     const scene = new THREE.Scene()
     const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 100)
-    const camTarget = new THREE.Vector3(0, -0.25, 0)
+    const camTarget = new THREE.Vector3(0, -0.8, 0)
 
     const pmrem = new THREE.PMREMGenerator(renderer)
     const envTex = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
@@ -228,6 +228,7 @@ export default function HeroShoe3D({ replayKey = 0, onLoaded }: Props) {
     pool.rotation.x = -Math.PI / 2
     pool.position.y = 0.008
     podium.add(pool)
+    podium.scale.setScalar(1.2)
     scene.add(podium)
 
     // ── Volumetric beam from above ──
@@ -243,6 +244,7 @@ export default function HeroShoe3D({ replayKey = 0, onLoaded }: Props) {
       })
     )
     beam.position.y = FLOOR_Y + 5.5
+    beam.scale.set(1.3, 1, 1.3)
     scene.add(beam)
 
     // ── Shock rings + spark burst ──
@@ -345,7 +347,7 @@ export default function HeroShoe3D({ replayKey = 0, onLoaded }: Props) {
       const h = mount.clientHeight || 1
       renderer.setSize(w, h, false)
       camera.aspect = w / h
-      const dist = w / h < 1 ? 9.2 / Math.max(0.7, w / h) : 9.2
+      const dist = Math.max(9.2, 5.0 / (0.536 * (w / h)))
       camera.position.set(0, 0.25, dist)
       camera.lookAt(camTarget)
       camera.updateProjectionMatrix()
@@ -476,7 +478,7 @@ export default function HeroShoe3D({ replayKey = 0, onLoaded }: Props) {
         levelBox = new THREE.Box3().setFromObject(model)
         const size = levelBox.getSize(new THREE.Vector3())
         const center = levelBox.getCenter(new THREE.Vector3())
-        const s = 3.9 / (Math.max(size.x, size.y, size.z) || 1)
+        const s = 4.4 / (Math.max(size.x, size.y, size.z) || 1)
         const holder = new THREE.Group()
         holder.add(model)
         holder.scale.setScalar(s)
@@ -524,8 +526,9 @@ export default function HeroShoe3D({ replayKey = 0, onLoaded }: Props) {
       const spin = (1 - easeInOut(clamp01(t / 2.6))) * Math.PI * 1.4
       const auto = t > TIE_END ? Math.sin(time * 0.45) * 0.18 : 0
       const targetY = -0.55 + pointer.x * 0.42 + spin + dragYaw + auto
-      pivot.rotation.y += (targetY - pivot.rotation.y) * 0.1
-      pivot.rotation.x += (pointer.y * -0.14 + (1 - drop) * 0.4 - pivot.rotation.x) * 0.1
+      const k = 1 - Math.exp(-dt * 7)
+      pivot.rotation.y += (targetY - pivot.rotation.y) * k
+      pivot.rotation.x += (pointer.y * -0.14 + (1 - drop) * 0.4 - pivot.rotation.x) * k
       pivot.rotation.z = (1 - drop) * 0.3 * Math.sin(t * 5)
 
       // podium reacts to height
@@ -547,7 +550,7 @@ export default function HeroShoe3D({ replayKey = 0, onLoaded }: Props) {
         const start = i === 0 ? DROP_END * 0.62 : FLASH_AT
         const r = clamp01((t - start) / 1.2)
         ring.visible = r > 0 && r < 1
-        ring.scale.setScalar(0.7 + easeOutCubic(r) * 3.4)
+        ring.scale.setScalar((0.7 + easeOutCubic(r) * 3.4) * 1.2)
         ;(ring.material as THREE.MeshBasicMaterial).opacity = (1 - r) * (i === 0 ? 0.55 : 0.85)
       })
 
@@ -578,7 +581,7 @@ export default function HeroShoe3D({ replayKey = 0, onLoaded }: Props) {
       dp.needsUpdate = true
 
       // soft camera drift
-      camera.position.x += (pointer.x * 0.5 - camera.position.x) * 0.04
+      camera.position.x += (pointer.x * 0.5 - camera.position.x) * (1 - Math.exp(-dt * 2.5))
       camera.lookAt(camTarget)
 
       renderer.render(scene, camera)
