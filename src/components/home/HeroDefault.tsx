@@ -62,23 +62,7 @@ export default function HeroDefault() {
         <div className="bb-orbit absolute left-1/2 top-[52%] h-[min(120vw,980px)] w-[min(120vw,980px)] -translate-x-1/2 -translate-y-1/2 rounded-full border border-dashed border-[#d4af37]/20" />
       </div>
 
-      {/* Giant headline sits BEHIND the shoe */}
-      <div className="pointer-events-none absolute inset-x-0 top-[13%] z-[1] px-4 text-center md:top-[11%]">
-        <motion.p
-          {...anim(0.1)}
-          className="mb-3 text-[10px] font-bold uppercase tracking-[0.5em] text-[#e2bd52] md:mb-5 md:text-[12px]"
-        >
-          B&amp;B Signature
-        </motion.p>
-        <motion.h1
-          {...anim(0.2)}
-          className="!text-[#f8f2e4] text-[3.1rem] font-bold leading-[0.92] tracking-[-0.035em] sm:text-[5rem] md:text-[7rem] xl:text-[8.5rem]"
-        >
-          Step Into
-          <br />
-          <span className="bb-gold-text italic">Quiet Power.</span>
-        </motion.h1>
-      </div>
+      <h1 className="sr-only">B&amp;B Shoes — Premium Footwear</h1>
 
       {/* The shoe owns the WHOLE section */}
       <motion.div

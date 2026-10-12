@@ -10,9 +10,9 @@ const MODEL_URL = '/models/vans_shoe.glb'
 
 // ── Timeline (seconds) ───────────────────────────────────────────────────────
 const DROP_END = 1.7 // shoe falls + bounces, laces flapping loose
-const TIE_START = 1.55 // laces start pulling tight while shoe settles
-const TIE_END = 3.0 // fully tied
-const FLASH_AT = 3.0 // gold shock-wave + sparks
+const TIE_START = 1.95 // laces start pulling tight while shoe settles
+const TIE_END = 3.5 // fully tied
+const FLASH_AT = 3.5 // gold shock-wave + sparks
 
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v))
 const easeInOut = (t: number) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2)
@@ -107,7 +107,7 @@ function buildLaceWeights(mesh: THREE.Mesh): { weights: Float32Array; maxDim: nu
     const mx = Math.max(r, g, b)
     const mn = Math.min(r, g, b)
     // bright & neutral → white lace fabric
-    if (mx > 190 && mx - mn < 40) weights[i] = Math.min(1, (h - 0.5) * 4)
+    if (mx > 115 && mx - mn < 45) weights[i] = Math.min(1, (h - 0.5) * 4)
   }
   return { weights, maxDim }
 }
@@ -155,7 +155,7 @@ export default function HeroShoe3D({ replayKey = 0, onLoaded }: Props) {
 
     const scene = new THREE.Scene()
     const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 100)
-    const camTarget = new THREE.Vector3(0, -0.8, 0)
+    const camTarget = new THREE.Vector3(0, -0.9, 0)
 
     const pmrem = new THREE.PMREMGenerator(renderer)
     const envTex = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
@@ -228,7 +228,7 @@ export default function HeroShoe3D({ replayKey = 0, onLoaded }: Props) {
     pool.rotation.x = -Math.PI / 2
     pool.position.y = 0.008
     podium.add(pool)
-    podium.scale.setScalar(1.2)
+    podium.scale.setScalar(1.45)
     scene.add(podium)
 
     // ── Volumetric beam from above ──
@@ -328,6 +328,7 @@ export default function HeroShoe3D({ replayKey = 0, onLoaded }: Props) {
       uLoose: { value: 1 },
       uTime: { value: 0 },
       uAmp: { value: 0.05 },
+      uInv: { value: 20 },
     }
 
     const pointer = { x: 0, y: 0 }
@@ -347,7 +348,7 @@ export default function HeroShoe3D({ replayKey = 0, onLoaded }: Props) {
       const h = mount.clientHeight || 1
       renderer.setSize(w, h, false)
       camera.aspect = w / h
-      const dist = Math.max(9.2, 5.0 / (0.536 * (w / h)))
+      const dist = Math.max(9.6, 5.4 / (0.536 * (w / h)))
       camera.position.set(0, 0.25, dist)
       camera.lookAt(camTarget)
       camera.updateProjectionMatrix()
@@ -402,11 +403,13 @@ export default function HeroShoe3D({ replayKey = 0, onLoaded }: Props) {
             const lace = buildLaceWeights(mesh)
             if (lace) {
               mesh.geometry.setAttribute('aLace', new THREE.BufferAttribute(lace.weights, 1))
-              uniforms.uAmp.value = lace.maxDim * 0.06
+              uniforms.uAmp.value = lace.maxDim * 0.024
+              uniforms.uInv.value = 1 / lace.maxDim
               mat.onBeforeCompile = (shader) => {
                 shader.uniforms.uLoose = uniforms.uLoose
                 shader.uniforms.uTime = uniforms.uTime
                 shader.uniforms.uAmp = uniforms.uAmp
+                shader.uniforms.uInv = uniforms.uInv
                 shader.vertexShader = shader.vertexShader
                   .replace(
                     '#include <common>',
@@ -414,17 +417,21 @@ export default function HeroShoe3D({ replayKey = 0, onLoaded }: Props) {
                      attribute float aLace;
                      uniform float uLoose;
                      uniform float uTime;
-                     uniform float uAmp;`
+                     uniform float uAmp;
+                     uniform float uInv;`
                   )
                   .replace(
                     '#include <begin_vertex>',
                     `#include <begin_vertex>
                      float lw = aLace * uLoose;
-                     float wob = sin(uTime * 9.0 + position.x * 55.0 + position.z * 40.0);
-                     float wob2 = cos(uTime * 7.0 + position.z * 60.0);
-                     transformed += normal * lw * uAmp * (1.0 + 0.55 * wob);
-                     transformed.y += lw * uAmp * (0.9 + 0.7 * wob2);
-                     transformed.x += lw * uAmp * 0.6 * wob2;`
+                     vec3 pq = position * uInv;
+                     float wob = sin(uTime * 9.0 + pq.x * 30.0 + pq.z * 22.0);
+                     float wob2 = cos(uTime * 7.0 + pq.z * 28.0);
+                     float jit = sin(pq.z * 34.0 + 1.7);
+                     transformed += normal * lw * uAmp * (1.0 + 0.5 * wob);
+                     transformed.y += lw * uAmp * (0.9 + 0.6 * wob2);
+                     transformed.x += lw * uAmp * 0.9 * jit;
+                     transformed.z += lw * uAmp * 0.5 * cos(pq.x * 40.0 + uTime * 5.0);`
                   )
               }
               mat.needsUpdate = true
@@ -478,7 +485,7 @@ export default function HeroShoe3D({ replayKey = 0, onLoaded }: Props) {
         levelBox = new THREE.Box3().setFromObject(model)
         const size = levelBox.getSize(new THREE.Vector3())
         const center = levelBox.getCenter(new THREE.Vector3())
-        const s = 4.4 / (Math.max(size.x, size.y, size.z) || 1)
+        const s = 6.4 / (Math.max(size.x, size.y, size.z) || 1)
         const holder = new THREE.Group()
         holder.add(model)
         holder.scale.setScalar(s)
@@ -517,7 +524,7 @@ export default function HeroShoe3D({ replayKey = 0, onLoaded }: Props) {
       uniforms.uLoose.value = reduce ? 0 : 1 - tie
 
       // cinch squash as the laces pull tight
-      const pull = Math.sin(clamp01((t - 2.3) / 0.7) * Math.PI)
+      const pull = Math.sin(clamp01((t - 2.9) / 0.7) * Math.PI)
       squash.scale.set(1 + pull * 0.03, 1 - pull * 0.05, 1 + pull * 0.03)
 
       const idle = t > TIE_END ? Math.sin(time * 1.3) * 0.035 : 0
